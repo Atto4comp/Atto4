@@ -1,0 +1,1429 @@
+module.exports = {
+
+"[externals]/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js [external] (next/dist/compiled/next-server/app-page-turbo.runtime.dev.js, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("next/dist/compiled/next-server/app-page-turbo.runtime.dev.js", () => require("next/dist/compiled/next-server/app-page-turbo.runtime.dev.js"));
+
+module.exports = mod;
+}}),
+"[externals]/next/dist/server/app-render/work-async-storage.external.js [external] (next/dist/server/app-render/work-async-storage.external.js, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("next/dist/server/app-render/work-async-storage.external.js", () => require("next/dist/server/app-render/work-async-storage.external.js"));
+
+module.exports = mod;
+}}),
+"[externals]/next/dist/server/app-render/action-async-storage.external.js [external] (next/dist/server/app-render/action-async-storage.external.js, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("next/dist/server/app-render/action-async-storage.external.js", () => require("next/dist/server/app-render/action-async-storage.external.js"));
+
+module.exports = mod;
+}}),
+"[externals]/next/dist/server/app-render/work-unit-async-storage.external.js [external] (next/dist/server/app-render/work-unit-async-storage.external.js, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("next/dist/server/app-render/work-unit-async-storage.external.js", () => require("next/dist/server/app-render/work-unit-async-storage.external.js"));
+
+module.exports = mod;
+}}),
+"[project]/lib/utils.ts [app-ssr] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s({
+    "cn": ()=>cn,
+    "formatCurrency": ()=>formatCurrency,
+    "formatDate": ()=>formatDate,
+    "formatRuntime": ()=>formatRuntime,
+    "getImageUrl": ()=>getImageUrl,
+    "truncateText": ()=>truncateText
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/clsx/dist/clsx.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$tailwind$2d$merge$2f$dist$2f$bundle$2d$mjs$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/tailwind-merge/dist/bundle-mjs.mjs [app-ssr] (ecmascript)");
+;
+;
+function cn(...inputs) {
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$tailwind$2d$merge$2f$dist$2f$bundle$2d$mjs$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["twMerge"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["clsx"])(inputs));
+}
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+function formatRuntime(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+}
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+}
+function getImageUrl(path, size = 'w500') {
+    if (!path) return '/placeholder-movie.jpg';
+    return `https://image.tmdb.org/t/m/${size}${path}`;
+}
+function truncateText(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength).trim() + '...';
+}
+}),
+"[project]/components/ui/button.tsx [app-ssr] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s({
+    "Button": ()=>Button,
+    "buttonVariants": ()=>buttonVariants
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$radix$2d$ui$2f$react$2d$slot$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@radix-ui/react-slot/dist/index.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$class$2d$variance$2d$authority$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/class-variance-authority/dist/index.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/utils.ts [app-ssr] (ecmascript)");
+;
+;
+;
+;
+;
+const buttonVariants = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$class$2d$variance$2d$authority$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cva"])("inline-flex items-center justify-center rounded-xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50", {
+    variants: {
+        variant: {
+            default: "bg-white text-black hover:bg-gray-100 shadow-lg hover:shadow-xl",
+            primary: "bg-blue-500 text-white hover:bg-blue-600 shadow-lg hover:shadow-xl",
+            secondary: "bg-gray-800 text-white hover:bg-gray-700 border border-gray-700",
+            ghost: "hover:bg-white/10 text-white",
+            glass: "glass text-white hover:bg-white/10"
+        },
+        size: {
+            default: "h-12 px-6 py-2",
+            sm: "h-10 px-4",
+            lg: "h-14 px-8",
+            icon: "h-12 w-12"
+        }
+    },
+    defaultVariants: {
+        variant: "default",
+        size: "default"
+    }
+});
+const Button = /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["forwardRef"](({ className, variant, size, asChild = false, ...props }, ref)=>{
+    const Comp = asChild ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$radix$2d$ui$2f$react$2d$slot$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Slot"] : "button";
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Comp, {
+        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])(buttonVariants({
+            variant,
+            size,
+            className
+        })),
+        ref: ref,
+        ...props
+    }, void 0, false, {
+        fileName: "[project]/components/ui/button.tsx",
+        lineNumber: 41,
+        columnNumber: 7
+    }, ("TURBOPACK compile-time value", void 0));
+});
+Button.displayName = "Button";
+;
+}),
+"[externals]/util [external] (util, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("util", () => require("util"));
+
+module.exports = mod;
+}}),
+"[externals]/stream [external] (stream, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("stream", () => require("stream"));
+
+module.exports = mod;
+}}),
+"[externals]/path [external] (path, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("path", () => require("path"));
+
+module.exports = mod;
+}}),
+"[externals]/http [external] (http, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("http", () => require("http"));
+
+module.exports = mod;
+}}),
+"[externals]/https [external] (https, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("https", () => require("https"));
+
+module.exports = mod;
+}}),
+"[externals]/url [external] (url, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("url", () => require("url"));
+
+module.exports = mod;
+}}),
+"[externals]/fs [external] (fs, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("fs", () => require("fs"));
+
+module.exports = mod;
+}}),
+"[externals]/crypto [external] (crypto, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("crypto", () => require("crypto"));
+
+module.exports = mod;
+}}),
+"[externals]/assert [external] (assert, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("assert", () => require("assert"));
+
+module.exports = mod;
+}}),
+"[externals]/tty [external] (tty, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("tty", () => require("tty"));
+
+module.exports = mod;
+}}),
+"[externals]/os [external] (os, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("os", () => require("os"));
+
+module.exports = mod;
+}}),
+"[externals]/zlib [external] (zlib, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("zlib", () => require("zlib"));
+
+module.exports = mod;
+}}),
+"[externals]/events [external] (events, cjs)": ((__turbopack_context__) => {
+
+var { m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("events", () => require("events"));
+
+module.exports = mod;
+}}),
+"[project]/lib/api/tmdb.ts [app-ssr] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s({
+    "tmdbApi": ()=>tmdbApi
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/axios/lib/axios.js [app-ssr] (ecmascript)");
+;
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+const API_KEY = (("TURBOPACK compile-time value", "21cd0c00d578f346fd8a0ffefb679e24") || '').trim();
+// Warn at startup (non-fatal) so missing env doesn't crash the app on import
+if (!API_KEY) {
+    console.warn('[tmdb] WARNING: NEXT_PUBLIC_TMDB_API_KEY is not set. TMDB requests will fail until provided.');
+}
+const tmdbClient = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].create({
+    baseURL: TMDB_BASE_URL,
+    timeout: 20000,
+    headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Bradfilx/1.0'
+    }
+});
+/**
+ * Low-level request helper with retries and clear error classification.
+ */ async function request(url, params, maxRetries = 3) {
+    if (!API_KEY) {
+        throw new Error('Missing NEXT_PUBLIC_TMDB_API_KEY at runtime');
+    }
+    const requestParams = {
+        api_key: API_KEY,
+        ...params || {}
+    };
+    for(let attempt = 1; attempt <= maxRetries; attempt++){
+        try {
+            const res = await tmdbClient.get(url, {
+                params: requestParams
+            });
+            return res.data;
+        } catch (err) {
+            const isLastAttempt = attempt === maxRetries;
+            const status = err?.response?.status;
+            const statusText = err?.response?.statusText;
+            const serverMsg = err?.response?.data ? JSON.stringify(err.response.data).slice(0, 400) : '';
+            if (status === 404) {
+                throw new Error(`TMDB 404: resource not found (${url})`);
+            }
+            if (status === 401) {
+                throw new Error('TMDB 401: Invalid or unauthorized API key.');
+            }
+            const isNetworkError = !!err?.code && [
+                'ENOTFOUND',
+                'ECONNABORTED',
+                'ECONNRESET',
+                'ETIMEDOUT'
+            ].includes(err.code);
+            if (isLastAttempt) {
+                let msg = `TMDB request failed (${url})`;
+                if (status) msg += ` status=${status}${statusText ? ` ${statusText}` : ''}`;
+                if (err.message) msg += ` message=${err.message}`;
+                if (serverMsg) msg += ` server=${serverMsg}`;
+                throw new Error(msg);
+            }
+            const delayMs = Math.pow(2, attempt - 1) * 500;
+            await new Promise((resolve)=>setTimeout(resolve, delayMs));
+        }
+    }
+    throw new Error('Unexpected error in TMDB request retry loop');
+}
+const tmdbApi = {
+    async getTrending (timeWindow = 'week') {
+        try {
+            const data = await request(`/trending/movie/${timeWindow}`);
+            return data.results || [];
+        } catch (error) {
+            console.warn('[tmdbApi] getTrending failed:', error.message);
+            return [];
+        }
+    },
+    async getTVTrending (timeWindow = 'week') {
+        try {
+            const data = await request(`/trending/tv/${timeWindow}`);
+            return data.results || [];
+        } catch (error) {
+            console.warn('[tmdbApi] getTVTrending failed:', error.message);
+            return [];
+        }
+    },
+    async getPopularMovies (page = 1) {
+        try {
+            const data = await request('/movie/popular', {
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getPopularMovies failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getTopRatedMovies (page = 1) {
+        try {
+            const data = await request('/movie/top_rated', {
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getTopRatedMovies failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getUpcomingMovies (page = 1) {
+        try {
+            const data = await request('/movie/upcoming', {
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getUpcomingMovies failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getNowPlayingMovies (page = 1) {
+        try {
+            const data = await request('/movie/now_playing', {
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getNowPlayingMovies failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getPopularTVShows (page = 1) {
+        try {
+            const data = await request('/tv/popular', {
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getPopularTVShows failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getTopRatedTVShows (page = 1) {
+        try {
+            const data = await request('/tv/top_rated', {
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getTopRatedTVShows failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getOnTheAirTVShows (page = 1) {
+        try {
+            const data = await request('/tv/on_the_air', {
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getOnTheAirTVShows failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getAiringTodayTVShows (page = 1) {
+        try {
+            const data = await request('/tv/airing_today', {
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getAiringTodayTVShows failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getTVByCategory (category, page = 1) {
+        try {
+            let endpoint = '/tv/popular';
+            switch(category){
+                case 'popular':
+                    endpoint = '/tv/popular';
+                    break;
+                case 'top-rated':
+                    endpoint = '/tv/top_rated';
+                    break;
+                case 'on-the-air':
+                    endpoint = '/tv/on_the_air';
+                    break;
+                case 'airing-today':
+                    endpoint = '/tv/airing_today';
+                    break;
+                default:
+                    endpoint = '/tv/popular';
+            }
+            const data = await request(endpoint, {
+                page
+            });
+            const filteredResults = (data.results || []).filter((item)=>!!item.name && !!item.first_air_date);
+            return {
+                results: filteredResults,
+                total_pages: data.total_pages || 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getTVByCategory failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async discoverTVShows (params = {}) {
+        try {
+            const requestParams = {
+                page: params.page || 1,
+                sort_by: params.sortBy || 'popularity.desc',
+                'vote_count.gte': 10
+            };
+            if (params.genreId) requestParams.with_genres = params.genreId;
+            if (params.year) requestParams.first_air_date_year = params.year;
+            if (params.minRating) requestParams['vote_average.gte'] = params.minRating;
+            const data = await request('/discover/tv', requestParams);
+            const filteredResults = (data.results || []).filter((show)=>!!show.name && !!show.first_air_date);
+            return {
+                results: filteredResults,
+                total_pages: data.total_pages || 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] discoverTVShows failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getLatestReleases (mediaType = 'movie', page = 1, genreId) {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const params = {
+                sort_by: mediaType === 'tv' ? 'first_air_date.desc' : 'release_date.desc',
+                page,
+                'vote_count.gte': 10
+            };
+            if (mediaType === 'movie') params['release_date.lte'] = today;
+            if (mediaType === 'tv') params['first_air_date.lte'] = today;
+            if (genreId) params.with_genres = genreId;
+            const data = await request(`/discover/${mediaType}`, params);
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getLatestReleases failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async searchMulti (query, params) {
+        try {
+            const data = await request('/search/multi', {
+                query,
+                ...params || {}
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] searchMulti failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async searchMovies (query, page = 1) {
+        try {
+            const data = await request('/search/movie', {
+                query,
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] searchMovies failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async searchTVShows (query, page = 1) {
+        try {
+            const data = await request('/search/tv', {
+                query,
+                page
+            });
+            const filteredResults = (data.results || []).filter((show)=>!!show.name && !!show.first_air_date);
+            return {
+                results: filteredResults,
+                total_pages: data.total_pages || 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] searchTVShows failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getMovieDetails (id) {
+        try {
+            const data = await request(`/movie/${id}`, {
+                append_to_response: 'credits,videos,similar,recommendations'
+            });
+            return data || null;
+        } catch (error) {
+            console.warn('[tmdbApi] getMovieDetails failed:', error.message);
+            return null;
+        }
+    },
+    async getTVShowDetails (id) {
+        try {
+            const data = await request(`/tv/${id}`, {
+                append_to_response: 'credits,videos,similar,recommendations'
+            });
+            return data || null;
+        } catch (error) {
+            console.warn('[tmdbApi] getTVShowDetails failed:', error.message);
+            return null;
+        }
+    },
+    // NEW METHOD: Get detailed season information with episodes
+    async getTVSeasonDetails (tvId, seasonNumber) {
+        try {
+            const data = await request(`/tv/${tvId}/season/${seasonNumber}`, {
+                language: 'en-US'
+            });
+            return data || null;
+        } catch (error) {
+            console.warn(`[tmdbApi] getTVSeasonDetails failed for TV ${tvId} season ${seasonNumber}:`, error.message);
+            return null;
+        }
+    },
+    // NEW METHOD: Get specific episode details
+    async getTVEpisodeDetails (tvId, seasonNumber, episodeNumber) {
+        try {
+            const data = await request(`/tv/${tvId}/season/${seasonNumber}/episode/${episodeNumber}`, {
+                language: 'en-US'
+            });
+            return data || null;
+        } catch (error) {
+            console.warn(`[tmdbApi] getTVEpisodeDetails failed for TV ${tvId} S${seasonNumber}E${episodeNumber}:`, error.message);
+            return null;
+        }
+    },
+    async getMovieGenres () {
+        try {
+            const data = await request('/genre/movie/list');
+            return data.genres || [];
+        } catch (error) {
+            console.warn('[tmdbApi] getMovieGenres failed:', error.message);
+            return [];
+        }
+    },
+    async getTVGenres () {
+        try {
+            const data = await request('/genre/tv/list');
+            return data.genres || [];
+        } catch (error) {
+            console.warn('[tmdbApi] getTVGenres failed:', error.message);
+            return [];
+        }
+    },
+    async getAllGenres () {
+        try {
+            const [movieGenres, tvGenres] = await Promise.all([
+                this.getMovieGenres(),
+                this.getTVGenres()
+            ]);
+            return {
+                movieGenres,
+                tvGenres
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getAllGenres failed:', error.message);
+            return {
+                movieGenres: [],
+                tvGenres: []
+            };
+        }
+    },
+    async getMoviesByGenre (genreId, page = 1) {
+        try {
+            const data = await request('/discover/movie', {
+                with_genres: genreId,
+                page
+            });
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] getMoviesByGenre failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async getTVShowsByGenre (genreId, page = 1) {
+        try {
+            return await this.discoverTVShows({
+                page,
+                genreId,
+                sortBy: 'popularity.desc'
+            });
+        } catch (error) {
+            console.warn('[tmdbApi] getTVShowsByGenre failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async discover (mediaType, sortBy = 'popularity.desc', page = 1, genreId) {
+        try {
+            const params = {
+                sort_by: sortBy,
+                page
+            };
+            if (genreId) params.with_genres = genreId;
+            const data = await request(`/discover/${mediaType}`, params);
+            return data || {
+                results: [],
+                total_pages: 0
+            };
+        } catch (error) {
+            console.warn('[tmdbApi] discover failed:', error.message);
+            return {
+                results: [],
+                total_pages: 0
+            };
+        }
+    },
+    async testConnection () {
+        try {
+            const data = await request('/configuration');
+            if (data && data.images) {
+                return {
+                    success: true,
+                    message: 'Connected successfully to TMDB API'
+                };
+            }
+            return {
+                success: false,
+                message: 'Unexpected response from TMDB configuration'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message || 'Unknown connection error'
+            };
+        }
+    },
+    /* -----------------------------------------------------------
+   *  Unified helper so components never guess the media type.
+   *  Usage: await tmdbApi.getDetails(id, 'movie' | 'tv')
+   * ----------------------------------------------------------*/ async getDetails (id, type) {
+        return type === 'movie' ? this.getMovieDetails(id) : this.getTVShowDetails(id);
+    }
+};
+}),
+"[project]/components/common/SearchBar.tsx [app-ssr] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s({
+    "default": ()=>SearchBar
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$search$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Search$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/search.js [app-ssr] (ecmascript) <export default as Search>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/x.js [app-ssr] (ecmascript) <export default as X>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2f$tmdb$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/api/tmdb.ts [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/button.tsx [app-ssr] (ecmascript)");
+'use client';
+;
+;
+;
+;
+;
+;
+;
+;
+function SearchBar({ onClose }) {
+    const [query, setQuery] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [results, setResults] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [showResults, setShowResults] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const inputRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        inputRef.current?.focus();
+    }, []);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const searchTimeout = setTimeout(async ()=>{
+            if (query.trim().length > 2) {
+                setIsLoading(true);
+                try {
+                    const searchResults = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2f$tmdb$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["tmdbApi"].searchMulti(query);
+                    setResults(searchResults.results?.slice(0, 8) || []);
+                    setShowResults(true);
+                } catch (error) {
+                    console.error('Search error:', error);
+                    setResults([]);
+                } finally{
+                    setIsLoading(false);
+                }
+            } else {
+                setResults([]);
+                setShowResults(false);
+            }
+        }, 300);
+        return ()=>clearTimeout(searchTimeout);
+    }, [
+        query
+    ]);
+    const handleSearch = (e)=>{
+        e.preventDefault();
+        if (query.trim()) {
+            router.push(`/search?q=${encodeURIComponent(query)}`);
+            onClose?.();
+        }
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: "relative w-full max-w-2xl mx-auto",
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
+                onSubmit: handleSearch,
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "relative",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$search$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Search$3e$__["Search"], {
+                            className: "absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"
+                        }, void 0, false, {
+                            fileName: "[project]/components/common/SearchBar.tsx",
+                            lineNumber: 62,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                            ref: inputRef,
+                            type: "text",
+                            placeholder: "Search movies, TV shows...",
+                            value: query,
+                            onChange: (e)=>setQuery(e.target.value),
+                            className: "w-full bg-gray-900/80 border border-gray-700 rounded-full pl-12 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        }, void 0, false, {
+                            fileName: "[project]/components/common/SearchBar.tsx",
+                            lineNumber: 63,
+                            columnNumber: 11
+                        }, this),
+                        onClose && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                            type: "button",
+                            variant: "ghost",
+                            size: "icon",
+                            className: "absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white",
+                            onClick: onClose,
+                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__["X"], {
+                                className: "h-5 w-5"
+                            }, void 0, false, {
+                                fileName: "[project]/components/common/SearchBar.tsx",
+                                lineNumber: 79,
+                                columnNumber: 15
+                            }, this)
+                        }, void 0, false, {
+                            fileName: "[project]/components/common/SearchBar.tsx",
+                            lineNumber: 72,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/components/common/SearchBar.tsx",
+                    lineNumber: 61,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/common/SearchBar.tsx",
+                lineNumber: 60,
+                columnNumber: 7
+            }, this),
+            showResults && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "absolute top-full left-0 right-0 mt-2 bg-gray-900/95 backdrop-blur-lg border border-gray-700 rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto",
+                children: isLoading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "p-4 text-center text-gray-400",
+                    children: "Searching..."
+                }, void 0, false, {
+                    fileName: "[project]/components/common/SearchBar.tsx",
+                    lineNumber: 89,
+                    columnNumber: 13
+                }, this) : results.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "py-2",
+                    children: results.map((item)=>{
+                        // Safe image URL building that matches next.config.ts
+                        const posterUrl = item.poster_path ? `https://image.tmdb.org/t/p/w92${item.poster_path}` : '/placeholder-movie.jpg';
+                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                            href: `/${item.media_type}/${item.id}`,
+                            className: "flex items-center space-x-3 px-4 py-3 hover:bg-gray-800/50 transition-colors",
+                            onClick: onClose,
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "w-12 h-16 relative flex-shrink-0 bg-gray-800 rounded overflow-hidden",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                        src: posterUrl,
+                                        alt: item.title || item.name || 'Movie poster',
+                                        fill: true,
+                                        className: "object-cover",
+                                        sizes: "48px",
+                                        onError: (e)=>{
+                                            // Fallback to placeholder on error
+                                            e.currentTarget.src = '/placeholder-movie.jpg';
+                                        }
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/common/SearchBar.tsx",
+                                        lineNumber: 108,
+                                        columnNumber: 23
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/components/common/SearchBar.tsx",
+                                    lineNumber: 107,
+                                    columnNumber: 21
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex-1 min-w-0",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                            className: "text-white font-medium truncate",
+                                            children: item.title || item.name
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/common/SearchBar.tsx",
+                                            lineNumber: 121,
+                                            columnNumber: 23
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                            className: "text-gray-400 text-sm",
+                                            children: [
+                                                item.media_type === 'movie' ? 'Movie' : 'TV Show',
+                                                " • ",
+                                                ' ',
+                                                item.release_date || item.first_air_date ? new Date(item.release_date || item.first_air_date).getFullYear() : 'N/A'
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/components/common/SearchBar.tsx",
+                                            lineNumber: 124,
+                                            columnNumber: 23
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/components/common/SearchBar.tsx",
+                                    lineNumber: 120,
+                                    columnNumber: 21
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "text-yellow-400 text-sm flex items-center",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            className: "text-yellow-400 mr-1",
+                                            children: "★"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/common/SearchBar.tsx",
+                                            lineNumber: 133,
+                                            columnNumber: 23
+                                        }, this),
+                                        item.vote_average?.toFixed(1) || 'N/A'
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/components/common/SearchBar.tsx",
+                                    lineNumber: 132,
+                                    columnNumber: 21
+                                }, this)
+                            ]
+                        }, item.id, true, {
+                            fileName: "[project]/components/common/SearchBar.tsx",
+                            lineNumber: 101,
+                            columnNumber: 19
+                        }, this);
+                    })
+                }, void 0, false, {
+                    fileName: "[project]/components/common/SearchBar.tsx",
+                    lineNumber: 93,
+                    columnNumber: 13
+                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "p-4 text-center text-gray-400",
+                    children: "No results found"
+                }, void 0, false, {
+                    fileName: "[project]/components/common/SearchBar.tsx",
+                    lineNumber: 141,
+                    columnNumber: 13
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/common/SearchBar.tsx",
+                lineNumber: 87,
+                columnNumber: 9
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/components/common/SearchBar.tsx",
+        lineNumber: 59,
+        columnNumber: 5
+    }, this);
+}
+}),
+"[project]/components/layout/Header.tsx [app-ssr] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s({
+    "default": ()=>Header
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/styled-jsx/style.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/image.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$search$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Search$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/search.js [app-ssr] (ecmascript) <export default as Search>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$menu$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Menu$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/menu.js [app-ssr] (ecmascript) <export default as Menu>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/user.js [app-ssr] (ecmascript) <export default as User>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$house$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Home$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/house.js [app-ssr] (ecmascript) <export default as Home>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$film$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Film$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/film.js [app-ssr] (ecmascript) <export default as Film>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$tv$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Tv$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/tv.js [app-ssr] (ecmascript) <export default as Tv>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$grid$2d$3x3$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Grid3X3$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/grid-3x3.js [app-ssr] (ecmascript) <export default as Grid3X3>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/x.js [app-ssr] (ecmascript) <export default as X>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/button.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$common$2f$SearchBar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/common/SearchBar.tsx [app-ssr] (ecmascript)");
+'use client';
+;
+;
+;
+;
+;
+;
+;
+;
+;
+const navigationItems = [
+    {
+        href: '/',
+        label: 'Home',
+        icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$house$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Home$3e$__["Home"]
+    },
+    {
+        href: '/movies',
+        label: 'Movies',
+        icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$film$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Film$3e$__["Film"]
+    },
+    {
+        href: '/tvshows',
+        label: 'TV Shows',
+        icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$tv$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Tv$3e$__["Tv"]
+    },
+    {
+        href: '/genres',
+        label: 'Genres',
+        icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$grid$2d$3x3$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Grid3X3$3e$__["Grid3X3"]
+    }
+];
+function Header() {
+    const [isSearchOpen, setIsSearchOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [scrolled, setScrolled] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
+    const pathname = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["usePathname"])();
+    // Handle scroll effect for glass UI
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const handleScroll = ()=>{
+            setScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return ()=>window.removeEventListener('scroll', handleScroll);
+    }, []);
+    // Close menus on route change
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        setIsMobileMenuOpen(false);
+        setIsSearchOpen(false);
+    }, [
+        pathname
+    ]);
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
+                className: "jsx-47cecc3e4d628a40" + " " + `fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${scrolled ? 'backdrop-blur-xl bg-black/80 shadow-2xl border-b border-white/10' : 'backdrop-blur-sm bg-black/20 border-b border-white/5'}`,
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "jsx-47cecc3e4d628a40" + " " + "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "jsx-47cecc3e4d628a40" + " " + "flex items-center justify-between h-16",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                href: "/",
+                                className: "flex items-center space-x-3 group",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "jsx-47cecc3e4d628a40" + " " + `relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden transition-all duration-300 ${scrolled ? 'bg-white/10 backdrop-blur-sm shadow-lg border border-white/20' : 'bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm'} p-1 transform hover:scale-110 hover:rotate-2`,
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "jsx-47cecc3e4d628a40" + " " + "w-full h-full rounded-lg overflow-hidden",
+                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                src: "/logo.png",
+                                                alt: "Atto4 Logo",
+                                                fill: true,
+                                                className: "object-cover",
+                                                priority: true
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/layout/Header.tsx",
+                                                lineNumber: 65,
+                                                columnNumber: 19
+                                            }, this)
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/layout/Header.tsx",
+                                            lineNumber: 64,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/layout/Header.tsx",
+                                        lineNumber: 57,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: "jsx-47cecc3e4d628a40" + " " + `text-xl sm:text-2xl font-bold transition-all duration-300 transform hover:scale-105 ${scrolled ? 'text-white drop-shadow-lg' : 'text-white/90'}`,
+                                        children: "Atto4"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/layout/Header.tsx",
+                                        lineNumber: 74,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/components/layout/Header.tsx",
+                                lineNumber: 56,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
+                                className: "jsx-47cecc3e4d628a40" + " " + "hidden md:flex items-center space-x-2",
+                                children: navigationItems.map((item)=>{
+                                    const Icon = item.icon;
+                                    const isActive = pathname === item.href;
+                                    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "jsx-47cecc3e4d628a40" + " " + "relative",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                href: item.href,
+                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "jsx-47cecc3e4d628a40" + " " + `flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg ${isActive ? 'text-blue-400 bg-blue-500/20 backdrop-blur-md shadow-lg border border-blue-400/30' : scrolled ? 'text-white hover:text-blue-300 hover:bg-white/10 backdrop-blur-sm border border-transparent hover:border-white/20' : 'text-white/80 hover:text-blue-300 hover:bg-white/5 backdrop-blur-sm'}`,
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Icon, {
+                                                            className: "jsx-47cecc3e4d628a40" + " " + "w-4 h-4"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/components/layout/Header.tsx",
+                                                            lineNumber: 101,
+                                                            columnNumber: 25
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "jsx-47cecc3e4d628a40",
+                                                            children: item.label
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/components/layout/Header.tsx",
+                                                            lineNumber: 102,
+                                                            columnNumber: 25
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/components/layout/Header.tsx",
+                                                    lineNumber: 92,
+                                                    columnNumber: 23
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/layout/Header.tsx",
+                                                lineNumber: 91,
+                                                columnNumber: 21
+                                            }, this),
+                                            isActive && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "jsx-47cecc3e4d628a40" + " " + "absolute -bottom-1 left-4 right-4 h-0.5 bg-blue-400 rounded-full shadow-lg shadow-blue-400/50"
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/layout/Header.tsx",
+                                                lineNumber: 108,
+                                                columnNumber: 23
+                                            }, this)
+                                        ]
+                                    }, item.href, true, {
+                                        fileName: "[project]/components/layout/Header.tsx",
+                                        lineNumber: 90,
+                                        columnNumber: 19
+                                    }, this);
+                                })
+                            }, void 0, false, {
+                                fileName: "[project]/components/layout/Header.tsx",
+                                lineNumber: 84,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "jsx-47cecc3e4d628a40" + " " + "flex items-center space-x-2",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                                        variant: "ghost",
+                                        size: "icon",
+                                        onClick: ()=>setIsSearchOpen(!isSearchOpen),
+                                        className: `rounded-xl transition-all duration-300 transform hover:scale-110 ${isSearchOpen ? 'bg-blue-500/20 text-blue-400 backdrop-blur-md shadow-lg border border-blue-400/30' : scrolled ? 'text-white hover:bg-white/10 backdrop-blur-sm border border-transparent hover:border-white/20' : 'text-white/80 hover:bg-white/5 backdrop-blur-sm hover:text-white'}`,
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$search$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Search$3e$__["Search"], {
+                                            className: "h-5 w-5"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/layout/Header.tsx",
+                                            lineNumber: 130,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/layout/Header.tsx",
+                                        lineNumber: 118,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                                        variant: "ghost",
+                                        size: "icon",
+                                        onClick: ()=>router.push('/login'),
+                                        className: `rounded-xl transition-all duration-300 transform hover:scale-110 ${scrolled ? 'text-white hover:bg-white/10 backdrop-blur-sm border border-transparent hover:border-white/20' : 'text-white/80 hover:bg-white/5 backdrop-blur-sm hover:text-white'}`,
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__["User"], {
+                                            className: "h-5 w-5"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/layout/Header.tsx",
+                                            lineNumber: 144,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/layout/Header.tsx",
+                                        lineNumber: 134,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                                        variant: "ghost",
+                                        size: "icon",
+                                        className: `md:hidden rounded-xl transition-all duration-300 transform hover:scale-110 ${isMobileMenuOpen ? 'bg-white/10 backdrop-blur-md rotate-90 shadow-lg border border-white/20' : scrolled ? 'text-white hover:bg-white/10 backdrop-blur-sm border border-transparent hover:border-white/20' : 'text-white/80 hover:bg-white/5 backdrop-blur-sm hover:text-white'}`,
+                                        onClick: ()=>setIsMobileMenuOpen(!isMobileMenuOpen),
+                                        children: isMobileMenuOpen ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__["X"], {
+                                            className: "h-5 w-5"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/layout/Header.tsx",
+                                            lineNumber: 161,
+                                            columnNumber: 19
+                                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$menu$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Menu$3e$__["Menu"], {
+                                            className: "h-5 w-5"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/layout/Header.tsx",
+                                            lineNumber: 163,
+                                            columnNumber: 19
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/layout/Header.tsx",
+                                        lineNumber: 148,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/components/layout/Header.tsx",
+                                lineNumber: 116,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/components/layout/Header.tsx",
+                        lineNumber: 53,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/components/layout/Header.tsx",
+                    lineNumber: 52,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/layout/Header.tsx",
+                lineNumber: 45,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "jsx-47cecc3e4d628a40" + " " + `fixed top-16 left-0 right-0 z-40 transition-all duration-300 ${isSearchOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'}`,
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "jsx-47cecc3e4d628a40" + " " + "backdrop-blur-2xl bg-black/90 border-b border-white/10 shadow-2xl",
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "jsx-47cecc3e4d628a40" + " " + "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6",
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$common$2f$SearchBar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                            onClose: ()=>setIsSearchOpen(false)
+                        }, void 0, false, {
+                            fileName: "[project]/components/layout/Header.tsx",
+                            lineNumber: 181,
+                            columnNumber: 13
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/components/layout/Header.tsx",
+                        lineNumber: 180,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/components/layout/Header.tsx",
+                    lineNumber: 179,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/layout/Header.tsx",
+                lineNumber: 172,
+                columnNumber: 7
+            }, this),
+            isMobileMenuOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        onClick: ()=>setIsMobileMenuOpen(false),
+                        style: {
+                            animation: 'fadeIn 0.3s ease-out forwards'
+                        },
+                        className: "jsx-47cecc3e4d628a40" + " " + "fixed inset-0 z-30 backdrop-blur-sm bg-black/50 md:hidden"
+                    }, void 0, false, {
+                        fileName: "[project]/components/layout/Header.tsx",
+                        lineNumber: 190,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            animation: 'slideInRight 0.3s ease-out forwards'
+                        },
+                        className: "jsx-47cecc3e4d628a40" + " " + "fixed top-16 right-0 bottom-0 z-40 w-80 max-w-[85vw] backdrop-blur-2xl bg-black/90 border-l border-white/10 shadow-2xl md:hidden",
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "jsx-47cecc3e4d628a40" + " " + "p-6 space-y-6",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
+                                    className: "jsx-47cecc3e4d628a40" + " " + "space-y-1",
+                                    children: navigationItems.map((item, index)=>{
+                                        const Icon = item.icon;
+                                        const isActive = pathname === item.href;
+                                        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                            href: item.href,
+                                            className: `flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${isActive ? 'text-blue-400 bg-blue-500/20 backdrop-blur-md shadow-lg border border-blue-400/30' : 'text-white hover:text-blue-300 hover:bg-white/10 backdrop-blur-sm border border-transparent hover:border-white/20'}`,
+                                            onClick: ()=>setIsMobileMenuOpen(false),
+                                            style: {
+                                                animationDelay: `${index * 0.1}s`,
+                                                animation: 'slideInRight 0.3s ease-out forwards'
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Icon, {
+                                                    className: "jsx-47cecc3e4d628a40" + " " + "w-5 h-5"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/layout/Header.tsx",
+                                                    lineNumber: 222,
+                                                    columnNumber: 23
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    className: "jsx-47cecc3e4d628a40",
+                                                    children: item.label
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/layout/Header.tsx",
+                                                    lineNumber: 223,
+                                                    columnNumber: 23
+                                                }, this)
+                                            ]
+                                        }, item.href, true, {
+                                            fileName: "[project]/components/layout/Header.tsx",
+                                            lineNumber: 208,
+                                            columnNumber: 21
+                                        }, this);
+                                    })
+                                }, void 0, false, {
+                                    fileName: "[project]/components/layout/Header.tsx",
+                                    lineNumber: 202,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "jsx-47cecc3e4d628a40" + " " + "pt-4 border-t border-white/10",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        onClick: ()=>{
+                                            router.push('/login');
+                                            setIsMobileMenuOpen(false);
+                                        },
+                                        style: {
+                                            animationDelay: '0.4s',
+                                            animation: 'slideInRight 0.3s ease-out forwards'
+                                        },
+                                        className: "jsx-47cecc3e4d628a40" + " " + "flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-medium text-white hover:text-blue-300 hover:bg-white/10 backdrop-blur-sm border border-transparent hover:border-white/20 transition-all duration-200",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$user$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__User$3e$__["User"], {
+                                                className: "w-5 h-5"
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/layout/Header.tsx",
+                                                lineNumber: 242,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                className: "jsx-47cecc3e4d628a40",
+                                                children: "Login"
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/layout/Header.tsx",
+                                                lineNumber: 243,
+                                                columnNumber: 19
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/components/layout/Header.tsx",
+                                        lineNumber: 231,
+                                        columnNumber: 17
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/components/layout/Header.tsx",
+                                    lineNumber: 230,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/components/layout/Header.tsx",
+                            lineNumber: 201,
+                            columnNumber: 13
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/components/layout/Header.tsx",
+                        lineNumber: 197,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                id: "47cecc3e4d628a40",
+                children: "@keyframes fadeIn{0%{opacity:0}to{opacity:1}}@keyframes slideInRight{0%{opacity:0;transform:translate(100%)}to{opacity:1;transform:translate(0)}}"
+            }, void 0, false, void 0, this)
+        ]
+    }, void 0, true);
+}
+}),
+
+};
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__33950fdd._.js.map
