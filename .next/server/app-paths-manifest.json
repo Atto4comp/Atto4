@@ -1,11 +1,4 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/check-embed/route": "app/api/check-embed/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/genres/page": "app/genres/page.js",
-  "/login/page": "app/login/page.js",
-  "/movies/page": "app/movies/page.js",
-  "/page": "app/page.js",
-  "/tvshows/page": "app/tvshows/page.js",
-  "/watch/[mediatype]/[id]/page": "app/watch/[mediatype]/[id]/page.js"
+  "/page": "app/page.js"
 }
