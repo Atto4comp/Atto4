@@ -233,284 +233,106 @@ body {
 
 /* Previous CSS remains unchanged until mobile section... */
 
-/* ============================================
-   ✅ FIXED MOBILE SLIDE-DOWN MENU
-   ============================================ */
-
-/* Mobile Menu Overlay - Covers full viewport to prevent clipping */
-.mobile-phantom {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 45; /* Below header (z-50) but above content */
-  display: block;
-  pointer-events: none;
-}
-
-@media (min-width: 768px) { 
-  .mobile-phantom { display: none; } 
-}
-
-/* Backdrop - Starts below header visually */
-.mobile-backdrop-ghost {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
-  opacity: 0;
-  animation: backdropFadeIn 0.25s ease forwards;
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-/* Glass Panel - Slides down from top */
-.mobile-menu-ghost {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  max-height: calc(100vh - 24px);
-  overflow: hidden;
-  pointer-events: auto;
-  transform: translateY(-100%);
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.mobile-menu-ghost.mobile-menu-open {
-  transform: translateY(0);
-}
-
-/* Inner container with safe area support */
-.mobile-menu-inner {
-  background: rgba(17, 24, 39, 0.92);
-  backdrop-filter: blur(16px) saturate(120%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: none;
-  border-radius: 0 0 20px 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  
-  /* Safe area support - starts below header + notch */
-  padding-top: calc(64px + env(safe-area-inset-top, 20px));
-  padding-left: env(safe-area-inset-left, 0);
-  padding-right: env(safe-area-inset-right, 0);
-  
-  max-height: calc(100vh - 24px);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Header Section */
-.mobile-header-ghost {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(147, 51, 234, 0.03) 100%);
-}
-
-.mobile-brand-logo {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
-  border-radius: 10px;
+/* Minimalistic menu link styles */
+.mobile-nav-link {
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
-}
-
-.mobile-brand-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
-  line-height: 1;
-}
-
-.mobile-brand-subtitle {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 2px;
-  line-height: 1;
-}
-
-.mobile-close-ghost {
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.06);
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mobile-nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.mobile-nav-link.active {
+  background: rgba(0, 122, 255, 0.2);
+  border: 1px solid rgba(0, 122, 255, 0.3);
+  color: #007aff;
+  box-shadow: 0 0 15px rgba(0, 122, 255, 0.2);
+}
+
+/* Subtle backdrop for mobile menu */
+.mobile-backdrop-minimal {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Clean close button */
+.close-btn-minimal {
+  background: none;
+  border: none;
   color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
   transition: all 0.2s ease;
 }
 
-.mobile-close-ghost:hover {
-  background: rgba(255, 255, 255, 0.12);
+.close-btn-minimal:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Compact backdrop blur for mobile menu */
+.mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Simplified close button styles */
+.mobile-close-btn {
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.mobile-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   color: white;
   transform: scale(1.05);
 }
 
-/* Navigation Section */
-.mobile-nav-ghost {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.mobile-item-ghost {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 18px;
-  border-radius: 14px;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-  position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  
-  /* Slide-in animation */
-  opacity: 0;
-  transform: translateX(-20px);
-  animation: slideInLeft 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-.mobile-inactive:hover {
+/* Compact quick actions */
+.quick-action-btn {
+  padding: 0.5rem;
+  border-radius: 0.375rem;
   background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(4px);
-}
-
-.mobile-active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 100%);
-  border-color: rgba(59, 130, 246, 0.25);
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12);
-}
-
-.mobile-icon-wrapper {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.mobile-icon-inactive {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.mobile-icon-active {
-  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
-.mobile-text-ghost {
-  font-size: 15px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
-  line-height: 1.2;
-}
-
-.mobile-text-subtitle {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 2px;
-  line-height: 1;
-}
-
-.mobile-active-indicator {
-  position: absolute;
-  top: 50%;
-  right: 18px;
-  transform: translateY(-50%);
-  width: 6px;
-  height: 6px;
-  background: #3b82f6;
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
-}
-
-/* Footer Section */
-.mobile-footer-ghost {
-  padding: 16px 20px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.mobile-cta-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.mobile-cta-primary {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 20px;
-  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-}
-
-.mobile-cta-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-}
-
-.mobile-cta-secondary {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.mobile-cta-secondary:hover {
+.quick-action-btn:hover {
   background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #007aff;
   transform: translateY(-1px);
-}
-
-/* Animations */
-@keyframes backdropFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideInLeft {
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Safe area fallbacks for older browsers */
-@supports not (padding-top: env(safe-area-inset-top)) {
-  .mobile-menu-inner {
-    padding-top: 84px; /* 64px header + 20px buffer */
-  }
 }
