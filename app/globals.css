@@ -232,117 +232,42 @@ body {
 }
 
 /* Clean Mobile Menu */
-/* ============================
-   CLEAN MOBILE MENU (fixed fullscreen + right-side panel)
-   ============================ */
-
-/* outer wrapper covers full viewport so backdrop & panel align perfectly */
-.mobile-phantom {
-  position: fixed;
-  inset: 0;               /* top:0; right:0; bottom:0; left:0; */
-  z-index: 60;
-  display: block;
-  -webkit-tap-highlight-color: transparent;
-}
+.mobile-phantom { position: fixed; top: 80px; left: 0; right: 0; z-index: 50; display: block; }
 @media (min-width: 768px) { .mobile-phantom { display: none; } }
 
-/* full-screen backdrop */
 .mobile-backdrop-ghost {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);   /* darker for clarity on mobile */
-  backdrop-filter: blur(6px);
-  animation: fadeInSlow 0.18s ease;
-  z-index: 61;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.1); backdrop-filter: blur(3px);
+  animation: fadeInSlow 0.4s ease;
 }
 
-/* sliding panel on the right: full height, full width on small screens,
-   constrained width on larger phones (sm breakpoint handled in markup with sm:w-80) */
 .mobile-menu-ghost {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  max-width: 380px;                 /* keeps same visual scale on large phones */
-  background: rgba(0,0,0,0.88);
-  color: #fff;
-  padding: 16px;
-  box-shadow: -20px 0 40px rgba(0,0,0,0.6);
-  border-radius: 0 0 0 0;           /* panel flush with edges (markup can override) */
-  overflow-y: auto;
-  z-index: 62;
-  transform: translateX(0);         /* header.tsx renders only when open, so visible by default */
-  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
-  -webkit-overflow-scrolling: touch;
+  position: relative;
+  max-width: 380px; margin: 16px auto;
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(25px);
+  border: none; /* 🔥 NO MOBILE MENU BORDER */
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  animation: slideDownSlow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* header of mobile panel (logo + close) */
-.mobile-header-ghost {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 8px;
-}
+.mobile-header-ghost { display: flex; justify-content: flex-end; padding: 16px 20px 8px; }
 
-/* close button */
 .mobile-close-ghost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
   border-radius: 8px;
   background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.85);
-  cursor: pointer;
-  transition: background 0.18s ease, transform 0.12s ease;
-  border: none !important;
-}
-.mobile-close-ghost:hover { background: rgba(255,255,255,0.06); transform: scale(1.02); }
-
-/* nav list inside panel */
-.mobile-nav-ghost {
-  padding-top: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 63;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer; transition: all 0.3s ease;
+  border: none !important; /* 🔥 NO CLOSE BUTTON BORDER */
 }
 
-/* items: visible and positioned correctly */
-.mobile-item-ghost {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-  opacity: 1;                         /* show immediately (animation handled by keyframe if needed) */
-  transform: translateX(0);
-  border: none !important;
-  background: transparent;
-}
-
-/* hover + active states */
-.mobile-inactive { color: rgba(255,255,255,0.78); }
-.mobile-inactive:hover { color: rgba(255,255,255,0.98); background: rgba(255,255,255,0.03); transform: translateX(6px); }
-.mobile-active { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.04); }
-
-/* small utilities */
-.mobile-nav-ghost .font-chillax { font-weight: 600; }
-
-/* subtle top-down reveal for links (if you still want animation) */
-@keyframes mobileFadeIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.mobile-item-ghost { animation: mobileFadeIn 0.28s ease forwards; }
-
-/* ensure large content inside panel doesn't push outside on small viewports */
-@media (max-height: 420px) {
-  .mobile-menu-ghost { padding-bottom: 24px; }
+.mobile-close-ghost:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+  transform: scale(1.05);
 }
 
 .mobile-nav-ghost { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 6px; }
