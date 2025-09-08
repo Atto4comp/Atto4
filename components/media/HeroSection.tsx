@@ -8,7 +8,7 @@ import { Movie } from '@/lib/api/types';
 
 interface HeroSectionProps {
   media: Movie[];
-  genres?: { id: number; name: string; }[];
+  genres?: { id: number; name: string }[];
 }
 
 export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
@@ -33,7 +33,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   const getMovieGenres = (genreIds: number[]) => {
     if (!genreIds || !genres.length) return [];
     return genreIds
-      .map(id => genres.find(g => g.id === id)?.name)
+      .map((id) => genres.find((g) => g.id === id)?.name)
       .filter(Boolean)
       .slice(0, 3); // Max 3 genres
   };
@@ -69,18 +69,18 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   // Enhanced Mobile Layout (Card Style)
   if (isMobile) {
     return (
-      <div className="relative w-full min-h-screen bg-black overflow-hidden">
+      // reserve header space: calc(100vh - 64px) and add padding-top of header height
+      <div className="relative w-full min-h-[calc(100vh-64px)] bg-black overflow-hidden pt-16">
         {/* Subtle Background */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-black to-black" />
         </div>
 
         {/* Main Card Container */}
-        <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
+        <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-64px)] p-4">
           <div className="w-full max-w-sm">
             {/* Movie Card */}
             <div className="relative bg-gradient-to-b from-gray-800/50 to-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-              
               {/* Poster Section */}
               <div className="relative aspect-[2/3] overflow-hidden">
                 <Image
@@ -91,10 +91,10 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
                   priority
                   sizes="400px"
                 />
-                
+
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-                
+
                 {/* Rating Badge */}
                 {currentMovie.vote_average && (
                   <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/20">
@@ -128,7 +128,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
                   <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-2 leading-tight drop-shadow-lg">
                     {currentMovie.title}
                   </h1>
-                  
+
                   {/* Year */}
                   {currentMovie.release_date && (
                     <p className="text-gray-200 text-sm font-medium mb-3">
@@ -154,7 +154,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
 
               {/* Bottom Actions Section */}
               <div className="p-6 space-y-4">
-                {/* Overview (if space permits) */}
+                {/* Overview */}
                 {currentMovie.overview && (
                   <p className="text-gray-300 text-sm leading-relaxed line-clamp-2">
                     {currentMovie.overview}
@@ -204,7 +204,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
     );
   }
 
-  // Desktop Layout (Unchanged - keeping your existing desktop design)
+  // Desktop Layout
   return (
     <div className="relative w-full h-[85vh] min-h-[700px] max-h-[900px] overflow-hidden">
       {/* Background */}
