@@ -143,106 +143,73 @@ export default function Header() {
           </div>
         </div>
       </div>
-
-      {/* ✅ NEW: Fixed Mobile Menu with Slide-Down Glass Panel */}
+{/* MINIMALISTIC TOP DROPDOWN MENU */}
       {isMobileMenuOpen && (
-        <div 
-          className="mobile-phantom" 
-          role="dialog" 
-          aria-modal="true"
-          aria-labelledby="mobile-menu-title"
-        >
-          {/* Backdrop - covers full viewport */}
-          <div 
-            className="mobile-backdrop-ghost" 
+        <>
+          {/* Subtle Backdrop */}
+          <div
+            className="mobile-backdrop-minimal md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
-            aria-label="Close menu"
           />
           
-          {/* Glass Panel - slides down from header */}
-          <div className={`mobile-menu-ghost ${isMobileMenuOpen ? 'mobile-menu-open' : ''}`}>
-            <div className="mobile-menu-inner">
+          {/* Compact Top Menu */}
+          <div className="mobile-top-menu fixed top-16 left-4 right-4 z-40 glass-strong rounded-2xl shadow-2xl md:hidden">
+            <div className="p-4">
               
-              {/* Header Section */}
-              <div className="mobile-header-ghost">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="mobile-brand-logo">
-                      <Image src="/logo.png" alt="Atto4" width={24} height={24} className="object-contain" />
-                    </div>
-                    <div>
-                      <h2 id="mobile-menu-title" className="mobile-brand-title font-chillax">Navigation</h2>
-                      <p className="mobile-brand-subtitle">Choose your destination</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="mobile-close-ghost"
-                    aria-label="Close menu"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+              {/* Minimal Close Button */}
+              <div className="flex justify-end mb-3">
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="close-btn-minimal"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              {/* Navigation Items */}
-              <nav className="mobile-nav-ghost" role="navigation">
+              {/* Compact Navigation - CHILLAX FONT */}
+              <div className="space-y-2">
                 {navigationItems.map((item, index) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
+                  
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
+                      className={`mobile-menu-item glass-card flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isActive 
+                          ? 'text-blue-400 bg-blue-500/20 border border-blue-400/30' 
+                          : 'text-white hover:text-blue-300 hover:bg-white/5'
+                      }`}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`mobile-item-ghost ${isActive ? 'mobile-active' : 'mobile-inactive'}`}
-                      style={{ animationDelay: `${index * 0.05}s` }}
                     >
-                      <div className={`mobile-icon-wrapper ${isActive ? 'mobile-icon-active' : 'mobile-icon-inactive'}`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="mobile-text-ghost font-chillax">{item.label}</span>
-                        <span className="mobile-text-subtitle">
-                          {item.label === 'Home' && 'Trending content'}
-                          {item.label === 'Movies' && 'Latest releases'}
-                          {item.label === 'TV Shows' && 'Popular series'}
-                          {item.label === 'Genres' && 'Browse categories'}
-                        </span>
-                      </div>
-                      {isActive && <div className="mobile-active-indicator" />}
+                      <Icon className="w-4 h-4" />
+                      {/* Mobile nav items keep uppercase */}
+                      <span className="font-chillax uppercase text-xs font-semibold tracking-wide">
+                        {item.label}
+                      </span>
                     </Link>
                   );
                 })}
-              </nav>
 
-              {/* Footer Actions */}
-              <div className="mobile-footer-ghost">
-                <div className="mobile-cta-buttons">
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      // Add play functionality here
-                    }}
-                    className="mobile-cta-primary"
-                  >
-                    <span>▶ Play</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      router.push('/login');
-                    }}
-                    className="mobile-cta-secondary"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Sign In</span>
-                  </button>
-                </div>
+                {/* Compact Login - CHILLAX FONT */}
+                <button
+                  onClick={() => {
+                    router.push('/login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="mobile-menu-item glass-card flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-white hover:text-blue-300 hover:bg-white/5 transition-all duration-200 w-full"
+                >
+                  <User className="w-4 h-4" />
+                  {/* Mobile login keeps uppercase */}
+                  <span className="font-chillax uppercase text-xs font-semibold tracking-wide">
+                    Login
+                  </span>
+                </button>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );
