@@ -131,8 +131,10 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile menu — slides down from nav (glass panel attached under header) */}
-      {/* NOTE: we always render the container so CSS transition works; the panel transforms between -100% -> 0 */}
+      {/* ===== Mobile menu (overlay container) =====
+          container covers the whole viewport (top:0) so it won't be clipped by browser UI.
+          The visible glass panel is inset so it visually attaches under the header.
+      */}
       <div className="md:hidden" aria-hidden={!isMobileMenuOpen}>
         <div
           className="mobile-phantom"
@@ -140,101 +142,105 @@ export default function Header() {
           aria-modal="true"
           aria-label="Mobile menu"
         >
-          {/* backdrop (starts below header) */}
+          {/* backdrop */}
           <div
-            className={`mobile-backdrop-ghost ${isMobileMenuOpen ? 'mobile-backdrop-visible' : 'mobile-backdrop-hidden'}`}
+            className={`mobile-backdrop-ghost ${isMobileMenuOpen ? 'mobile-backdrop-visible' : ''}`}
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
 
-          {/* glass panel slides down from the top (under header) */}
+          {/* panel: we slide the panel container up/down.
+              panel-inner has top padding equal to header (and safe-area), so visually it sits below header. */}
           <div
             className="mobile-menu-ghost"
             style={{
               transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-100%)',
-              transition: 'transform 300ms cubic-bezier(0.2,0.8,0.2,1)',
+              transition: 'transform 280ms cubic-bezier(0.2,0.8,0.2,1)',
             }}
             aria-hidden={!isMobileMenuOpen}
           >
-            <div className="mobile-header-ghost">
-              <div className="flex items-center gap-3">
-                <Image src="/logo.png" alt="Atto4" width={32} height={32} className="rounded-sm" />
-                <div>
-                  <div className="font-chillax font-semibold">Atto4</div>
+            {/* panel-inner ensures content starts below header and safe-area */}
+            <div className="mobile-menu-inner">
+              <div className="mobile-header-ghost">
+                <div className="flex items-center gap-3">
+                  <Image src="/logo.png" alt="Atto4" width={32} height={32} className="rounded-sm" />
+                  <div>
+                    <div className="font-chillax font-semibold">Atto4</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsSearchOpen((s) => !s);
+                    }}
+                    className="ghost-action"
+                    aria-label="Open search"
+                  >
+                    <Search className="ghost-icon" />
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      router.push('/login');
+                    }}
+                    className="ghost-action"
+                    aria-label="Login"
+                  >
+                    <User className="ghost-icon" />
+                  </button>
+
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="mobile-close-ghost"
+                    aria-label="Close menu"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <nav className="mobile-nav-ghost">
+                {navigationItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`mobile-item-ghost flex items-center gap-3 ${isActive ? 'mobile-active' : 'mobile-inactive'}`}
+                      style={{ animationDelay: `${index * 0.03}s` }}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="font-chillax mobile-text-ghost">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <div className="mobile-footer-ghost">
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    setIsSearchOpen((s) => !s);
+                    router.push('/watch');
                   }}
-                  className="ghost-action"
-                  aria-label="Open search"
+                  className="mobile-cta-ghost"
                 >
-                  <Search className="ghost-icon" />
+                  Play
                 </button>
-
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    router.push('/login');
+                    router.push('/discover');
                   }}
-                  className="ghost-action"
-                  aria-label="Login"
+                  className="mobile-cta-ghost secondary"
                 >
-                  <User className="ghost-icon" />
-                </button>
-
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="mobile-close-ghost"
-                  aria-label="Close menu"
-                >
-                  <X className="w-4 h-4" />
+                  More Info
                 </button>
               </div>
-            </div>
-
-            <nav className="mobile-nav-ghost">
-              {navigationItems.map((item, index) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`mobile-item-ghost flex items-center gap-3 ${isActive ? 'mobile-active' : 'mobile-inactive'}`}
-                    style={{ animationDelay: `${index * 0.04}s` }}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-chillax mobile-text-ghost">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="mobile-footer-ghost">
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  router.push('/watch');
-                }}
-                className="mobile-cta-ghost"
-              >
-                Play
-              </button>
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  router.push('/discover');
-                }}
-                className="mobile-cta-ghost secondary"
-              >
-                More Info
-              </button>
             </div>
           </div>
         </div>
