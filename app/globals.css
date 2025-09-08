@@ -235,20 +235,20 @@ body {
    MOBILE MENU (attached under header; slides down)
    ============================ */
 
-/* container sits immediately below header (header height = 64px) */
+/* container covers full viewport (top:0) so it won't be clipped by browser chrome */
 .mobile-phantom {
   position: fixed;
-  top: 64px; /* header height */
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 45; /* under header (header is z-50) */
+  z-index: 55; /* above header (header is z-50) to avoid clipping */
   display: block;
-  pointer-events: none; /* toggled children control pointer-events */
+  pointer-events: none;
 }
 @media (min-width: 768px) { .mobile-phantom { display: none; } }
 
-/* backdrop (covers rest of page starting under header) */
+/* backdrop (covers rest of page) */
 .mobile-backdrop-ghost {
   position: absolute;
   inset: 0;
@@ -257,6 +257,7 @@ body {
   transition: opacity 200ms ease;
   opacity: 0;
   pointer-events: none;
+  z-index: 56;
 }
 
 /* visible state — backdrop accepts clicks */
@@ -265,27 +266,36 @@ body {
   pointer-events: auto;
 }
 
-/* the glass panel that drops down from the header */
+/* the glass panel: positioned at top but its inner content has top padding so it visually sits under the header */
 .mobile-menu-ghost {
   position: absolute;
   left: 8px;
   right: 8px;
   top: 0;
   transform: translateY(-100%);
-  /* when opened JS will set translateY(0) inline so CSS transition works */
   transition: transform 300ms cubic-bezier(0.2,0.8,0.2,1);
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
   backdrop-filter: blur(14px) saturate(140%);
   border-radius: 14px;
   border: 1px solid var(--glass-border);
   box-shadow: 0 14px 40px rgba(0,0,0,0.45);
-  padding: 12px;
+  padding: 0; /* inner padding handled by .mobile-menu-inner */
   pointer-events: auto;
-  max-height: calc(100vh - 80px); /* keep within viewport */
+  max-height: calc(100vh - 24px);
   overflow: auto;
+  z-index: 57;
 }
 
-/* header row inside the panel */
+/* inner wrapper that creates the visual offset under the header + safe-area top */
+.mobile-menu-inner {
+  /* reserve header height + safe area (header ~64px) */
+  padding-top: calc(64px + env(safe-area-inset-top, 0px));
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-bottom: 12px;
+}
+
+/* header row inside the panel (the part visible just below the header) */
 .mobile-header-ghost {
   display: flex;
   align-items: center;
@@ -368,7 +378,8 @@ body {
 
 /* ensure content fits nicely on very short viewports */
 @media (max-height: 420px) {
-  .mobile-menu-ghost { max-height: calc(100vh - 84px); padding-bottom: 18px; }
+  .mobile-menu-ghost { max-height: calc(100vh - 84px); }
+  .mobile-menu-inner { padding-bottom: 18px; }
 }
 
 /* Slow Animations (kept for other parts) */
