@@ -116,17 +116,44 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — updated layout: full-screen backdrop + fixed sliding panel */}
       {isMobileMenuOpen && (
-        <div className="mobile-phantom" role="dialog" aria-modal="true">
-          <div className="mobile-backdrop-ghost" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="mobile-menu-ghost">
-            <div className="mobile-header-ghost">
-              <button onClick={() => setIsMobileMenuOpen(false)} className="mobile-close-ghost" aria-label="Close menu">
-                <X className="w-4 h-4" />
+        <div
+          className="mobile-phantom fixed inset-0 z-50 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile menu"
+        >
+          {/* backdrop */}
+          <div
+            className="mobile-backdrop-ghost absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* sliding panel (right side on larger phones, full width on very small screens) */}
+          <aside
+            className="mobile-menu-ghost fixed right-0 top-0 h-full w-full sm:w-80 bg-neutral-900/95 text-white p-4 shadow-2xl transform transition-transform duration-300 ease-out"
+            style={{ willChange: 'transform' }}
+          >
+            <div className="mobile-header-ghost flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Image src="/logo.png" alt="Atto4" width={36} height={36} className="rounded-sm" />
+                <div>
+                  <div className="font-chillax font-semibold">Atto4</div>
+                  <div className="text-xs opacity-70">Stream. Discover.</div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="mobile-close-ghost p-2 rounded hover:bg-white/10"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="mobile-nav-ghost">
+
+            <nav className="mobile-nav-ghost flex flex-col gap-2">
               {navigationItems.map((item, index) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
@@ -135,16 +162,29 @@ export default function Header() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`mobile-item-ghost ${isActive ? 'mobile-active' : 'mobile-inactive'}`}
+                    className={`mobile-item-ghost flex items-center gap-3 p-3 rounded-md hover:bg-white/5 ${isActive ? 'bg-white/6' : ''}`}
                     style={{ animationDelay: `${index * 0.06}s` }}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-5 h-5" />
                     <span className="font-chillax mobile-text-ghost">{item.label}</span>
                   </Link>
                 );
               })}
+            </nav>
+
+            <div className="mt-6 border-t border-white/10 pt-4">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push('/login');
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-md hover:bg-white/5"
+              >
+                <User className="w-4 h-4" />
+                <span>Login</span>
+              </button>
             </div>
-          </div>
+          </aside>
         </div>
       )}
     </>
