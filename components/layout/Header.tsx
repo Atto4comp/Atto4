@@ -34,6 +34,21 @@ export default function Header() {
     setIsSearchOpen(false);
   }, [pathname]);
 
+  // Prevent page scroll when menu open (mobile)
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <>
       <header
@@ -116,17 +131,73 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div className="mobile-phantom" role="dialog" aria-modal="true">
-          <div className="mobile-backdrop-ghost" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="mobile-menu-ghost">
+      {/* Mobile menu — slides down from nav (glass panel attached under header) */}
+      {/* NOTE: we always render the container so CSS transition works; the panel transforms between -100% -> 0 */}
+      <div className="md:hidden" aria-hidden={!isMobileMenuOpen}>
+        <div
+          className="mobile-phantom"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile menu"
+        >
+          {/* backdrop (starts below header) */}
+          <div
+            className={`mobile-backdrop-ghost ${isMobileMenuOpen ? 'mobile-backdrop-visible' : 'mobile-backdrop-hidden'}`}
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* glass panel slides down from the top (under header) */}
+          <div
+            className="mobile-menu-ghost"
+            style={{
+              transform: isMobileMenuOpen ? 'translateY(0)' : 'translateY(-100%)',
+              transition: 'transform 300ms cubic-bezier(0.2,0.8,0.2,1)',
+            }}
+            aria-hidden={!isMobileMenuOpen}
+          >
             <div className="mobile-header-ghost">
-              <button onClick={() => setIsMobileMenuOpen(false)} className="mobile-close-ghost" aria-label="Close menu">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-3">
+                <Image src="/logo.png" alt="Atto4" width={32} height={32} className="rounded-sm" />
+                <div>
+                  <div className="font-chillax font-semibold">Atto4</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsSearchOpen((s) => !s);
+                  }}
+                  className="ghost-action"
+                  aria-label="Open search"
+                >
+                  <Search className="ghost-icon" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push('/login');
+                  }}
+                  className="ghost-action"
+                  aria-label="Login"
+                >
+                  <User className="ghost-icon" />
+                </button>
+
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="mobile-close-ghost"
+                  aria-label="Close menu"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="mobile-nav-ghost">
+
+            <nav className="mobile-nav-ghost">
               {navigationItems.map((item, index) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
@@ -135,18 +206,39 @@ export default function Header() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`mobile-item-ghost ${isActive ? 'mobile-active' : 'mobile-inactive'}`}
-                    style={{ animationDelay: `${index * 0.06}s` }}
+                    className={`mobile-item-ghost flex items-center gap-3 ${isActive ? 'mobile-active' : 'mobile-inactive'}`}
+                    style={{ animationDelay: `${index * 0.04}s` }}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-5 h-5" />
                     <span className="font-chillax mobile-text-ghost">{item.label}</span>
                   </Link>
                 );
               })}
+            </nav>
+
+            <div className="mobile-footer-ghost">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push('/watch');
+                }}
+                className="mobile-cta-ghost"
+              >
+                Play
+              </button>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push('/discover');
+                }}
+                className="mobile-cta-ghost secondary"
+              >
+                More Info
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 }
