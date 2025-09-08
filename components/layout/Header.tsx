@@ -56,7 +56,7 @@ export default function Header() {
               </div>
             </Link>
 
-            {/* Desktop Nav */}
+            {/* Desktop Nav - UNCHANGED */}
             <nav className="nav-phantom hidden md:flex items-center gap-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
@@ -72,9 +72,8 @@ export default function Header() {
               })}
             </nav>
 
-            {/* Actions */}
+            {/* Actions - UNCHANGED */}
             <div className="actions-ghost flex items-center gap-2">
-              {/* Search (smaller button) */}
               <button
                 onClick={() => setIsSearchOpen((s) => !s)}
                 className={`ghost-action ${isSearchOpen ? 'ghost-active' : 'ghost-inactive'}`}
@@ -84,7 +83,6 @@ export default function Header() {
                 <Search className="ghost-icon" />
               </button>
 
-              {/* Login */}
               <button
                 onClick={() => router.push('/login')}
                 className="ghost-action ghost-inactive"
@@ -93,7 +91,6 @@ export default function Header() {
                 <User className="ghost-icon" />
               </button>
 
-              {/* Mobile toggle */}
               <button
                 onClick={() => setIsMobileMenuOpen((s) => !s)}
                 className={`ghost-action md:hidden ${isMobileMenuOpen ? 'ghost-active ghost-rotate' : 'ghost-inactive'}`}
@@ -107,7 +104,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Compact Search */}
+      {/* Compact Search - UNCHANGED */}
       <div className={`search-phantom ${isSearchOpen ? 'search-visible' : 'search-hidden'}`}>
         <div className="search-wrapper">
           <div className="search-glass">
@@ -116,17 +113,34 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* ✅ NEW Modern Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="mobile-phantom" role="dialog" aria-modal="true">
-          <div className="mobile-backdrop-ghost" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="mobile-menu-ghost">
-            <div className="mobile-header-ghost">
-              <button onClick={() => setIsMobileMenuOpen(false)} className="mobile-close-ghost" aria-label="Close menu">
-                <X className="w-4 h-4" />
+        <div className="mobile-modern-overlay" role="dialog" aria-modal="true">
+          <div className="mobile-modern-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
+          
+          <div className="mobile-modern-container">
+            {/* Header Section */}
+            <div className="mobile-modern-header">
+              <div className="mobile-modern-brand">
+                <div className="mobile-modern-logo">
+                  <Image src="/logo.png" alt="Atto4 Logo" width={24} height={24} className="object-contain" />
+                </div>
+                <div>
+                  <h2 className="mobile-modern-title font-chillax">Atto4</h2>
+                  <p className="mobile-modern-subtitle">Stream. Discover.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)} 
+                className="mobile-modern-close"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="mobile-nav-ghost">
+
+            {/* Navigation Grid */}
+            <div className="mobile-modern-nav">
               {navigationItems.map((item, index) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
@@ -135,14 +149,31 @@ export default function Header() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`mobile-item-ghost ${isActive ? 'mobile-active' : 'mobile-inactive'}`}
-                    style={{ animationDelay: `${index * 0.06}s` }}
+                    className={`mobile-modern-item ${isActive ? 'mobile-modern-active' : 'mobile-modern-inactive'}`}
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span className="font-chillax mobile-text-ghost">{item.label}</span>
+                    <div className={`mobile-modern-icon-wrapper ${isActive ? 'mobile-modern-icon-active' : 'mobile-modern-icon-inactive'}`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <span className="mobile-modern-label font-chillax">{item.label}</span>
+                    {isActive && <div className="mobile-modern-indicator" />}
                   </Link>
                 );
               })}
+            </div>
+
+            {/* Footer Action */}
+            <div className="mobile-modern-footer">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push('/login');
+                }}
+                className="mobile-modern-login"
+              >
+                <User className="w-5 h-5" />
+                <span className="font-chillax">Sign In</span>
+              </button>
             </div>
           </div>
         </div>
