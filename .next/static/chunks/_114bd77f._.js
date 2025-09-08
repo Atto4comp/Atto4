@@ -9,16 +9,57 @@ var { k: __turbopack_refresh__, m: module } = __turbopack_context__;
 __turbopack_context__.s({
     "buildEmbedUrl": ()=>buildEmbedUrl,
     "getEmbedUrlCandidates": ()=>getEmbedUrlCandidates,
+    "parseSeasonEpisodeFromUrl": ()=>parseSeasonEpisodeFromUrl,
     "resolveTmdbId": ()=>resolveTmdbId,
     "videoApi": ()=>videoApi
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/axios/lib/axios.js [app-client] (ecmascript)");
 ;
+function parseSeasonEpisodeFromUrl(url) {
+    try {
+        const parsed = new URL(url);
+        const pathSegments = parsed.pathname.split('/').filter(Boolean);
+        // Try path-based: /tv/{id}/{season}/{episode}
+        if (pathSegments.length >= 4 && pathSegments[0] === 'tv') {
+            const season = parseInt(pathSegments[2], 10);
+            const episode = parseInt(pathSegments[3], 10);
+            if (!isNaN(season) && !isNaN(episode) && season > 0 && episode > 0) {
+                return {
+                    season,
+                    episode
+                };
+            }
+        }
+        // Try query params: ?s=1&e=2 or ?season=1&episode=2
+        const seasonParam = parsed.searchParams.get('s') || parsed.searchParams.get('season');
+        const episodeParam = parsed.searchParams.get('e') || parsed.searchParams.get('episode');
+        if (seasonParam && episodeParam) {
+            const season = parseInt(seasonParam, 10);
+            const episode = parseInt(episodeParam, 10);
+            if (!isNaN(season) && !isNaN(episode) && season > 0 && episode > 0) {
+                return {
+                    season,
+                    episode
+                };
+            }
+        }
+        return {
+            season: null,
+            episode: null
+        };
+    } catch (error) {
+        console.warn('Failed to parse season/episode from URL:', url, error);
+        return {
+            season: null,
+            episode: null
+        };
+    }
+}
 /** Read and normalize environment variables */ const ENV = {
     BASE: (("TURBOPACK compile-time value", "https://vidsrc.to/embed/movie/") || "").trim(),
-    E1: (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_VIDEO_EMBED_1 || "https://vidlink.pro/tv/${id}/${season}/${episode}?startAt=60&primaryColor=3a86ff&autoplay=true&nextbutton=true&sub_file=https://example.com/subtitles.vtt&sub_label=English").trim(),
-    E2: (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_VIDEO_EMBED_2 || "https://vidlink.pro/movie/${id}?startAt=60&primaryColor=3a86ff&autoplay=true&nextbutton=true&sub_file=https://example.com/subtitles.vtt&sub_label=English").trim(),
+    E1: (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_VIDEO_EMBED_1 || "https://111movies.com/${type}/${id}/${season}/${episode}?autoplay=1&theme=23ddc36c&autoNext=1").trim(),
+    E2: (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_VIDEO_EMBED_2 || "https://111movies.com/${type}/${id}?autoplay=1&theme=23ddc36c&autoNext=1").trim(),
     E3: (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_VIDEO_EMBED_3 || "").trim(),
     E4: (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_VIDEO_EMBED_4 || "").trim()
 };
@@ -76,25 +117,35 @@ _c1 = VIDEO_PROVIDERS;
 }
 /** Build raw URL from template or base provider */ function buildRawUrl(providerValue, mediaType, tmdbId, season, episode) {
     if (isTemplate(providerValue)) {
-        // Template mode: replace placeholders
         return providerValue.replace(/\$\{id\}/g, String(tmdbId)).replace(/\$\{type\}/g, mediaType).replace(/\$\{season\}/g, season ? String(season) : "1").replace(/\$\{episode\}/g, episode ? String(episode) : "1");
     }
-    // Base mode: append canonical path
     const base = normalizeBase(providerValue);
-    return "".concat(base).concat(buildEmbedPath(mediaType, tmdbId, season, episode));
+    if (mediaType === "tv") {
+        return "".concat(base, "/tv/").concat(tmdbId, "?s=").concat(season || 1, "&e=").concat(episode || 1);
+    }
+    return "".concat(base, "/movie/").concat(tmdbId);
 }
 function buildEmbedUrl(providerValue, mediaType, tmdbId, season, episode) {
     const raw = buildRawUrl(providerValue, mediaType, tmdbId, season, episode);
     return appendParams(raw, EXTRA_PARAMS);
 }
 function getEmbedUrlCandidates(mediaType, tmdbId, season, episode) {
-    const urls = VIDEO_PROVIDERS.map((provider)=>buildEmbedUrl(provider.value, mediaType, tmdbId, season, episode));
-    // Remove duplicates while preserving order
-    return [
+    console.log("🔍 Getting embed URL candidates for ".concat(mediaType, " ").concat(tmdbId), {
+        season,
+        episode
+    });
+    const urls = VIDEO_PROVIDERS.map((provider)=>{
+        const url = buildEmbedUrl(provider.value, mediaType, tmdbId, season, episode);
+        console.log("📺 Generated URL for ".concat(provider.name, ": ").concat(url));
+        return url;
+    });
+    const uniqueUrls = [
         ...new Set(urls)
     ];
+    console.log("✅ Total unique URLs generated: ".concat(uniqueUrls.length));
+    return uniqueUrls;
 }
-/** Create VideoSource from provider */ function createVideoSource(provider, mediaType, tmdbId, season, episode) {
+/** Create VideoSource with metadata from provider */ function createVideoSourceWithMetadata(provider, mediaType, tmdbId, season, episode, title, episodeTitle) {
     const url = buildEmbedUrl(provider.value, mediaType, tmdbId, season, episode);
     return {
         url,
@@ -102,7 +153,11 @@ function getEmbedUrlCandidates(mediaType, tmdbId, season, episode) {
         type: "iframe",
         servers: "".concat(provider.name, " (").concat(getServerLabel(url), ")"),
         tmdbId,
-        mediaType
+        mediaType,
+        season,
+        episode,
+        title,
+        episodeTitle
     };
 }
 async function resolveTmdbId(input, type) {
@@ -150,75 +205,98 @@ const videoApi = {
             extraParams: EXTRA_PARAMS || 'none'
         };
     },
-    /** Get all embed URL candidates for media */ getEmbedUrlCandidates,
-    /** Get movie video sources */ async getMovieSources (tmdbId) {
-        return VIDEO_PROVIDERS.map((provider)=>createVideoSource(provider, "movie", tmdbId));
+    /** Get all embed URL candidates for media - ATTACHED to videoApi object */ getEmbedUrlCandidates (mediaType, tmdbId, season, episode) {
+        console.log("🎬 videoApi.getEmbedUrlCandidates called:", {
+            mediaType,
+            tmdbId,
+            season,
+            episode
+        });
+        return getEmbedUrlCandidates(mediaType, tmdbId, season, episode);
     },
-    /** Get TV show video sources */ async getTVSources (tmdbId, season, episode) {
-        return VIDEO_PROVIDERS.map((provider)=>createVideoSource(provider, "tv", tmdbId, season, episode));
-    },
-    /** Get movie with embed data */ async getMovieWithEmbed (tmdbId) {
+    /** Get movie video sources with metadata */ async getMovieSources (tmdbId) {
         var _process_env_NEXT_PUBLIC_TMDB_API_KEY;
+        console.log("🎬 Getting movie sources for TMDB ID: ".concat(tmdbId));
         const API_KEY = (_process_env_NEXT_PUBLIC_TMDB_API_KEY = ("TURBOPACK compile-time value", "21cd0c00d578f346fd8a0ffefb679e24")) === null || _process_env_NEXT_PUBLIC_TMDB_API_KEY === void 0 ? void 0 : _process_env_NEXT_PUBLIC_TMDB_API_KEY.trim();
-        try {
-            var _sources_;
-            const [movieResponse, sources] = await Promise.all([
-                API_KEY ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("https://api.themoviedb.org/3/movie/".concat(tmdbId), {
+        let movieTitle = 'Unknown Movie';
+        if (API_KEY) {
+            try {
+                var _response_data;
+                const response = await __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("https://api.themoviedb.org/3/movie/".concat(tmdbId), {
                     params: {
                         api_key: API_KEY
                     },
-                    timeout: 10000
-                }) : Promise.resolve({
-                    data: null
-                }),
-                this.getMovieSources(tmdbId)
-            ]);
-            return {
-                movie: movieResponse.data,
-                embedUrl: ((_sources_ = sources[0]) === null || _sources_ === void 0 ? void 0 : _sources_.url) || "",
-                sources
-            };
-        } catch (error) {
-            console.error('Error fetching movie with embed:', error);
-            return {
-                movie: null,
-                embedUrl: "",
-                sources: []
-            };
+                    timeout: 5000
+                });
+                movieTitle = ((_response_data = response.data) === null || _response_data === void 0 ? void 0 : _response_data.title) || movieTitle;
+                console.log("📽️ Movie title: ".concat(movieTitle));
+            } catch (error) {
+                console.warn('Failed to fetch movie title:', error);
+            }
         }
+        const sources = VIDEO_PROVIDERS.map((provider)=>createVideoSourceWithMetadata(provider, "movie", tmdbId, undefined, undefined, movieTitle));
+        console.log("✅ Generated ".concat(sources.length, " movie sources"));
+        return sources;
     },
-    /** Get TV show with embed data */ async getTVShowWithEmbed (tmdbId, season, episode) {
+    /** Get TV show video sources with metadata */ async getTVSources (tmdbId, season, episode) {
         var _process_env_NEXT_PUBLIC_TMDB_API_KEY;
+        console.log("📺 Getting TV sources for TMDB ID: ".concat(tmdbId, ", S").concat(season, "E").concat(episode));
         const API_KEY = (_process_env_NEXT_PUBLIC_TMDB_API_KEY = ("TURBOPACK compile-time value", "21cd0c00d578f346fd8a0ffefb679e24")) === null || _process_env_NEXT_PUBLIC_TMDB_API_KEY === void 0 ? void 0 : _process_env_NEXT_PUBLIC_TMDB_API_KEY.trim();
-        try {
-            var _sources_;
-            const [tvResponse, sources] = await Promise.all([
-                API_KEY ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("https://api.themoviedb.org/3/tv/".concat(tmdbId), {
+        let showTitle = 'Unknown Show';
+        let episodeTitle = "Episode ".concat(episode || 1);
+        if (API_KEY && season && episode) {
+            try {
+                const [tvResponse, episodeResponse] = await Promise.allSettled([
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("https://api.themoviedb.org/3/tv/".concat(tmdbId), {
+                        params: {
+                            api_key: API_KEY
+                        },
+                        timeout: 5000
+                    }),
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("https://api.themoviedb.org/3/tv/".concat(tmdbId, "/season/").concat(season, "/episode/").concat(episode), {
+                        params: {
+                            api_key: API_KEY
+                        },
+                        timeout: 5000
+                    })
+                ]);
+                if (tvResponse.status === 'fulfilled') {
+                    var _tvResponse_value_data;
+                    showTitle = ((_tvResponse_value_data = tvResponse.value.data) === null || _tvResponse_value_data === void 0 ? void 0 : _tvResponse_value_data.name) || showTitle;
+                    console.log("📺 Show title: ".concat(showTitle));
+                }
+                if (episodeResponse.status === 'fulfilled') {
+                    var _episodeResponse_value_data;
+                    episodeTitle = ((_episodeResponse_value_data = episodeResponse.value.data) === null || _episodeResponse_value_data === void 0 ? void 0 : _episodeResponse_value_data.name) || episodeTitle;
+                    console.log("🎭 Episode title: ".concat(episodeTitle));
+                }
+            } catch (error) {
+                console.warn('Failed to fetch TV metadata:', error);
+            }
+        } else if (API_KEY) {
+            // Just fetch show title
+            try {
+                var _response_data;
+                const response = await __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("https://api.themoviedb.org/3/tv/".concat(tmdbId), {
                     params: {
                         api_key: API_KEY
                     },
-                    timeout: 10000
-                }) : Promise.resolve({
-                    data: null
-                }),
-                this.getTVSources(tmdbId, season, episode)
-            ]);
-            return {
-                tvShow: tvResponse.data,
-                embedUrl: ((_sources_ = sources[0]) === null || _sources_ === void 0 ? void 0 : _sources_.url) || "",
-                sources
-            };
-        } catch (error) {
-            console.error('Error fetching TV show with embed:', error);
-            return {
-                tvShow: null,
-                embedUrl: "",
-                sources: []
-            };
+                    timeout: 5000
+                });
+                showTitle = ((_response_data = response.data) === null || _response_data === void 0 ? void 0 : _response_data.name) || showTitle;
+                console.log("📺 Show title: ".concat(showTitle));
+            } catch (error) {
+                console.warn('Failed to fetch show title:', error);
+            }
         }
+        const sources = VIDEO_PROVIDERS.map((provider)=>createVideoSourceWithMetadata(provider, "tv", tmdbId, season, episode, showTitle, episodeTitle));
+        console.log("✅ Generated ".concat(sources.length, " TV sources"));
+        return sources;
     },
     /** Debug helper to log all configured providers */ logConfiguration () {
-        console.log('Video API Configuration:', this.getConfigStatus());
+        console.log('📊 Video API Configuration:', this.getConfigStatus());
+        console.log('🔧 Available methods:', Object.keys(this));
+        console.log('🔍 getEmbedUrlCandidates available:', typeof this.getEmbedUrlCandidates === 'function');
     }
 };
 var _c, _c1;
@@ -249,91 +327,245 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 function VideoPlayer(param) {
-    let { mediaId, mediaType, season, episode, title, onClose } = param;
+    let { mediaId, mediaType, title, season, episode, onClose, loadTimeoutMs = 7000, showControls = true } = param;
     _s();
     const [embedUrl, setEmbedUrl] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
+    const [candidateUrls, setCandidateUrls] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [sources, setSources] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [currentSourceIndex, setCurrentSourceIndex] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
-    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
-    const [isTesting, setIsTesting] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [iframeKey, setIframeKey] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
+    const [currentSeason, setCurrentSeason] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(season);
+    const [currentEpisode, setCurrentEpisode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(episode);
+    const [showTitle, setShowTitle] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(title || '');
     const iframeRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    const testTimeoutRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const attemptIdRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(0); // increments for each tryIndex call
+    const timeoutHandleRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const failedSetRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(new Set());
+    const exhaustedRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(false);
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
-    // Test a source with timeout
-    const testSource = function(url) {
-        let timeout = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 8000;
-        return new Promise((resolve)=>{
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.style.position = 'absolute';
-            iframe.style.top = '-9999px';
-            iframe.src = url;
-            let resolved = false;
-            const timer = setTimeout(()=>{
-                if (!resolved) {
-                    resolved = true;
-                    iframe.remove();
-                    resolve(false);
+    const searchParams = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"])();
+    // parse season/episode from URL params if tv
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "VideoPlayer.useEffect": ()=>{
+            if (mediaType === 'tv') {
+                const urlSeason = searchParams.get('season');
+                const urlEpisode = searchParams.get('episode');
+                if (urlSeason && urlEpisode) {
+                    setCurrentSeason(parseInt(urlSeason));
+                    setCurrentEpisode(parseInt(urlEpisode));
                 }
-            }, timeout);
-            iframe.onload = ()=>{
-                if (!resolved) {
-                    resolved = true;
-                    clearTimeout(timer);
-                    iframe.remove();
-                    resolve(true);
-                }
-            };
-            iframe.onerror = ()=>{
-                if (!resolved) {
-                    resolved = true;
-                    clearTimeout(timer);
-                    iframe.remove();
-                    resolve(false);
-                }
-            };
-            document.body.appendChild(iframe);
-        });
-    };
-    // Find first working source
-    const findWorkingSource = async (videoSources)=>{
-        setIsTesting(true);
-        for(let i = 0; i < videoSources.length; i++){
-            console.log("Testing source ".concat(i + 1, "/").concat(videoSources.length, ": ").concat(videoSources[i].servers));
-            const isWorking = await testSource(videoSources[i].url);
-            if (isWorking) {
-                console.log("✓ Source ".concat(i + 1, " working: ").concat(videoSources[i].servers));
-                setIsTesting(false);
-                return i;
-            } else {
-                console.log("✗ Source ".concat(i + 1, " failed: ").concat(videoSources[i].servers));
             }
         }
-        setIsTesting(false);
-        return null;
-    };
-    // Load and test sources
+    }["VideoPlayer.useEffect"], [
+        searchParams,
+        mediaType
+    ]);
+    // auto-next episode (approx runtime fallback)
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "VideoPlayer.useEffect": ()=>{
+            if (mediaType !== 'tv' || !currentEpisode || !currentSeason) return;
+            const runtimeMs = 25 * 60 * 1000; // 25 minutes fallback
+            const timer = setTimeout({
+                "VideoPlayer.useEffect.timer": ()=>{
+                    const nextEpisode = (currentEpisode || 1) + 1;
+                    router.replace("/watch/tv/".concat(mediaId, "?season=").concat(currentSeason, "&episode=").concat(nextEpisode), {
+                        scroll: false
+                    });
+                    setCurrentEpisode(nextEpisode);
+                    setIframeKey({
+                        "VideoPlayer.useEffect.timer": (k)=>k + 1
+                    }["VideoPlayer.useEffect.timer"]);
+                }
+            }["VideoPlayer.useEffect.timer"], runtimeMs);
+            return ({
+                "VideoPlayer.useEffect": ()=>clearTimeout(timer)
+            })["VideoPlayer.useEffect"];
+        }
+    }["VideoPlayer.useEffect"], [
+        currentEpisode,
+        currentSeason,
+        mediaId,
+        mediaType,
+        router
+    ]);
+    // clear current attempt timeout
+    const clearAttemptTimeout = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[clearAttemptTimeout]": ()=>{
+            if (timeoutHandleRef.current !== null) {
+                window.clearTimeout(timeoutHandleRef.current);
+                timeoutHandleRef.current = null;
+            }
+        }
+    }["VideoPlayer.useCallback[clearAttemptTimeout]"], []);
+    // pick next index that isn't failed yet; return -1 if none
+    const pickNextIndex = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[pickNextIndex]": ()=>{
+            const len = candidateUrls.length;
+            if (len === 0) return -1;
+            for(let i = 1; i <= len; i++){
+                const idx = (currentSourceIndex + i) % len;
+                if (!failedSetRef.current.has(idx)) return idx;
+            }
+            return -1;
+        }
+    }["VideoPlayer.useCallback[pickNextIndex]"], [
+        candidateUrls.length,
+        currentSourceIndex
+    ]);
+    // start attempt timeout for an index; uses attemptIdRef to avoid stale timeouts acting
+    const startAttempt = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[startAttempt]": (idx)=>{
+            clearAttemptTimeout();
+            attemptIdRef.current += 1;
+            const thisAttemptId = attemptIdRef.current;
+            timeoutHandleRef.current = window.setTimeout({
+                "VideoPlayer.useCallback[startAttempt]": ()=>{
+                    // if attempt id still matches, this attempt timed out
+                    if (attemptIdRef.current === thisAttemptId) {
+                        console.warn("Attempt ".concat(thisAttemptId, " timed out for index ").concat(idx));
+                        failedSetRef.current.add(idx);
+                        const next = pickNextIndex();
+                        if (next === -1) {
+                            exhaustedRef.current = true;
+                            setError('All video sources failed to load');
+                            clearAttemptTimeout();
+                        } else {
+                            tryIndex(next);
+                        }
+                    }
+                }
+            }["VideoPlayer.useCallback[startAttempt]"], loadTimeoutMs);
+        }
+    }["VideoPlayer.useCallback[startAttempt]"], [
+        clearAttemptTimeout,
+        loadTimeoutMs,
+        pickNextIndex
+    ]);
+    // attempt to switch to index: sets embedUrl and starts attempt
+    const tryIndex = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[tryIndex]": (idx)=>{
+            if (!candidateUrls || candidateUrls.length === 0) {
+                setError('No video sources available');
+                return false;
+            }
+            if (idx < 0 || idx >= candidateUrls.length) return false;
+            // if idx already failed but others exist, pick next available
+            if (failedSetRef.current.has(idx) && failedSetRef.current.size < candidateUrls.length) {
+                const alt = pickNextIndex();
+                if (alt === -1) {
+                    exhaustedRef.current = true;
+                    setError('All video sources failed to load');
+                    return false;
+                }
+                idx = alt;
+            }
+            const url = candidateUrls[idx];
+            console.log("Attempting source ".concat(idx + 1, "/").concat(candidateUrls.length, ": ").concat(url));
+            setCurrentSourceIndex(idx);
+            setEmbedUrl(url);
+            setIframeKey({
+                "VideoPlayer.useCallback[tryIndex]": (k)=>k + 1
+            }["VideoPlayer.useCallback[tryIndex]"]);
+            setError(null);
+            startAttempt(idx);
+            return true;
+        }
+    }["VideoPlayer.useCallback[tryIndex]"], [
+        candidateUrls,
+        pickNextIndex,
+        startAttempt
+    ]);
+    // try next available
+    const tryNext = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[tryNext]": ()=>{
+            if (!candidateUrls || candidateUrls.length === 0) {
+                setError('No video sources available');
+                return false;
+            }
+            if (exhaustedRef.current) {
+                setError('All video sources failed to load');
+                return false;
+            }
+            const next = pickNextIndex();
+            if (next === -1) {
+                exhaustedRef.current = true;
+                setError('All video sources failed to load');
+                clearAttemptTimeout();
+                return false;
+            }
+            return tryIndex(next);
+        }
+    }["VideoPlayer.useCallback[tryNext]"], [
+        candidateUrls,
+        pickNextIndex,
+        tryIndex,
+        clearAttemptTimeout
+    ]);
+    // try previous (manual): allow overriding failedSet
+    const tryPrev = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[tryPrev]": ()=>{
+            if (!candidateUrls || candidateUrls.length === 0) return;
+            const prev = (currentSourceIndex - 1 + candidateUrls.length) % candidateUrls.length;
+            failedSetRef.current.delete(prev);
+            tryIndex(prev);
+        }
+    }["VideoPlayer.useCallback[tryPrev]"], [
+        candidateUrls,
+        currentSourceIndex,
+        tryIndex
+    ]);
+    // iframe events
+    const handleIframeLoad = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[handleIframeLoad]": ()=>{
+            console.log("Iframe onLoad for index ".concat(currentSourceIndex));
+            clearAttemptTimeout();
+            attemptIdRef.current = 0;
+            failedSetRef.current.delete(currentSourceIndex);
+            exhaustedRef.current = false;
+            setError(null);
+        }
+    }["VideoPlayer.useCallback[handleIframeLoad]"], [
+        currentSourceIndex,
+        clearAttemptTimeout
+    ]);
+    const handleIframeError = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[handleIframeError]": ()=>{
+            console.warn("Iframe onError for index ".concat(currentSourceIndex));
+            clearAttemptTimeout();
+            attemptIdRef.current = 0;
+            failedSetRef.current.add(currentSourceIndex);
+            const next = pickNextIndex();
+            if (next === -1) {
+                exhaustedRef.current = true;
+                setError('All video sources failed to load');
+            } else {
+                tryIndex(next);
+            }
+        }
+    }["VideoPlayer.useCallback[handleIframeError]"], [
+        currentSourceIndex,
+        clearAttemptTimeout,
+        pickNextIndex,
+        tryIndex
+    ]);
+    // load candidates from server, fallback to videoApi
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "VideoPlayer.useEffect": ()=>{
             let cancelled = false;
-            const loadSources = {
-                "VideoPlayer.useEffect.loadSources": async ()=>{
-                    setLoading(true);
-                    setError(null);
+            const loadCandidates = {
+                "VideoPlayer.useEffect.loadCandidates": async ()=>{
+                    setCandidateUrls([]);
+                    setSources([]);
                     setEmbedUrl('');
+                    setCurrentSourceIndex(0);
+                    exhaustedRef.current = false;
+                    failedSetRef.current.clear();
+                    setError(null);
                     try {
-                        const videoSources = mediaType === 'movie' ? await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2f$video$2d$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["videoApi"].getMovieSources(mediaId) : await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2f$video$2d$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["videoApi"].getTVSources(mediaId, season || 1, episode || 1);
-                        if (cancelled) return;
-                        if (videoSources.length === 0) {
-                            setError('No video sources available');
-                            setLoading(false);
-                            return;
-                        }
-                        setSources(videoSources);
-                        // Try server-side check first (if available)
+                        // try check-embed endpoint (returns list only)
                         try {
-                            const response = await fetch('/api/check-embed', {
+                            const res = await fetch('/api/check-embed', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -341,165 +573,233 @@ function VideoPlayer(param) {
                                 body: JSON.stringify({
                                     mediaType,
                                     tmdbId: mediaId,
-                                    season: season || 1,
-                                    episode: episode || 1
+                                    season: currentSeason || season || 1,
+                                    episode: currentEpisode || episode || 1
                                 })
                             });
-                            if (response.ok) {
-                                const data = await response.json();
+                            if (res.ok) {
+                                const data = await res.json();
+                                const list = [];
                                 if (data.workingUrl) {
-                                    const workingIndex = videoSources.findIndex({
-                                        "VideoPlayer.useEffect.loadSources.workingIndex": (s)=>s.url === data.workingUrl
-                                    }["VideoPlayer.useEffect.loadSources.workingIndex"]);
-                                    if (workingIndex !== -1) {
-                                        setCurrentSourceIndex(workingIndex);
-                                        setEmbedUrl(data.workingUrl);
-                                        setLoading(false);
-                                        return;
+                                    if (typeof data.workingUrl === 'string') list.push(data.workingUrl);
+                                    else if (typeof data.workingUrl === 'object' && data.workingUrl.url) list.push(data.workingUrl.url);
+                                }
+                                if (Array.isArray(data.urls) && data.urls.length > 0) {
+                                    for (const u of data.urls){
+                                        if (u && !list.includes(u)) list.push(u);
                                     }
                                 }
+                                const final = list.filter(Boolean);
+                                if (final.length > 0) {
+                                    if (cancelled) return;
+                                    setCandidateUrls(final);
+                                    // immediately start first attempt
+                                    tryIndex(0);
+                                    return;
+                                }
+                            } else {
+                                console.warn('check-embed non-OK, falling back');
                             }
                         } catch (err) {
-                            console.log('Server-side check failed, using client-side fallback');
+                            console.warn('check-embed failed, falling back', err);
                         }
-                        // Client-side fallback
-                        const workingIndex = await findWorkingSource(videoSources);
+                        // fallback to videoApi
+                        const fallback = mediaType === 'movie' ? await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2f$video$2d$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["videoApi"].getMovieSources(mediaId) : await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2f$video$2d$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["videoApi"].getTVSources(mediaId, currentSeason || season || 1, currentEpisode || episode || 1);
                         if (cancelled) return;
-                        if (workingIndex !== null) {
-                            setCurrentSourceIndex(workingIndex);
-                            setEmbedUrl(videoSources[workingIndex].url);
-                        } else {
-                            setError('All video sources failed to load');
+                        setSources(fallback || []);
+                        const fallbackUrls = (fallback || []).map({
+                            "VideoPlayer.useEffect.loadCandidates.fallbackUrls": (s)=>s.url
+                        }["VideoPlayer.useEffect.loadCandidates.fallbackUrls"]).filter(Boolean);
+                        if (fallbackUrls.length === 0) {
+                            setError('No video sources available');
+                            return;
                         }
+                        setCandidateUrls(fallbackUrls);
+                        tryIndex(0);
                     } catch (err) {
                         console.error('Failed to load video sources:', err);
-                        if (!cancelled) {
-                            setError('Failed to load video sources');
-                        }
-                    } finally{
-                        if (!cancelled) {
-                            setLoading(false);
-                        }
+                        if (!cancelled) setError('Failed to load video sources');
                     }
                 }
-            }["VideoPlayer.useEffect.loadSources"];
-            loadSources();
+            }["VideoPlayer.useEffect.loadCandidates"];
+            loadCandidates();
             return ({
                 "VideoPlayer.useEffect": ()=>{
                     cancelled = true;
-                    if (testTimeoutRef.current) {
-                        clearTimeout(testTimeoutRef.current);
-                    }
+                    clearAttemptTimeout();
                 }
             })["VideoPlayer.useEffect"];
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         }
     }["VideoPlayer.useEffect"], [
         mediaId,
         mediaType,
-        season,
-        episode
+        currentSeason,
+        currentEpisode
     ]);
-    // Handle iframe error - try next source
-    const handleIframeError = async ()=>{
-        var _sources_currentSourceIndex;
-        console.warn("Iframe error on source: ".concat((_sources_currentSourceIndex = sources[currentSourceIndex]) === null || _sources_currentSourceIndex === void 0 ? void 0 : _sources_currentSourceIndex.servers));
-        const remainingSources = sources.slice(currentSourceIndex + 1);
-        if (remainingSources.length === 0) {
-            setError('All video sources failed to load');
-            return;
+    // UI close
+    const handleClose = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "VideoPlayer.useCallback[handleClose]": ()=>{
+            if (onClose) onClose();
+            else router.push('/');
         }
-        for(let i = 0; i < remainingSources.length; i++){
-            const absoluteIndex = currentSourceIndex + 1 + i;
-            const isWorking = await testSource(remainingSources[i].url, 5000);
-            if (isWorking) {
-                console.log("Switching to source ".concat(absoluteIndex + 1, ": ").concat(sources[absoluteIndex].servers));
-                setCurrentSourceIndex(absoluteIndex);
-                setEmbedUrl(sources[absoluteIndex].url);
-                setError(null);
-                return;
-            }
-        }
-        setError('All video sources failed to load');
-    };
-    // Handle successful load
-    const handleIframeLoad = ()=>{
-        var _sources_currentSourceIndex;
-        console.log("✓ Successfully loaded: ".concat((_sources_currentSourceIndex = sources[currentSourceIndex]) === null || _sources_currentSourceIndex === void 0 ? void 0 : _sources_currentSourceIndex.servers));
-        setError(null);
-    };
-    // Handle close
-    const handleClose = ()=>{
-        if (onClose) onClose();
-        else router.back();
-    };
-    // Handle ESC key
+    }["VideoPlayer.useCallback[handleClose]"], [
+        onClose,
+        router
+    ]);
+    // ESC to close
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "VideoPlayer.useEffect": ()=>{
-            const handleKeyDown = {
-                "VideoPlayer.useEffect.handleKeyDown": (e)=>{
+            const onKey = {
+                "VideoPlayer.useEffect.onKey": (e)=>{
                     if (e.key === 'Escape') handleClose();
                 }
-            }["VideoPlayer.useEffect.handleKeyDown"];
-            document.addEventListener('keydown', handleKeyDown);
+            }["VideoPlayer.useEffect.onKey"];
+            document.addEventListener('keydown', onKey);
             return ({
-                "VideoPlayer.useEffect": ()=>document.removeEventListener('keydown', handleKeyDown)
+                "VideoPlayer.useEffect": ()=>document.removeEventListener('keydown', onKey)
             })["VideoPlayer.useEffect"];
         }
-    }["VideoPlayer.useEffect"], []);
+    }["VideoPlayer.useEffect"], [
+        handleClose
+    ]);
+    // cleanup timeout on unmount
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "VideoPlayer.useEffect": ()=>{
+            return ({
+                "VideoPlayer.useEffect": ()=>clearAttemptTimeout()
+            })["VideoPlayer.useEffect"];
+        }
+    }["VideoPlayer.useEffect"], [
+        clearAttemptTimeout
+    ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "fixed inset-0 z-50 bg-black",
         children: [
-            (loading || isTesting) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "absolute inset-0 flex items-center justify-center",
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "text-white text-center",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "animate-spin rounded-full h-16 w-16 border-4 border-white border-t-transparent mb-6 mx-auto"
-                        }, void 0, false, {
-                            fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 230,
-                            columnNumber: 13
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            className: "text-xl mb-2",
-                            children: isTesting ? 'Testing video sources...' : 'Loading video sources...'
-                        }, void 0, false, {
-                            fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 231,
-                            columnNumber: 13
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            className: "text-sm text-gray-400",
-                            children: "Finding the best server for you"
-                        }, void 0, false, {
-                            fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 234,
-                            columnNumber: 13
-                        }, this),
-                        sources.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            className: "text-xs text-gray-500 mt-2",
-                            children: [
-                                sources.length,
-                                " sources available"
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 236,
-                            columnNumber: 15
-                        }, this)
-                    ]
-                }, void 0, true, {
-                    fileName: "[project]/components/player/VideoPlayer.tsx",
-                    lineNumber: 229,
-                    columnNumber: 11
-                }, this)
-            }, void 0, false, {
-                fileName: "[project]/components/player/VideoPlayer.tsx",
-                lineNumber: 228,
-                columnNumber: 9
-            }, this),
-            error && !loading && !isTesting && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            embedUrl && !error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("iframe", {
+                        ref: iframeRef,
+                        src: embedUrl,
+                        className: "w-full h-full",
+                        allowFullScreen: true,
+                        allow: "autoplay; encrypted-media; picture-in-picture",
+                        onLoad: handleIframeLoad,
+                        onError: handleIframeError,
+                        style: {
+                            border: 'none'
+                        },
+                        title: title || "player-".concat(mediaType, "-").concat(mediaId)
+                    }, iframeKey, false, {
+                        fileName: "[project]/components/player/VideoPlayer.tsx",
+                        lineNumber: 310,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "absolute top-4 left-4 z-30 flex items-center gap-3",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                onClick: handleClose,
+                                className: "p-2 rounded-full bg-black/60 text-white",
+                                "aria-label": "Back",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$left$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowLeft$3e$__["ArrowLeft"], {
+                                    className: "w-6 h-6"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/player/VideoPlayer.tsx",
+                                    lineNumber: 330,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/components/player/VideoPlayer.tsx",
+                                lineNumber: 325,
+                                columnNumber: 13
+                            }, this),
+                            showTitle && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
+                                className: "text-white font-extrabold text-lg truncate max-w-xs",
+                                children: showTitle
+                            }, void 0, false, {
+                                fileName: "[project]/components/player/VideoPlayer.tsx",
+                                lineNumber: 333,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/components/player/VideoPlayer.tsx",
+                        lineNumber: 324,
+                        columnNumber: 11
+                    }, this),
+                    mediaType === 'tv' && currentSeason && currentEpisode && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 px-4 py-1 rounded-md text-white",
+                        children: [
+                            "S",
+                            currentSeason,
+                            "E",
+                            currentEpisode
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/components/player/VideoPlayer.tsx",
+                        lineNumber: 341,
+                        columnNumber: 13
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "absolute top-4 right-4 z-30 text-white/80 text-sm flex items-center gap-3",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: "Auto-switch enabled — Press ESC to exit"
+                            }, void 0, false, {
+                                fileName: "[project]/components/player/VideoPlayer.tsx",
+                                lineNumber: 348,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "text-xs ml-2",
+                                children: [
+                                    "Source ",
+                                    currentSourceIndex + 1,
+                                    "/",
+                                    candidateUrls.length || 0
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/components/player/VideoPlayer.tsx",
+                                lineNumber: 349,
+                                columnNumber: 13
+                            }, this),
+                            showControls && candidateUrls.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "ml-3 flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        onClick: tryPrev,
+                                        className: "px-2 py-1 bg-black/60 rounded hover:bg-black/80",
+                                        children: "Prev"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/player/VideoPlayer.tsx",
+                                        lineNumber: 352,
+                                        columnNumber: 17
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        onClick: tryNext,
+                                        className: "px-2 py-1 bg-black/60 rounded hover:bg-black/80",
+                                        children: "Next"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/player/VideoPlayer.tsx",
+                                        lineNumber: 353,
+                                        columnNumber: 17
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/components/player/VideoPlayer.tsx",
+                                lineNumber: 351,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/components/player/VideoPlayer.tsx",
+                        lineNumber: 347,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true),
+            error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "absolute inset-0 flex items-center justify-center",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "text-white text-center max-w-md px-6",
@@ -509,7 +809,7 @@ function VideoPlayer(param) {
                             children: "⚠️"
                         }, void 0, false, {
                             fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 246,
+                            lineNumber: 364,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -517,7 +817,7 @@ function VideoPlayer(param) {
                             children: "Unable to Play Video"
                         }, void 0, false, {
                             fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 247,
+                            lineNumber: 365,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -525,112 +825,107 @@ function VideoPlayer(param) {
                             children: error
                         }, void 0, false, {
                             fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 248,
+                            lineNumber: 366,
                             columnNumber: 13
                         }, this),
-                        sources.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            className: "text-sm text-gray-400 mb-6",
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "flex items-center justify-center gap-3",
                             children: [
-                                "Tested ",
-                                sources.length,
-                                " different servers"
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: handleClose,
+                                    className: "px-6 py-2 bg-gray-700 rounded",
+                                    children: "Go Back"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/player/VideoPlayer.tsx",
+                                    lineNumber: 368,
+                                    columnNumber: 15
+                                }, this),
+                                candidateUrls.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: ()=>tryIndex(0),
+                                    className: "px-6 py-2 bg-gray-600 rounded",
+                                    children: "Retry"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/player/VideoPlayer.tsx",
+                                    lineNumber: 369,
+                                    columnNumber: 44
+                                }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 250,
-                            columnNumber: 15
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                            onClick: handleClose,
-                            className: "px-8 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-colors",
-                            children: "Go Back"
-                        }, void 0, false, {
-                            fileName: "[project]/components/player/VideoPlayer.tsx",
-                            lineNumber: 252,
+                            lineNumber: 367,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/player/VideoPlayer.tsx",
-                    lineNumber: 245,
+                    lineNumber: 363,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/player/VideoPlayer.tsx",
-                lineNumber: 244,
+                lineNumber: 362,
                 columnNumber: 9
             }, this),
-            embedUrl && !loading && !error && !isTesting && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
-                children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("iframe", {
-                        ref: iframeRef,
-                        src: embedUrl,
-                        className: "w-full h-full",
-                        allowFullScreen: true,
-                        allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
-                        onError: handleIframeError,
-                        onLoad: handleIframeLoad,
-                        style: {
-                            border: 'none'
-                        }
-                    }, void 0, false, {
-                        fileName: "[project]/components/player/VideoPlayer.tsx",
-                        lineNumber: 265,
-                        columnNumber: 11
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "absolute top-4 left-4 z-30 flex items-center gap-3",
-                        children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                onClick: handleClose,
-                                className: "p-2 rounded-full bg-black/60 backdrop-blur-sm text-white hover:bg-black/80 transition-colors",
-                                "aria-label": "Back",
-                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$left$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowLeft$3e$__["ArrowLeft"], {
-                                    className: "w-6 h-6"
-                                }, void 0, false, {
-                                    fileName: "[project]/components/player/VideoPlayer.tsx",
-                                    lineNumber: 283,
-                                    columnNumber: 15
-                                }, this)
-                            }, void 0, false, {
-                                fileName: "[project]/components/player/VideoPlayer.tsx",
-                                lineNumber: 278,
-                                columnNumber: 13
-                            }, this),
-                            title && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                                className: "text-white font-extrabold text-lg sm:text-xl truncate max-w-xs sm:max-w-md",
-                                children: title
-                            }, void 0, false, {
-                                fileName: "[project]/components/player/VideoPlayer.tsx",
-                                lineNumber: 286,
-                                columnNumber: 15
-                            }, this)
-                        ]
-                    }, void 0, true, {
-                        fileName: "[project]/components/player/VideoPlayer.tsx",
-                        lineNumber: 277,
-                        columnNumber: 11
-                    }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "absolute top-4 right-4 text-white/70 text-sm pointer-events-none",
-                        children: "Auto-switch enabled — Press ESC to exit"
-                    }, void 0, false, {
-                        fileName: "[project]/components/player/VideoPlayer.tsx",
-                        lineNumber: 293,
-                        columnNumber: 11
-                    }, this)
-                ]
-            }, void 0, true)
+            !embedUrl && !error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "absolute inset-0 flex items-center justify-center",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "text-white text-center",
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "text-4xl mb-4",
+                            children: "📺"
+                        }, void 0, false, {
+                            fileName: "[project]/components/player/VideoPlayer.tsx",
+                            lineNumber: 379,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                            className: "text-xl font-bold mb-2",
+                            children: "No Video Sources Available"
+                        }, void 0, false, {
+                            fileName: "[project]/components/player/VideoPlayer.tsx",
+                            lineNumber: 380,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                            className: "text-gray-400 mb-6",
+                            children: "Unable to find any playable video sources for this content"
+                        }, void 0, false, {
+                            fileName: "[project]/components/player/VideoPlayer.tsx",
+                            lineNumber: 381,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                            onClick: handleClose,
+                            className: "px-8 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg",
+                            children: "Go Back"
+                        }, void 0, false, {
+                            fileName: "[project]/components/player/VideoPlayer.tsx",
+                            lineNumber: 382,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/components/player/VideoPlayer.tsx",
+                    lineNumber: 378,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/player/VideoPlayer.tsx",
+                lineNumber: 377,
+                columnNumber: 9
+            }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/player/VideoPlayer.tsx",
-        lineNumber: 225,
+        lineNumber: 306,
         columnNumber: 5
     }, this);
 }
-_s(VideoPlayer, "OrYEWdeAjNwO+qSdbCMqC6RD20U=", false, function() {
+_s(VideoPlayer, "1K9c6y9QhDEzifA4mnXbIJeiUoo=", false, function() {
     return [
-        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"]
     ];
 });
 _c = VideoPlayer;

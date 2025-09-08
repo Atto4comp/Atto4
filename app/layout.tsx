@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer'; // ✅ Added Footer import
 import { SITE_CONFIG } from '@/lib/constants';
 
 const inter = Inter({ 
@@ -62,12 +63,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-black text-white antialiased">
+      <body className="min-h-screen bg-black text-white antialiased overflow-x-hidden">
         <Header />
-        <main className="pt-16">
+        <main className="pt-12 md:pt-16">
           {children}
         </main>
+        <Footer /> {/* ✅ Added Footer at the bottom */}
       </body>
     </html>
   );
 }
+

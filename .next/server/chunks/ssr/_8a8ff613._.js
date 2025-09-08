@@ -14,8 +14,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib
 ;
 /** Read and normalize environment variables */ const ENV = {
     BASE: (("TURBOPACK compile-time value", "https://vidsrc.to/embed/movie/") || "").trim(),
-    E1: (process.env.NEXT_PUBLIC_VIDEO_EMBED_1 || "https://vidlink.pro/tv/${id}/1/1").trim(),
-    E2: (process.env.NEXT_PUBLIC_VIDEO_EMBED_2 || "https://vidlink.pro/movie/${id}").trim(),
+    E1: (process.env.NEXT_PUBLIC_VIDEO_EMBED_1 || "https://cinemaos.tech/player/${id}?autoplay=true").trim(),
+    E2: (process.env.NEXT_PUBLIC_VIDEO_EMBED_2 || "https://cinemaos.tech/player/${id}/${season}/${episode}?autoplay=true&autonext=true").trim(),
     E3: (process.env.NEXT_PUBLIC_VIDEO_EMBED_3 || "").trim(),
     E4: (process.env.NEXT_PUBLIC_VIDEO_EMBED_4 || "").trim()
 };
