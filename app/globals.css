@@ -13,9 +13,9 @@
   --apple-dark: #1d1d1f;
   --apple-gray: #86868b;
   --apple-light: #f5f5f7;
-  --glass-bg: rgba(0, 0, 0, 0.3);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-hover: rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.04); /* lighter glass for mobile panel */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-hover: rgba(255, 255, 255, 0.06);
 
   --slate-950: #020617;
   --slate-900: #0f172a;
@@ -231,87 +231,145 @@ body {
   box-shadow: 0 12px 32px rgba(0,0,0,0.25);
 }
 
-/* Clean Mobile Menu */
-.mobile-phantom { position: fixed; top: 80px; left: 0; right: 0; z-index: 50; display: block; }
+/* ============================
+   MOBILE MENU (attached under header; slides down)
+   ============================ */
+
+/* container sits immediately below header (header height = 64px) */
+.mobile-phantom {
+  position: fixed;
+  top: 64px; /* header height */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 45; /* under header (header is z-50) */
+  display: block;
+  pointer-events: none; /* toggled children control pointer-events */
+}
 @media (min-width: 768px) { .mobile-phantom { display: none; } }
 
+/* backdrop (covers rest of page starting under header) */
 .mobile-backdrop-ghost {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.1); backdrop-filter: blur(3px);
-  animation: fadeInSlow 0.4s ease;
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px) saturate(120%);
+  transition: opacity 200ms ease;
+  opacity: 0;
+  pointer-events: none;
 }
 
+/* visible state — backdrop accepts clicks */
+.mobile-backdrop-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* the glass panel that drops down from the header */
 .mobile-menu-ghost {
-  position: relative;
-  max-width: 380px; margin: 16px auto;
-  background: rgba(0,0,0,0.2);
-  backdrop-filter: blur(25px);
-  border: none; /* 🔥 NO MOBILE MENU BORDER */
-  border-radius: 18px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-  animation: slideDownSlow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.mobile-header-ghost { display: flex; justify-content: flex-end; padding: 16px 20px 8px; }
-
-.mobile-close-ghost {
-  display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.6);
-  cursor: pointer; transition: all 0.3s ease;
-  border: none !important; /* 🔥 NO CLOSE BUTTON BORDER */
-}
-
-.mobile-close-ghost:hover {
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.9);
-  transform: scale(1.05);
-}
-
-.mobile-nav-ghost { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 6px; }
-
-.mobile-item-ghost {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none !important; /* 🔥 NO MOBILE ITEM BORDERS */
-  opacity: 0; animation: fadeInSlow 0.5s ease forwards;
-}
-
-.mobile-inactive { color: rgba(255,255,255,0.7); background: transparent; }
-.mobile-inactive:hover {
-  color: rgba(255,255,255,0.95);
-  background: rgba(255,255,255,0.03);
-  transform: translateX(4px);
-}
-
-.mobile-active {
-  color: rgba(255,255,255,0.95);
-  background: rgba(255,255,255,0.05);
-}
-
-/* Slow Animations */
-@keyframes fadeInSlow { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideDownSlow { from { opacity: 0; transform: translateY(-40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
-/* Glass morphism utilities */
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: saturate(180%) blur(20px);
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 0;
+  transform: translateY(-100%);
+  /* when opened JS will set translateY(0) inline so CSS transition works */
+  transition: transform 300ms cubic-bezier(0.2,0.8,0.2,1);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  backdrop-filter: blur(14px) saturate(140%);
+  border-radius: 14px;
   border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.37), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.45);
+  padding: 12px;
+  pointer-events: auto;
+  max-height: calc(100vh - 80px); /* keep within viewport */
+  overflow: auto;
 }
 
-.glass-strong {
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: saturate(200%) blur(30px);
+/* header row inside the panel */
+.mobile-header-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 6px 8px;
+}
+
+/* close button */
+.mobile-close-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.9);
+  cursor: pointer;
+  transition: background 140ms ease, transform 120ms ease;
+  border: none !important;
+}
+.mobile-close-ghost:hover { background: rgba(255,255,255,0.06); transform: scale(1.02); }
+
+/* nav list inside panel */
+.mobile-nav-ghost {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 4px 6px;
+}
+
+/* nav items */
+.mobile-item-ghost {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  transition: all 160ms ease;
+  background: transparent;
+  color: rgba(255,255,255,0.92);
+  border: none !important;
+}
+.mobile-item-ghost:hover { transform: translateY(-3px); background: rgba(255,255,255,0.02); }
+
+/* active/inactive */
+.mobile-inactive { color: rgba(255,255,255,0.78); }
+.mobile-active { color: rgba(255,255,255,0.98); background: rgba(255,255,255,0.03); }
+
+/* footer CTAs inside the panel (bottom sticky-ish) */
+.mobile-footer-ghost {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,0.03);
+  margin-top: 8px;
+  justify-content: center;
+}
+
+/* CTA styles (primary + secondary) */
+.mobile-cta-ghost {
+  flex: 1;
+  background: linear-gradient(90deg, var(--blue-500), var(--purple-600));
+  color: white;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 8px 20px rgba(59,130,246,0.18);
+  cursor: pointer;
+}
+.mobile-cta-ghost.secondary {
+  background: transparent;
   border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 16px 64px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
-/* Text shadows */
-.text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.45); }
-.text-shadow-lg { text-shadow: 0 6px 12px rgba(0,0,0,0.6); }
-.text-shadow-strong { text-shadow: 0 8px 24px rgba(0,0,0,0.7); }
+/* small utilities */
+.mobile-text-ghost { font-weight: 600; }
+
+/* ensure content fits nicely on very short viewports */
+@media (max-height: 420px) {
+  .mobile-menu-ghost { max-height: calc(100vh - 84px); padding-bottom: 18px; }
+}
+
+/* Slow Animations (kept for other parts) */
+@keyframes fadeInSlow { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
