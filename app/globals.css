@@ -231,156 +231,286 @@ body {
   box-shadow: 0 12px 32px rgba(0,0,0,0.25);
 }
 
-/* ============================
-   MOBILE MENU (attached under header; slides down)
-   ============================ */
+/* Previous CSS remains unchanged until mobile section... */
 
-/* container covers full viewport (top:0) so it won't be clipped by browser chrome */
+/* ============================================
+   ✅ FIXED MOBILE SLIDE-DOWN MENU
+   ============================================ */
+
+/* Mobile Menu Overlay - Covers full viewport to prevent clipping */
 .mobile-phantom {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 55; /* above header (header is z-50) to avoid clipping */
+  z-index: 45; /* Below header (z-50) but above content */
   display: block;
   pointer-events: none;
 }
-@media (min-width: 768px) { .mobile-phantom { display: none; } }
 
-/* backdrop (covers rest of page) */
+@media (min-width: 768px) { 
+  .mobile-phantom { display: none; } 
+}
+
+/* Backdrop - Starts below header visually */
 .mobile-backdrop-ghost {
   position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px) saturate(120%);
-  transition: opacity 200ms ease;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
   opacity: 0;
-  pointer-events: none;
-  z-index: 56;
-}
-
-/* visible state — backdrop accepts clicks */
-.mobile-backdrop-visible {
-  opacity: 1;
+  animation: backdropFadeIn 0.25s ease forwards;
   pointer-events: auto;
+  cursor: pointer;
 }
 
-/* the glass panel: positioned at top but its inner content has top padding so it visually sits under the header */
+/* Glass Panel - Slides down from top */
 .mobile-menu-ghost {
   position: absolute;
-  left: 8px;
-  right: 8px;
   top: 0;
-  transform: translateY(-100%);
-  transition: transform 300ms cubic-bezier(0.2,0.8,0.2,1);
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
-  backdrop-filter: blur(14px) saturate(140%);
-  border-radius: 14px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 14px 40px rgba(0,0,0,0.45);
-  padding: 0; /* inner padding handled by .mobile-menu-inner */
-  pointer-events: auto;
+  left: 0;
+  right: 0;
   max-height: calc(100vh - 24px);
-  overflow: auto;
-  z-index: 57;
+  overflow: hidden;
+  pointer-events: auto;
+  transform: translateY(-100%);
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* inner wrapper that creates the visual offset under the header + safe-area top */
+.mobile-menu-ghost.mobile-menu-open {
+  transform: translateY(0);
+}
+
+/* Inner container with safe area support */
 .mobile-menu-inner {
-  /* reserve header height + safe area (header ~64px) */
-  padding-top: calc(64px + env(safe-area-inset-top, 0px));
-  padding-left: 12px;
-  padding-right: 12px;
-  padding-bottom: 12px;
+  background: rgba(17, 24, 39, 0.92);
+  backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  
+  /* Safe area support - starts below header + notch */
+  padding-top: calc(64px + env(safe-area-inset-top, 20px));
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* header row inside the panel (the part visible just below the header) */
+/* Header Section */
 .mobile-header-ghost {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 6px 8px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(147, 51, 234, 0.03) 100%);
 }
 
-/* close button */
-.mobile-close-ghost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.mobile-brand-logo {
   width: 36px;
   height: 36px;
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
   border-radius: 10px;
-  background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.9);
-  cursor: pointer;
-  transition: background 140ms ease, transform 120ms ease;
-  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
 }
-.mobile-close-ghost:hover { background: rgba(255,255,255,0.06); transform: scale(1.02); }
 
-/* nav list inside panel */
+.mobile-brand-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1;
+}
+
+.mobile-brand-subtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.mobile-close-ghost {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+
+.mobile-close-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Navigation Section */
 .mobile-nav-ghost {
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px 4px 6px;
+  gap: 4px;
 }
 
-/* nav items */
 .mobile-item-ghost {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  
+  /* Slide-in animation */
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: slideInLeft 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.mobile-inactive:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.mobile-active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 100%);
+  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12);
+}
+
+.mobile-icon-wrapper {
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
-  transition: all 160ms ease;
-  background: transparent;
-  color: rgba(255,255,255,0.92);
-  border: none !important;
-}
-.mobile-item-ghost:hover { transform: translateY(-3px); background: rgba(255,255,255,0.02); }
-
-/* active/inactive */
-.mobile-inactive { color: rgba(255,255,255,0.78); }
-.mobile-active { color: rgba(255,255,255,0.98); background: rgba(255,255,255,0.03); }
-
-/* footer CTAs inside the panel (bottom sticky-ish) */
-.mobile-footer-ghost {
   display: flex;
-  gap: 10px;
-  padding: 12px;
-  border-top: 1px solid rgba(255,255,255,0.03);
-  margin-top: 8px;
+  align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
-/* CTA styles (primary + secondary) */
-.mobile-cta-ghost {
-  flex: 1;
-  background: linear-gradient(90deg, var(--blue-500), var(--purple-600));
+.mobile-icon-inactive {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mobile-icon-active {
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
   color: white;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.mobile-text-ghost {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.2;
+}
+
+.mobile-text-subtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.mobile-active-indicator {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: #3b82f6;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+}
+
+/* Footer Section */
+.mobile-footer-ghost {
+  padding: 16px 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.mobile-cta-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.mobile-cta-primary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #3b82f6 0%, #9333ea 100%);
   border: none;
-  box-shadow: 0 8px 20px rgba(59,130,246,0.18);
-  cursor: pointer;
-}
-.mobile-cta-ghost.secondary {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-/* small utilities */
-.mobile-text-ghost { font-weight: 600; }
-
-/* ensure content fits nicely on very short viewports */
-@media (max-height: 420px) {
-  .mobile-menu-ghost { max-height: calc(100vh - 84px); }
-  .mobile-menu-inner { padding-bottom: 18px; }
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
 }
 
-/* Slow Animations (kept for other parts) */
-@keyframes fadeInSlow { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.mobile-cta-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.mobile-cta-secondary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.mobile-cta-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Safe area fallbacks for older browsers */
+@supports not (padding-top: env(safe-area-inset-top)) {
+  .mobile-menu-inner {
+    padding-top: 84px; /* 64px header + 20px buffer */
+  }
+}
