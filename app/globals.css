@@ -321,7 +321,7 @@ body {
 }
 
 /* ============================================
-   SOFT GLASS MOBILE DROPDOWN MENU
+   RECTANGULAR SINGLE ROW MOBILE MENU
    ============================================ */
 
 .mobile-menu-overlay-soft {
@@ -346,7 +346,8 @@ body {
   animation: backdropFadeIn 0.3s ease forwards;
 }
 
-.mobile-dropdown-soft {
+/* Rectangular Dropdown Panel */
+.mobile-dropdown-rectangular {
   position: absolute;
   top: 4rem;
   left: 0;
@@ -363,7 +364,7 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  animation: dropdownSlide 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  animation: slideTopToBottom 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
   
   /* Safe area support */
   padding-top: env(safe-area-inset-top, 0);
@@ -372,6 +373,7 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
+/* Mobile Header - Same as before */
 .mobile-header-soft {
   display: flex;
   align-items: center;
@@ -442,21 +444,20 @@ body {
   height: 1.25rem;
 }
 
-/* Mobile Navigation Grid - Soft Glass */
-.mobile-nav-soft {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+/* Rectangular Navigation Row */
+.mobile-nav-rectangular {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   padding: 1.5rem;
 }
 
-.mobile-nav-item-soft {
+.mobile-nav-item-rectangular {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  padding: 1.5rem 1rem;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
   background: var(--soft-glass-bg);
   border: 1px solid var(--soft-glass-border);
   border-radius: 16px;
@@ -466,23 +467,23 @@ body {
   -webkit-backdrop-filter: blur(12px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   
-  /* Animation */
+  /* Top to bottom slide animation */
   opacity: 0;
-  transform: translateY(20px);
-  animation: itemSlideIn 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  transform: translateY(-30px);
+  animation: slideItemTopToBottom 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-.mobile-nav-item-soft:hover {
+.mobile-nav-item-rectangular:hover {
   background: var(--soft-glass-hover);
   border-color: rgba(255, 255, 255, 0.2);
   color: white;
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: 
     0 8px 24px var(--soft-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-.mobile-nav-item-soft.active {
+.mobile-nav-item-rectangular.active {
   background: var(--soft-glass-active);
   border-color: rgba(255, 255, 255, 0.25);
   color: white;
@@ -491,43 +492,25 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.nav-item-icon-soft {
-  width: 3rem;
-  height: 3rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.75rem;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.nav-item-icon-soft.active {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-}
-
-.nav-item-icon-soft svg {
+.nav-item-icon-rectangular {
   width: 1.5rem;
   height: 1.5rem;
+  flex-shrink: 0;
 }
 
-.nav-item-text {
-  font-size: 0.875rem;
+.nav-item-text-rectangular {
+  font-size: 1rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  flex: 1;
 }
 
-.active-indicator-soft {
+.active-indicator-rectangular {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 50%;
+  right: 1.25rem;
+  transform: translateY(-50%);
   width: 0.5rem;
   height: 0.5rem;
   background: white;
@@ -535,49 +518,18 @@ body {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
-/* Mobile Actions - Soft Glass */
-.mobile-actions-soft {
-  display: flex;
-  gap: 1rem;
+/* Footer Actions - Login Only */
+.mobile-actions-rectangular {
   padding: 1rem 1.5rem 1.5rem;
   border-top: 1px solid var(--soft-glass-border);
 }
 
-.action-primary-soft {
-  flex: 1;
+.action-login-rectangular {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  background: var(--soft-glass-active);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 14px;
-  color: white;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 
-    0 4px 16px var(--soft-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.action-primary-soft:hover {
-  background: rgba(255, 255, 255, 0.22);
-  transform: translateY(-2px);
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-.action-secondary-soft {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   padding: 1rem;
   background: var(--soft-glass-bg);
   border: 1px solid var(--soft-glass-border);
@@ -589,25 +541,27 @@ body {
   transition: all 0.3s ease;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  animation: slideItemTopToBottom 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  animation-delay: 500ms;
+  opacity: 0;
+  transform: translateY(-30px);
 }
 
-.action-secondary-soft:hover {
+.action-login-rectangular:hover {
   background: var(--soft-glass-hover);
   border-color: rgba(255, 255, 255, 0.2);
   color: white;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 24px var(--soft-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
-/* Animations */
-@keyframes backdropFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes dropdownSlide {
+/* Top to Bottom Slide Animations */
+@keyframes slideTopToBottom {
   from {
     opacity: 0;
-    transform: translateY(-30px);
+    transform: translateY(-50px);
   }
   to {
     opacity: 1;
@@ -615,25 +569,32 @@ body {
   }
 }
 
-@keyframes itemSlideIn {
+@keyframes slideItemTopToBottom {
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-/* Soft Glass Scrollbar for mobile dropdown */
-.mobile-dropdown-soft::-webkit-scrollbar {
+/* Scrollbar for rectangular dropdown */
+.mobile-dropdown-rectangular::-webkit-scrollbar {
   width: 6px;
 }
 
-.mobile-dropdown-soft::-webkit-scrollbar-thumb {
+.mobile-dropdown-rectangular::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
 }
 
-.mobile-dropdown-soft::-webkit-scrollbar-thumb:hover {
+.mobile-dropdown-rectangular::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Safe area fallback */
+@supports not (padding-top: env(safe-area-inset-top)) {
+  .mobile-dropdown-rectangular {
+    padding-top: 20px;
+  }
 }
 
 /* Focus styles for accessibility */
