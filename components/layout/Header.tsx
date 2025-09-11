@@ -45,7 +45,7 @@ export default function Header() {
             
             {/* Logo Section - CHILLAX FONT */}
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="glass-card relative w-4 h-4 sm:w-5 sm:h-5 rounded-xl overflow-hidden p-1 transform transition-all duration-300 hover:scale-110 hover:rotate-2">
+              <div className="glass-card relative w-4 h-4 sm:w-11 sm:h-11 rounded-xl overflow-hidden p-1 transform transition-all duration-300 hover:scale-110 hover:rotate-2">
                 <div className="w-full h-full rounded-lg overflow-hidden">
                   <Image src="/logo.png" alt="Atto4 Logo" fill className="object-cover" priority />
                 </div>
