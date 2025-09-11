@@ -48,13 +48,14 @@ export default function Header() {
 
   return (
     <>
-      {/* Modern Glass Header */}
-      <header className={`modern-header ${scrolled ? 'scrolled' : ''}`}>
+      {/* Soft Glass Header */}
+      <header className={`soft-glass-header ${scrolled ? 'scrolled' : ''}`}>
         <div className="header-container">
-          {/* Enhanced Logo Section */}
+          
+          {/* Soft Glass Logo Section */}
           <Link href="/" className="logo-section">
-            <div className="logo-wrapper">
-              <div className="logo-icon">
+            <div className="logo-wrapper-soft">
+              <div className="logo-icon-soft">
                 <Image 
                   src="/logo.png" 
                   alt="Atto4 Logo" 
@@ -63,15 +64,14 @@ export default function Header() {
                   className="logo-image"
                 />
               </div>
-              <div className="logo-gradient"></div>
             </div>
             <div className="brand-text">
-              <span className="brand-name font-chillax">Atto4</span>
-              <span className="brand-tagline">Stream. Discover.</span>
+              <span className="brand-name-soft font-chillax">Atto4</span>
+              <span className="brand-tagline-soft">Stream. Discover.</span>
             </div>
           </Link>
 
-          {/* Desktop Navigation - Glass Cards */}
+          {/* Desktop Navigation - Soft Glass Cards */}
           <nav className="desktop-nav">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -80,11 +80,10 @@ export default function Header() {
                 <Link 
                   key={item.href} 
                   href={item.href} 
-                  className={`nav-glass-card ${isActive ? 'active' : ''}`}
+                  className={`nav-soft-glass ${isActive ? 'active' : ''}`}
                 >
                   <Icon className="nav-icon" />
                   <span className="nav-text font-chillax">{item.label}</span>
-                  {isActive && <div className="nav-glow"></div>}
                 </Link>
               );
             })}
@@ -94,16 +93,16 @@ export default function Header() {
           <div className="action-buttons">
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className={`action-button ${isSearchOpen ? 'active' : ''}`}
+              className={`action-button-soft ${isSearchOpen ? 'active' : ''}`}
               aria-label="Toggle search"
+              aria-expanded={isSearchOpen}
             >
               <Search className="action-icon" />
-              {isSearchOpen && <div className="button-glow"></div>}
             </button>
 
             <button
               onClick={() => router.push('/login')}
-              className="action-button"
+              className="action-button-soft"
               aria-label="Login"
             >
               <User className="action-icon" />
@@ -111,54 +110,57 @@ export default function Header() {
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`action-button mobile-toggle ${isMobileMenuOpen ? 'active' : ''}`}
+              className={`action-button-soft mobile-toggle ${isMobileMenuOpen ? 'active' : ''}`}
               aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
                 <X className="action-icon" />
               ) : (
                 <Menu className="action-icon" />
               )}
-              {isMobileMenuOpen && <div className="button-glow"></div>}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Glass Search Overlay */}
-      <div className={`search-overlay ${isSearchOpen ? 'visible' : ''}`}>
+      {/* Soft Glass Search Overlay */}
+      <div className={`search-overlay-soft ${isSearchOpen ? 'visible' : ''}`}>
         <div className="search-container">
-          <div className="search-glass">
+          <div className="search-soft-glass">
             <SearchBar onClose={() => setIsSearchOpen(false)} />
           </div>
         </div>
       </div>
 
-      {/* Modern Mobile Dropdown Menu */}
+      {/* Soft Glass Mobile Dropdown Menu */}
       {isMobileMenuOpen && (
         <div 
-          className="mobile-menu-overlay" 
+          className="mobile-menu-overlay-soft" 
           role="dialog" 
           aria-modal="true"
           aria-labelledby="mobile-menu-title"
         >
-          {/* Glass Backdrop */}
+          {/* Soft Backdrop */}
           <div 
-            className="mobile-backdrop" 
+            className="mobile-backdrop-soft" 
             onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close menu"
           />
           
           {/* Dropdown Panel */}
-          <div className="mobile-dropdown">
+          <div className="mobile-dropdown-soft">
+            
             {/* Header */}
-            <div className="mobile-header">
-              <div className="mobile-brand">
-                <div className="mobile-logo">
+            <div className="mobile-header-soft">
+              <div className="mobile-brand-soft">
+                <div className="mobile-logo-soft">
                   <Image 
                     src="/logo.png" 
                     alt="Atto4" 
                     width={24} 
                     height={24}
+                    className="object-contain"
                   />
                 </div>
                 <div className="mobile-brand-text">
@@ -168,7 +170,7 @@ export default function Header() {
               </div>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="mobile-close"
+                className="mobile-close-soft"
                 aria-label="Close menu"
               >
                 <X className="close-icon" />
@@ -176,7 +178,7 @@ export default function Header() {
             </div>
 
             {/* Navigation Grid */}
-            <div className="mobile-nav">
+            <div className="mobile-nav-soft">
               {navigationItems.map((item, index) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
@@ -185,27 +187,28 @@ export default function Header() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+                    className={`mobile-nav-item-soft ${isActive ? 'active' : ''}`}
                     style={{ animationDelay: `${index * 50}ms` }}
+                    aria-current={isActive ? 'page' : undefined}
                   >
-                    <div className={`nav-item-icon ${isActive ? 'active' : ''}`}>
+                    <div className={`nav-item-icon-soft ${isActive ? 'active' : ''}`}>
                       <Icon />
                     </div>
                     <span className="nav-item-text font-chillax">{item.label}</span>
-                    {isActive && <div className="active-dot"></div>}
+                    {isActive && <div className="active-indicator-soft"></div>}
                   </Link>
                 );
               })}
             </div>
 
             {/* Footer Actions */}
-            <div className="mobile-actions">
+            <div className="mobile-actions-soft">
               <button 
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  // Add play functionality
+                  // Add play functionality here
                 }}
-                className="action-primary"
+                className="action-primary-soft"
               >
                 ▶ Play
               </button>
@@ -214,7 +217,7 @@ export default function Header() {
                   setIsMobileMenuOpen(false);
                   router.push('/login');
                 }}
-                className="action-secondary"
+                className="action-secondary-soft"
               >
                 <User className="w-4 h-4" />
                 Sign In
@@ -226,6 +229,5 @@ export default function Header() {
     </>
   );
 }
-
 
 
