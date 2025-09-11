@@ -19,15 +19,14 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
+
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 100);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -38,163 +37,112 @@ export default function Header() {
 
   return (
     <>
-      {/* Main Header */}
-      <header className={`fixed top-0 left-0 right-0 z-50 header-glass ${scrolled ? 'scrolled' : ''}`}>
+      {/* Invisible Header */}
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-1000 ease-out ${
+          scrolled
+            ? 'header-visible'
+            : 'header-invisible'
+        }`}
+        aria-label="Main Navigation"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             
-            {/* Logo Section - CHILLAX FONT */}
-            <Link href="/" className="flex items-center space-x-3 group">
-              <div className="glass-card relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden p-1 transform transition-all duration-300 hover:scale-110 hover:rotate-2">
-                <div className="w-full h-full rounded-lg overflow-hidden">
-                  <Image src="/logo.png" alt="Atto4 Logo" fill className="object-cover" priority />
-                </div>
+            {/* Ghost Logo */}
+            <Link href="/" className="logo-ghost group" aria-label="Home">
+              <div className="logo-icon">
+                <div className="logo-background" />
+                <Image src="/logo.png" alt="Atto4 Logo" fill className="object-cover" priority />
               </div>
-              {/* FIXED: Removed uppercase - displays as "Atto4" not "ATTO4" */}
-              <span className="font-chillax text-xl sm:text-2xl font-bold text-white transition-all duration-300 transform hover:scale-105 drop-shadow-lg">
-                Atto4
-              </span>
+              <div className="logo-content">
+                <span className="logo-name font-chillax">Atto4</span>
+                <span className="logo-tagline">Stream. Discover.</span>
+              </div>
             </Link>
 
-            {/* Desktop Navigation - CHILLAX FONT */}
-            <nav className="hidden md:flex items-center space-x-2">
+            {/* Phantom Navigation */}
+            <nav className="nav-phantom hidden md:flex items-center gap-1">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
-                
                 return (
-                  <div key={item.href} className={`nav-item ${isActive ? 'active' : ''}`}>
-                    <Link href={item.href}>
-                      <div className={`glass-card flex items-center space-x-2 px-4 py-2 rounded-xl font-medium ${
-                        isActive 
-                          ? 'glass-glow text-blue-400 bg-blue-500/20' 
-                          : 'text-white hover:text-blue-300'
-                      }`}>
-                        <Icon className="w-4 h-4" />
-                        {/* Navigation items keep uppercase */}
-                        <span className="font-chillax uppercase text-sm font-semibold">{item.label}</span>
-                      </div>
-                    </Link>
-                  </div>
+                  <Link key={item.href} href={item.href} className="nav-ghost-link">
+                    <div className={`nav-phantom-item ${isActive ? 'phantom-active' : 'phantom-inactive'}`}>
+                      <Icon className="phantom-icon" />
+                      <span className="phantom-text font-chillax">{item.label}</span>
+                    </div>
+                  </Link>
                 );
               })}
             </nav>
 
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={`glass-button rounded-xl ${
-                  isSearchOpen ? 'glass-glow text-blue-400 bg-blue-500/20' : 'text-white hover:text-blue-300'
-                }`}
+            {/* Ghost Actions */}
+            <div className="actions-ghost flex items-center gap-2">
+              <button
+                onClick={() => setIsSearchOpen((s) => !s)}
+                className={`ghost-action ${isSearchOpen ? 'ghost-active' : 'ghost-inactive'}`}
               >
-                <Search className="h-5 w-5" />
-              </Button>
+                <Search className="ghost-icon" />
+              </button>
 
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <button
                 onClick={() => router.push('/login')}
-                className="glass-button rounded-xl text-white hover:text-blue-300"
+                className="ghost-action ghost-inactive"
               >
-                <User className="h-5 w-5" />
-              </Button>
+                <User className="ghost-icon" />
+              </button>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`glass-button md:hidden rounded-xl transition-all duration-300 ${
-                  isMobileMenuOpen ? 'rotate-90 text-blue-400' : 'text-white hover:text-blue-300'
-                }`}
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              <button
+                onClick={() => setIsMobileMenuOpen((s) => !s)}
+                className={`ghost-action ghost-mobile md:hidden ${isMobileMenuOpen ? 'ghost-active ghost-rotate' : 'ghost-inactive'}`}
               >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
+                {isMobileMenuOpen ? <X className="ghost-icon" /> : <Menu className="ghost-icon" />}
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Search Overlay */}
-      <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-300 ${
-        isSearchOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'
-      }`}>
-        <div className="glass-strong">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Phantom Search */}
+      <div className={`search-phantom ${isSearchOpen ? 'search-visible' : 'search-hidden'}`}>
+        <div className="search-wrapper">
+          <div className="search-glass">
             <SearchBar onClose={() => setIsSearchOpen(false)} />
           </div>
         </div>
       </div>
 
-      {/* MINIMALISTIC TOP DROPDOWN MENU */}
+      {/* Ghost Mobile Menu */}
       {isMobileMenuOpen && (
-        <>
-          {/* Subtle Backdrop */}
-          <div
-            className="mobile-backdrop-minimal md:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          
-          {/* Compact Top Menu */}
-          <div className="mobile-top-menu fixed top-16 left-4 right-4 z-40 glass-strong rounded-2xl shadow-2xl md:hidden">
-            <div className="p-4">
-              
-              {/* Minimal Close Button */}
-              <div className="flex justify-end mb-3">
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="close-btn-minimal"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Compact Navigation - CHILLAX FONT */}
-              <div className="space-y-2">
-                {navigationItems.map((item, index) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href;
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`mobile-menu-item glass-card flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        isActive 
-                          ? 'text-blue-400 bg-blue-500/20 border border-blue-400/30' 
-                          : 'text-white hover:text-blue-300 hover:bg-white/5'
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {/* Mobile nav items keep uppercase */}
-                      <span className="font-chillax uppercase text-xs font-semibold tracking-wide">
-                        {item.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-
-                {/* Compact Login - CHILLAX FONT */}
-                <button
-                  onClick={() => {
-                    router.push('/login');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="mobile-menu-item glass-card flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-white hover:text-blue-300 hover:bg-white/5 transition-all duration-200 w-full"
-                >
-                  <User className="w-4 h-4" />
-                  {/* Mobile login keeps uppercase */}
-                  <span className="font-chillax uppercase text-xs font-semibold tracking-wide">
-                    Login
-                  </span>
-                </button>
-              </div>
+        <div className="mobile-phantom">
+          <div className="mobile-backdrop-ghost" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="mobile-menu-ghost">
+            <div className="mobile-header-ghost">
+              <button onClick={() => setIsMobileMenuOpen(false)} className="mobile-close-ghost">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="mobile-nav-ghost">
+              {navigationItems.map((item, index) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`mobile-item-ghost ${isActive ? 'mobile-active' : 'mobile-inactive'}`}
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="font-chillax mobile-text-ghost">{item.label}</span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );
