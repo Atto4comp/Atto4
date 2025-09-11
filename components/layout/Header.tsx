@@ -133,7 +133,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Soft Glass Mobile Dropdown Menu */}
+      {/* Rectangular Single Row Mobile Menu */}
       {isMobileMenuOpen && (
         <div 
           className="mobile-menu-overlay-soft" 
@@ -148,8 +148,8 @@ export default function Header() {
             aria-label="Close menu"
           />
           
-          {/* Dropdown Panel */}
-          <div className="mobile-dropdown-soft">
+          {/* Dropdown Panel - Single Row Layout */}
+          <div className="mobile-dropdown-rectangular">
             
             {/* Header */}
             <div className="mobile-header-soft">
@@ -177,8 +177,8 @@ export default function Header() {
               </button>
             </div>
 
-            {/* Navigation Grid */}
-            <div className="mobile-nav-soft">
+            {/* Rectangular Navigation Row */}
+            <div className="mobile-nav-rectangular">
               {navigationItems.map((item, index) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
@@ -187,39 +187,28 @@ export default function Header() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`mobile-nav-item-soft ${isActive ? 'active' : ''}`}
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className={`mobile-nav-item-rectangular ${isActive ? 'active' : ''}`}
+                    style={{ animationDelay: `${index * 100}ms` }}
                     aria-current={isActive ? 'page' : undefined}
                   >
-                    <div className={`nav-item-icon-soft ${isActive ? 'active' : ''}`}>
-                      <Icon />
-                    </div>
-                    <span className="nav-item-text font-chillax">{item.label}</span>
-                    {isActive && <div className="active-indicator-soft"></div>}
+                    <Icon className="nav-item-icon-rectangular" />
+                    <span className="nav-item-text-rectangular font-chillax">{item.label}</span>
+                    {isActive && <div className="active-indicator-rectangular"></div>}
                   </Link>
                 );
               })}
             </div>
 
-            {/* Footer Actions */}
-            <div className="mobile-actions-soft">
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  // Add play functionality here
-                }}
-                className="action-primary-soft"
-              >
-                ▶ Play
-              </button>
+            {/* Footer Actions - Login Only */}
+            <div className="mobile-actions-rectangular">
               <button 
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   router.push('/login');
                 }}
-                className="action-secondary-soft"
+                className="action-login-rectangular"
               >
-                <User className="w-4 h-4" />
+                <User className="w-5 h-5" />
                 Sign In
               </button>
             </div>
@@ -229,5 +218,4 @@ export default function Header() {
     </>
   );
 }
-
 
