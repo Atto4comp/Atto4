@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { Search, Menu, User, Home, Film, Tv, Grid3X3, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import SearchBar from '@/components/common/SearchBar';
 
 const navigationItems = [
@@ -18,14 +19,15 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
+  
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 90);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -34,116 +36,99 @@ export default function Header() {
     setIsSearchOpen(false);
   }, [pathname]);
 
-  // Prevent background scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    };
-  }, [isMobileMenuOpen]);
-
-  // Handle escape key to close menu
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMobileMenuOpen) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isMobileMenuOpen]);
-
   return (
     <>
-      <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-450 ${
-          scrolled ? 'header-visible' : 'header-invisible'
-        }`}
-        aria-label="Main Navigation"
-      >
+      {/* Main Header */}
+      <header className={`fixed top-0 left-0 right-0 z-50 header-glass ${scrolled ? 'scrolled' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo - UNCHANGED */}
-            <Link href="/" className="logo-ghost group" aria-label="Home">
-              <div className="logo-icon">
-                <div className="logo-background" />
-                <Image src="/logo.png" alt="Atto4 Logo" fill className="object-cover" priority />
+            
+            {/* Logo Section - CHILLAX FONT */}
+            <Link href="/" className="flex items-center space-x-3 group">
+              <div className="glass-card relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden p-1 transform transition-all duration-300 hover:scale-110 hover:rotate-2">
+                <div className="w-full h-full rounded-lg overflow-hidden">
+                  <Image src="/logo.png" alt="Atto4 Logo" fill className="object-cover" priority />
+                </div>
               </div>
-              <div className="logo-content">
-                <span className="logo-name font-chillax">Atto4</span>
-                <span className="logo-tagline">Stream. Discover.</span>
-              </div>
+              {/* FIXED: Removed uppercase - displays as "Atto4" not "ATTO4" */}
+              <span className="font-chillax text-xl sm:text-2xl font-bold text-white transition-all duration-300 transform hover:scale-105 drop-shadow-lg">
+                Atto4
+              </span>
             </Link>
 
-            {/* Desktop Nav - UNCHANGED */}
-            <nav className="nav-phantom hidden md:flex items-center gap-2">
+            {/* Desktop Navigation - CHILLAX FONT */}
+            <nav className="hidden md:flex items-center space-x-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
+                
                 return (
-                  <Link key={item.href} href={item.href} className="nav-ghost-link">
-                    <div className={`nav-phantom-item ${isActive ? 'phantom-active' : 'phantom-inactive'}`}>
-                      <Icon className="phantom-icon" />
-                      <span className="phantom-text font-chillax">{item.label}</span>
-                    </div>
-                  </Link>
+                  <div key={item.href} className={`nav-item ${isActive ? 'active' : ''}`}>
+                    <Link href={item.href}>
+                      <div className={`glass-card flex items-center space-x-2 px-4 py-2 rounded-xl font-medium ${
+                        isActive 
+                          ? 'glass-glow text-blue-400 bg-blue-500/20' 
+                          : 'text-white hover:text-blue-300'
+                      }`}>
+                        <Icon className="w-4 h-4" />
+                        {/* Navigation items keep uppercase */}
+                        <span className="font-chillax uppercase text-sm font-semibold">{item.label}</span>
+                      </div>
+                    </Link>
+                  </div>
                 );
               })}
             </nav>
 
-            {/* Actions - UNCHANGED */}
-            <div className="actions-ghost flex items-center gap-2">
-              <button
-                onClick={() => setIsSearchOpen((s) => !s)}
-                className={`ghost-action ${isSearchOpen ? 'ghost-active' : 'ghost-inactive'}`}
-                aria-pressed={isSearchOpen}
-                aria-label="Toggle search"
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className={`glass-button rounded-xl ${
+                  isSearchOpen ? 'glass-glow text-blue-400 bg-blue-500/20' : 'text-white hover:text-blue-300'
+                }`}
               >
-                <Search className="ghost-icon" />
-              </button>
+                <Search className="h-5 w-5" />
+              </Button>
 
-              <button
+              <Button 
+                variant="ghost" 
+                size="icon" 
                 onClick={() => router.push('/login')}
-                className="ghost-action ghost-inactive"
-                aria-label="Login"
+                className="glass-button rounded-xl text-white hover:text-blue-300"
               >
-                <User className="ghost-icon" />
-              </button>
+                <User className="h-5 w-5" />
+              </Button>
 
-              <button
-                onClick={() => setIsMobileMenuOpen((s) => !s)}
-                className={`ghost-action md:hidden ${isMobileMenuOpen ? 'ghost-active ghost-rotate' : 'ghost-inactive'}`}
-                aria-expanded={isMobileMenuOpen}
-                aria-label="Toggle menu"
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`glass-button md:hidden rounded-xl transition-all duration-300 ${
+                  isMobileMenuOpen ? 'rotate-90 text-blue-400' : 'text-white hover:text-blue-300'
+                }`}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                {isMobileMenuOpen ? <X className="ghost-icon" /> : <Menu className="ghost-icon" />}
-              </button>
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Search - UNCHANGED */}
-      <div className={`search-phantom ${isSearchOpen ? 'search-visible' : 'search-hidden'}`}>
-        <div className="search-wrapper">
-          <div className="search-glass">
+      {/* Search Overlay */}
+      <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-300 ${
+        isSearchOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'
+      }`}>
+        <div className="glass-strong">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <SearchBar onClose={() => setIsSearchOpen(false)} />
           </div>
         </div>
       </div>
-{/* MINIMALISTIC TOP DROPDOWN MENU */}
+
+      {/* MINIMALISTIC TOP DROPDOWN MENU */}
       {isMobileMenuOpen && (
         <>
           {/* Subtle Backdrop */}
