@@ -47,7 +47,7 @@ export default function Header() {
             <Link href="/" className="flex items-center space-x-3 group">
               <div className="glass-card relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden p-1 transform transition-all duration-300 hover:scale-110 hover:rotate-2">
                 <div className="w-full h-full rounded-lg overflow-hidden">
-                  <Image src="/logo.png" alt="Atto4 Logo" width={30} height={30} fill className="object-cover" priority />
+                  <Image src="/logo.png" alt="Atto4 Logo" width={25} height={22} fill className="object-cover" priority />
                 </div>
               </div>
               {/* FIXED: Removed uppercase - displays as "Atto4" not "ATTO4" */}
