@@ -23,7 +23,7 @@ export default function Header() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    const handleScroll = () => setScrolled(window.scrollY > 15);
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
@@ -38,29 +38,35 @@ export default function Header() {
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
     } else {
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, [isMobileMenuOpen]);
 
   return (
     <>
-      {/* Soft Glass Header */}
+      {/* Minimalistic Glass Header */}
       <header className={`soft-glass-header ${scrolled ? 'scrolled' : ''}`}>
         <div className="header-container">
           
-          {/* Soft Glass Logo Section */}
+          {/* Refined Logo Section */}
           <Link href="/" className="logo-section">
             <div className="logo-wrapper-soft">
               <div className="logo-icon-soft">
                 <Image 
                   src="/logo.png" 
                   alt="Atto4 Logo" 
-                  width={28} 
-                  height={28} 
+                  width={26} 
+                  height={26} 
                   className="logo-image"
                 />
               </div>
@@ -71,7 +77,7 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Desktop Navigation - Soft Glass Cards */}
+          {/* Desktop Navigation */}
           <nav className="desktop-nav">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -124,7 +130,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Soft Glass Search Overlay */}
+      {/* Refined Search Overlay */}
       <div className={`search-overlay-soft ${isSearchOpen ? 'visible' : ''}`}>
         <div className="search-container">
           <div className="search-soft-glass">
@@ -133,7 +139,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Rectangular Single Row Mobile Menu */}
+      {/* Compact Mobile Menu */}
       {isMobileMenuOpen && (
         <div 
           className="mobile-menu-overlay-soft" 
@@ -141,25 +147,25 @@ export default function Header() {
           aria-modal="true"
           aria-labelledby="mobile-menu-title"
         >
-          {/* Soft Backdrop */}
+          {/* Refined Backdrop */}
           <div 
             className="mobile-backdrop-soft" 
             onClick={() => setIsMobileMenuOpen(false)}
             aria-label="Close menu"
           />
           
-          {/* Dropdown Panel - Single Row Layout */}
+          {/* Compact Dropdown Panel */}
           <div className="mobile-dropdown-rectangular">
             
-            {/* Header */}
+            {/* Compact Header */}
             <div className="mobile-header-soft">
               <div className="mobile-brand-soft">
                 <div className="mobile-logo-soft">
                   <Image 
                     src="/logo.png" 
                     alt="Atto4" 
-                    width={24} 
-                    height={24}
+                    width={20} 
+                    height={20}
                     className="object-contain"
                   />
                 </div>
@@ -177,7 +183,7 @@ export default function Header() {
               </button>
             </div>
 
-            {/* Rectangular Navigation Row */}
+            {/* Compact Navigation Buttons */}
             <div className="mobile-nav-rectangular">
               {navigationItems.map((item, index) => {
                 const Icon = item.icon;
@@ -188,7 +194,7 @@ export default function Header() {
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`mobile-nav-item-rectangular ${isActive ? 'active' : ''}`}
-                    style={{ animationDelay: `${index * 100}ms` }}
+                    style={{ animationDelay: `${index * 80}ms` }}
                     aria-current={isActive ? 'page' : undefined}
                   >
                     <Icon className="nav-item-icon-rectangular" />
@@ -199,7 +205,7 @@ export default function Header() {
               })}
             </div>
 
-            {/* Footer Actions - Login Only */}
+            {/* Compact Footer */}
             <div className="mobile-actions-rectangular">
               <button 
                 onClick={() => {
@@ -208,7 +214,7 @@ export default function Header() {
                 }}
                 className="action-login-rectangular"
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4" />
                 Sign In
               </button>
             </div>
