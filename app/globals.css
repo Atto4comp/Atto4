@@ -60,7 +60,7 @@ body {
 }
 
 /* ============================================
-   MINIMALISTIC GLASS HEADER
+   IMPROVED DESKTOP HEADER LAYOUT
    ============================================ */
 
 .soft-glass-header {
@@ -87,19 +87,27 @@ body {
 .header-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 3.5rem;
+  height: 4rem;
 }
 
-/* Refined Logo Section */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 1rem;
+    height: 3.5rem;
+  }
+}
+
+/* Improved Logo Section for Desktop */
 .logo-section {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
   transition: all 0.3s ease;
+  min-width: 140px;
 }
 
 .logo-section:hover {
@@ -108,9 +116,9 @@ body {
 
 .logo-wrapper-soft {
   position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(12px);
@@ -119,6 +127,14 @@ body {
     0 2px 12px var(--glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .logo-wrapper-soft {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
 }
 
 .logo-wrapper-soft:hover {
@@ -132,10 +148,16 @@ body {
 .logo-icon-soft {
   width: 100%;
   height: 100%;
-  border-radius: 9px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .logo-icon-soft {
+    border-radius: 9px;
+  }
 }
 
 .logo-image {
@@ -150,26 +172,42 @@ body {
 }
 
 .brand-name-soft {
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   text-shadow: 0 1px 4px rgba(255, 255, 255, 0.08);
 }
 
+@media (max-width: 768px) {
+  .brand-name-soft {
+    font-size: 1.375rem;
+  }
+}
+
 .brand-tagline-soft {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  margin-top: 1px;
+  margin-top: 2px;
   font-weight: 500;
 }
 
-/* Refined Desktop Navigation */
+@media (max-width: 768px) {
+  .brand-tagline-soft {
+    font-size: 0.65rem;
+    margin-top: 1px;
+  }
+}
+
+/* Improved Desktop Navigation */
 .desktop-nav {
   display: none;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: center;
+  max-width: 600px;
 }
 
 @media (min-width: 768px) {
@@ -182,9 +220,9 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 10px;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: var(--text-secondary);
@@ -192,15 +230,17 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  min-width: 120px;
+  justify-content: center;
 }
 
 .nav-soft-glass:hover {
   background: var(--glass-hover);
   border-color: rgba(255, 255, 255, 0.15);
   color: var(--text-primary);
-  transform: translateY(-0.5px);
+  transform: translateY(-1px);
   box-shadow: 
-    0 2px 12px var(--glass-shadow),
+    0 4px 16px var(--glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -209,27 +249,30 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
   color: white;
   box-shadow: 
-    0 0 16px rgba(255, 255, 255, 0.08),
+    0 0 20px rgba(255, 255, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .nav-icon {
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
 }
 
 .nav-text {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-/* Refined Action Buttons */
+/* Improved Action Buttons */
 .action-buttons {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  min-width: 140px;
+  justify-content: flex-end;
 }
 
 .action-button-soft {
@@ -237,9 +280,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 10px;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: var(--text-secondary);
@@ -250,13 +293,21 @@ body {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+@media (max-width: 768px) {
+  .action-button-soft {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+  }
+}
+
 .action-button-soft:hover {
   background: var(--glass-hover);
   border-color: rgba(255, 255, 255, 0.15);
   color: var(--text-primary);
   transform: scale(1.03);
   box-shadow: 
-    0 2px 12px var(--glass-shadow),
+    0 4px 16px var(--glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -265,7 +316,7 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
   color: white;
   box-shadow: 
-    0 0 16px rgba(255, 255, 255, 0.08),
+    0 0 20px rgba(255, 255, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
@@ -280,14 +331,21 @@ body {
 }
 
 .action-icon {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
-/* Refined Search Overlay */
+@media (max-width: 768px) {
+  .action-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
+/* Improved Search Overlay */
 .search-overlay-soft {
   position: fixed;
-  top: 3.5rem;
+  top: 4rem;
   left: 0;
   right: 0;
   z-index: 40;
@@ -295,6 +353,12 @@ body {
   transform: translateY(-16px);
   pointer-events: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+  .search-overlay-soft {
+    top: 3.5rem;
+  }
 }
 
 .search-overlay-soft.visible {
@@ -306,7 +370,13 @@ body {
 .search-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
+}
+
+@media (max-width: 768px) {
+  .search-container {
+    padding: 0 1rem;
+  }
 }
 
 .search-soft-glass {
@@ -314,11 +384,18 @@ body {
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--glass-border);
-  border-radius: 0 0 12px 12px;
-  padding: 1.25rem;
+  border-radius: 0 0 16px 16px;
+  padding: 1.5rem;
   box-shadow: 
     0 4px 24px rgba(0, 0, 0, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 768px) {
+  .search-soft-glass {
+    padding: 1.25rem;
+    border-radius: 0 0 12px 12px;
+  }
 }
 
 /* ============================================
