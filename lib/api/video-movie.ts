@@ -14,7 +14,7 @@ function getMovieProviders() {
     process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://vidnest.fun/movie/${id}"];
+  return providers.length > 0 ? providers : ["https://player.vidplus.to/embed/movie/${id}?autoplay=true&poster=true&title=true&watchparty=false&chromecast=true&servericon=true&setting=true&pip=true&hideprimarycolor=true&hidesecondarycolor=true&hideiconcolor=true&hideprogresscontrol=true&hideiconset=true&hideautonext=true&hideautoplay=true&hidenextbutton=true&hideposter=true&hidetitle=true&hidechromecast=true&hideepisodelist=true&hideservericon=true&hidepip=true&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5"];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
