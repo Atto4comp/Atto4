@@ -79,18 +79,7 @@ export default function MediaCard({
   const date = mediaType === 'movie' ? (media as any).release_date : (media as any).first_air_date;
   const year = date ? new Date(date).getFullYear() : '-';
   return (
-      <div
-      className="relative w-48 cursor-pointer transition-transform duration-300 hover:scale-105"
-      onClick={navigateToDetails}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          router.push(`/${mediaType}/${media.id}`);
-        }
-      }}
-    >
+     <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} role="button" tabIndex={0}>
       {/* Poster */}
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
         <Image
