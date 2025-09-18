@@ -68,7 +68,8 @@ export default function MediaCard({
   };
 
   // *** small change: map 'tv' route to /tvid/:id and movies to /movie/:id ***
-  const detailsPath = mediaType === 'tv' ? `app/tv/[id]/${media.id}` : `app/movie/[id]/${media.id}`;
+  const detailsPath = mediaType === 'tv'? {`/${mediaType}/${media.id}`} 
+ 
 
   const navigateToDetails = () => {
     // navigate to details page
@@ -134,7 +135,7 @@ export default function MediaCard({
               </button>
               {/* Info Button */}
               <Link
-                href={detailsPath}
+                href={`/${mediaType}/${media.id}`}
                 title="More Info"
                 onClick={(e) => { e.stopPropagation(); }}
                 className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-800/80 text-white hover:bg-gray-700"
