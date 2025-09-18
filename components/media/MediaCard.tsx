@@ -39,7 +39,7 @@ export default function MediaCard({
   const toggleWatch = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
+    
     const item = {
       id: media.id,
       title: mediaType === 'movie' ? (media as any).title : (media as any).name,
@@ -53,7 +53,7 @@ export default function MediaCard({
 
     if (inWatch) watchlistStorage.removeFromWatchlist(media.id, mediaType);
     else watchlistStorage.addToWatchlist(item);
-
+    
     setInWatch(!inWatch);
     window.dispatchEvent(new CustomEvent('watchlist-updated'));
   };
@@ -61,7 +61,7 @@ export default function MediaCard({
   const toggleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
+    
     const item = {
       id: media.id,
       title: mediaType === 'movie' ? (media as any).title : (media as any).name,
@@ -75,13 +75,15 @@ export default function MediaCard({
 
     if (liked) likedStorage.removeFromLiked(media.id, mediaType);
     else likedStorage.addToLiked(item);
-
+    
     setLiked(!liked);
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
-  const navigateToDetails = () => {
-    // navigate to details page
+  // ✅ Enhanced navigation function for MediaCard click
+  const navigateToDetails = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Navigate to details page: /movie/123 or /tv/456
     router.push(`/${mediaType}/${media.id}`);
   };
 
@@ -90,7 +92,18 @@ export default function MediaCard({
   const year = date ? new Date(date).getFullYear() : '-';
 
   return (
-    <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} role="button" tabIndex={0}>
+    <div 
+      className="relative w-48 cursor-pointer transition-transform duration-300 hover:scale-105" 
+      onClick={navigateToDetails} 
+      role="button" 
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigateToDetails(e as any);
+        }
+      }}
+    >
       {/* Poster */}
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
         <Image
@@ -101,7 +114,7 @@ export default function MediaCard({
           priority={priority}
           className="object-cover"
         />
-
+        
         {/* Rating */}
         {(media as any).vote_average > 0 && (
           <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
@@ -117,7 +130,7 @@ export default function MediaCard({
             onClick={(e) => e.stopPropagation()} // prevent outer click when pressing toolbar buttons
           >
             <div className="flex gap-2">
-              {/* Play Button - keep as Link (anchor) */}
+              {/* Play Button - Link to watch page */}
               <Link
                 href={`/watch/${mediaType}/${media.id}`}
                 className="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform"
@@ -126,7 +139,7 @@ export default function MediaCard({
               >
                 <Play className="w-4 h-4 fill-current" />
               </Link>
-
+              
               {/* Watchlist Button */}
               <button
                 onClick={toggleWatch}
@@ -137,7 +150,7 @@ export default function MediaCard({
               >
                 <Plus className="w-4 h-4" />
               </button>
-
+              
               {/* Like Button */}
               <button
                 onClick={toggleLike}
@@ -148,8 +161,8 @@ export default function MediaCard({
               >
                 <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
               </button>
-
-              {/* Info Button */}
+              
+              {/* Info Button - Link to details page */}
               <Link
                 href={`/${mediaType}/${media.id}`}
                 title="More Info"
@@ -163,7 +176,7 @@ export default function MediaCard({
         )}
       </div>
 
-      {/* Title */}
+      {/* Title - Also clickable */}
       <h3 className="mt-3 text-sm font-medium leading-tight line-clamp-2 text-white hover:text-blue-400 transition-colors">
         {title}
       </h3>
