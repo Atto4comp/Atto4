@@ -1,6 +1,5 @@
-// components/MediaCard.tsx
+/// components/MediaCard.tsx
 'use client';
-
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { Play, Plus, Heart, Info, Star } from 'lucide-react';
 import { Movie, Genre } from '@/lib/api/types';
 import { watchlistStorage, likedStorage } from '@/lib/storage/watchlist';
-
 interface MediaCardProps {
   media: Movie;
   genres: Genre[];
@@ -16,7 +14,6 @@ interface MediaCardProps {
   mediaType: 'movie' | 'tv';
   isHovered?: boolean;
 }
-
 export default function MediaCard({
   media,
   genres,
@@ -27,19 +24,15 @@ export default function MediaCard({
   const [inWatch, setInWatch] = useState(false);
   const [liked, setLiked] = useState(false);
   const router = useRouter();
-
   const img = (p: string | null, size = 'w500') =>
     p ? `https://image.tmdb.org/t/p/${size}${p}` : '/placeholder-movie.jpg';
-
   useEffect(() => {
     setInWatch(watchlistStorage.isInWatchlist(media.id, mediaType));
     setLiked(likedStorage.isLiked(media.id, mediaType));
   }, [media.id, mediaType]);
-
   const toggleWatch = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     const item = {
       id: media.id,
       title: mediaType === 'movie' ? (media as any).title : (media as any).name,
@@ -50,18 +43,14 @@ export default function MediaCard({
       release_date: mediaType === 'movie' ? (media as any).release_date : undefined,
       first_air_date: mediaType === 'tv' ? (media as any).first_air_date : undefined,
     };
-
     if (inWatch) watchlistStorage.removeFromWatchlist(media.id, mediaType);
     else watchlistStorage.addToWatchlist(item);
-
     setInWatch(!inWatch);
     window.dispatchEvent(new CustomEvent('watchlist-updated'));
   };
-
   const toggleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     const item = {
       id: media.id,
       title: mediaType === 'movie' ? (media as any).title : (media as any).name,
@@ -72,23 +61,22 @@ export default function MediaCard({
       release_date: mediaType === 'movie' ? (media as any).release_date : undefined,
       first_air_date: mediaType === 'tv' ? (media as any).first_air_date : undefined,
     };
-
     if (liked) likedStorage.removeFromLiked(media.id, mediaType);
     else likedStorage.addToLiked(item);
-
     setLiked(!liked);
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
+  // *** small change: map 'tv' route to /tvid/:id and movies to /movie/:id ***
+  const detailsPath = mediaType === 'tv' ? `app/tv/[id]/${media.id}` : `app/movie/[id]/${media.id}`;
+
   const navigateToDetails = () => {
     // navigate to details page
-    router.push(`/${mediaType}/${media.id}`);
+    router.push(detailsPath);
   };
-
   const title = mediaType === 'movie' ? (media as any).title : (media as any).name;
   const date = mediaType === 'movie' ? (media as any).release_date : (media as any).first_air_date;
   const year = date ? new Date(date).getFullYear() : '-';
-
   return (
     <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} role="button" tabIndex={0}>
       {/* Poster */}
@@ -101,7 +89,6 @@ export default function MediaCard({
           priority={priority}
           className="object-cover"
         />
-
         {/* Rating */}
         {(media as any).vote_average > 0 && (
           <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
@@ -109,7 +96,6 @@ export default function MediaCard({
             {(media as any).vote_average.toFixed(1)}
           </div>
         )}
-
         {/* Hover toolbar */}
         {isHovered && (
           <div
@@ -126,7 +112,6 @@ export default function MediaCard({
               >
                 <Play className="w-4 h-4 fill-current" />
               </Link>
-
               {/* Watchlist Button */}
               <button
                 onClick={toggleWatch}
@@ -137,7 +122,6 @@ export default function MediaCard({
               >
                 <Plus className="w-4 h-4" />
               </button>
-
               {/* Like Button */}
               <button
                 onClick={toggleLike}
@@ -148,10 +132,9 @@ export default function MediaCard({
               >
                 <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
               </button>
-
               {/* Info Button */}
               <Link
-                href={`/${mediaType}/${media.id}`}
+                href={detailsPath}
                 title="More Info"
                 onClick={(e) => { e.stopPropagation(); }}
                 className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-800/80 text-white hover:bg-gray-700"
@@ -162,7 +145,6 @@ export default function MediaCard({
           </div>
         )}
       </div>
-
       {/* Title */}
       <h3 className="mt-3 text-sm font-medium leading-tight line-clamp-2 text-white hover:text-blue-400 transition-colors">
         {title}
