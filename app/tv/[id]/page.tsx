@@ -19,7 +19,7 @@ async function fetchTv(id: string) {
   const genres = g.status === 'fulfilled' ? g.value : [];
   
   if (!tv || !tv.id) return null;
-  
+
   // Fetch detailed season information with episodes
   const seasonsWithEpisodes = await Promise.allSettled(
     tv.seasons?.map(async (season: any) => {
@@ -33,11 +33,11 @@ async function fetchTv(id: string) {
       }
     }) || []
   );
-  
+
   const seasons = seasonsWithEpisodes
     .map(result => result.status === 'fulfilled' ? result.value : null)
     .filter(Boolean);
-  
+
   return { tv, genres, seasons };
 }
 
@@ -47,7 +47,7 @@ export default async function TvPage({ params }: { params: Promise<{ id: string 
   const data = await fetchTv(id);
   
   if (!data) notFound();
-  
+
   return (
     <ErrorBoundary fallback={<ErrorBlock />}>
       <main className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
@@ -69,12 +69,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const data = await fetchTv(id);
   
   if (!data) {
-    return { title: 'TV Show Not Found - Atto4', description: 'TV show not found.' };
+    return { title: 'TV Show Not Found - Bradflix', description: 'TV show not found.' };
   }
   
   return {
-    title: `${data.tv.name} - Atto4`,
-    description: data.tv.overview || `Watch ${data.tv.name} on Atto4.`,
+    title: `${data.tv.name} - Bradflix`,
+    description: data.tv.overview || `Watch ${data.tv.name} on Bradflix.`,
   };
 }
 
