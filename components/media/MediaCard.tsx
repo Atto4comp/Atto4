@@ -68,13 +68,11 @@ export default function MediaCard({
   };
  
 
-  const navigateToDetails = (e: React.MouseEvent) => {
-    // Only navigate if the click wasn't on a button
-    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
-      return;
-    }
+  const navigateToDetails = () => {
+    // navigate to details page
     router.push(`/${mediaType}/${media.id}`);
   };
+  
   const title = mediaType === 'movie' ? (media as any).title : (media as any).name;
   const date = mediaType === 'movie' ? (media as any).release_date : (media as any).first_air_date;
   const year = date ? new Date(date).getFullYear() : '-';
@@ -82,6 +80,9 @@ export default function MediaCard({
      <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} role="button" tabIndex={0}>
       {/* Poster */}
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
+        <Link href={`/${mediaType}/${media.id}`}
+          onClick={(e) => { e.stopPropagation(); }}
+          >
         <Image
           src={img((media as any).poster_path)}
           alt={title || 'Poster'}
@@ -90,6 +91,8 @@ export default function MediaCard({
           priority={priority}
           className="object-cover"
         />
+        </Link>
+
         {/* Rating */}
         {(media as any).vote_average > 0 && (
           <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
