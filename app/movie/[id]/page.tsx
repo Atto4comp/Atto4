@@ -14,10 +14,12 @@ async function getMovieData(id: string) {
     if (isNaN(movieId)) {
       return null;
     }
+
     const [movieDetails, genres] = await Promise.all([
       tmdbApi.getMovieDetails(movieId),
       tmdbApi.getMovieGenres(),
     ]);
+
     return {
       movie: movieDetails,
       genres,
@@ -30,9 +32,11 @@ async function getMovieData(id: string) {
 
 export default async function MoviePage({ params }: MoviePageProps) {
   const data = await getMovieData(params.id);
+
   if (!data || !data.movie) {
     notFound();
   }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
       <Suspense fallback={<LoadingSpinner />}>
