@@ -66,14 +66,14 @@ export default function MediaCard({
     setLiked(!liked);
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
-
-  // *** small change: map 'tv' route to /tvid/:id and movies to /movie/:id ***
-  const detailsPath = mediaType === 'tv'? {`/${mediaType}/${media.id}`} 
  
 
-  const navigateToDetails = () => {
-    // navigate to details page
-    router.push(detailsPath);
+  const navigateToDetails = (e: React.MouseEvent) => {
+    // Only navigate if the click wasn't on a button
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
+      return;
+    }
+    router.push(`/${mediaType}/${media.id}`);
   };
   const title = mediaType === 'movie' ? (media as any).title : (media as any).name;
   const date = mediaType === 'movie' ? (media as any).release_date : (media as any).first_air_date;
