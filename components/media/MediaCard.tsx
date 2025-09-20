@@ -80,18 +80,17 @@ export default function MediaCard({
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
+  const navigateToDetails = () => {
+    // navigate to details page
+    router.push(`/${mediaType}/${media.id}`);
+  };
 
   const title = mediaType === 'movie' ? (media as any).title : (media as any).name;
   const date = mediaType === 'movie' ? (media as any).release_date : (media as any).first_air_date;
   const year = date ? new Date(date).getFullYear() : '-';
 
   return (
-     <div
-      className="relative w-48 flex-shrink-0 group cursor-pointer"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <Link href={`/${mediaType}/${media.id}`}>
+    <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} role="button" tabIndex={0}>
       {/* Poster */}
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
         <Image
