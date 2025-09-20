@@ -103,7 +103,7 @@ export default function MediaCard({
             className="object-cover"
           />
 
-            {/* Rating */}
+      {/* Rating */}
         {(media as any).vote_average > 0 && (
           <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
             <Star className="w-3 h-3 fill-yellow-400" />
