@@ -1,8 +1,10 @@
+// components/MediaCard.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Play, Plus, Heart, Info, Star } from 'lucide-react';
 import { Movie, Genre } from '@/lib/api/types';
 import { watchlistStorage, likedStorage } from '@/lib/storage/watchlist';
@@ -12,6 +14,7 @@ interface MediaCardProps {
   genres: Genre[];
   priority?: boolean;
   mediaType: 'movie' | 'tv';
+  isHovered?: boolean;
 }
 
 export default function MediaCard({
@@ -19,15 +22,15 @@ export default function MediaCard({
   genres,
   priority = false,
   mediaType,
+  isHovered = false,
 }: MediaCardProps) {
-  const [hover, setHover] = useState(false);
   const [inWatch, setInWatch] = useState(false);
   const [liked, setLiked] = useState(false);
+  const router = useRouter();
 
   const img = (p: string | null, size = 'w500') =>
     p ? `https://image.tmdb.org/t/p/${size}${p}` : '/placeholder-movie.jpg';
 
-  // sync buttons
   useEffect(() => {
     setInWatch(watchlistStorage.isInWatchlist(media.id, mediaType));
     setLiked(likedStorage.isLiked(media.id, mediaType));
@@ -39,20 +42,18 @@ export default function MediaCard({
 
     const item = {
       id: media.id,
-      title: mediaType === 'movie' ? media.title : media.name,
-      name: mediaType === 'tv' ? media.name : undefined,
-      poster_path: media.poster_path,
+      title: mediaType === 'movie' ? (media as any).title : (media as any).name,
+      name: mediaType === 'tv' ? (media as any).name : undefined,
+      poster_path: (media as any).poster_path,
       media_type: mediaType,
-      vote_average: media.vote_average ?? 0,
-      release_date: mediaType === 'movie' ? media.release_date : undefined,
-      first_air_date: mediaType === 'tv' ? media.first_air_date : undefined,
+      vote_average: (media as any).vote_average ?? 0,
+      release_date: mediaType === 'movie' ? (media as any).release_date : undefined,
+      first_air_date: mediaType === 'tv' ? (media as any).first_air_date : undefined,
     };
 
-    if (inWatch) {
-      watchlistStorage.removeFromWatchlist(media.id, mediaType);
-    } else {
-      watchlistStorage.addToWatchlist(item);
-    }
+    if (inWatch) watchlistStorage.removeFromWatchlist(media.id, mediaType);
+    else watchlistStorage.addToWatchlist(item);
+
     setInWatch(!inWatch);
     window.dispatchEvent(new CustomEvent('watchlist-updated'));
   };
@@ -63,47 +64,45 @@ export default function MediaCard({
 
     const item = {
       id: media.id,
-      title: mediaType === 'movie' ? media.title : media.name,
-      name: mediaType === 'tv' ? media.name : undefined,
-      poster_path: media.poster_path,
+      title: mediaType === 'movie' ? (media as any).title : (media as any).name,
+      name: mediaType === 'tv' ? (media as any).name : undefined,
+      poster_path: (media as any).poster_path,
       media_type: mediaType,
-      vote_average: media.vote_average ?? 0,
-      release_date: mediaType === 'movie' ? media.release_date : undefined,
-      first_air_date: mediaType === 'tv' ? media.first_air_date : undefined,
+      vote_average: (media as any).vote_average ?? 0,
+      release_date: mediaType === 'movie' ? (media as any).release_date : undefined,
+      first_air_date: mediaType === 'tv' ? (media as any).first_air_date : undefined,
     };
 
-    if (liked) {
-      likedStorage.removeFromLiked(media.id, mediaType);
-    } else {
-      likedStorage.addToLiked(item);
-    }
+    if (liked) likedStorage.removeFromLiked(media.id, mediaType);
+    else likedStorage.addToLiked(item);
+
     setLiked(!liked);
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
-  const title = mediaType === 'movie' ? media.title : media.name;
-  const date = mediaType === 'movie' ? media.release_date : media.first_air_date;
+  const navigateToDetails = () => {
+    // navigate to details page
+    router.push(`/${mediaType}/${media.id}`);
+  };
+
+  const title = mediaType === 'movie' ? (media as any).title : (media as any).name;
+  const date = mediaType === 'movie' ? (media as any).release_date : (media as any).first_air_date;
   const year = date ? new Date(date).getFullYear() : '-';
 
   return (
-    <div
-      className="relative w-48 cursor-pointer"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      <Link href={`/${mediaType}/${media.id}`}>
-        {/* Poster */}
-        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
-          <Image
-            src={img(media.poster_path)}
-            alt={title || 'Poster'}
-            fill
-            sizes="200px"
-            priority={priority}
-            className="object-cover"
-          />
+    <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} role="button" tabIndex={0}>
+      {/* Poster */}
+      <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
+        <Image
+          src={img((media as any).poster_path)}
+          alt={title || 'Poster'}
+          fill
+          sizes="200px"
+          priority={priority}
+          className="object-cover"
+        />
 
-      {/* Rating */}
+        {/* Rating */}
         {(media as any).vote_average > 0 && (
           <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
             <Star className="w-3 h-3 fill-yellow-400" />
