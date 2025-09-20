@@ -7,14 +7,14 @@ interface TVEmbedResult {
 
 function getTVProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_TV_EMBED_1 || "https://xprime.tv/watch/${id}/${season}/${episode}",
+    process.env.NEXT_PUBLIC_TV_EMBED_1 || "",
     process.env.NEXT_PUBLIC_TV_EMBED_2 || "",
     process.env.NEXT_PUBLIC_TV_EMBED_3 || "",
     process.env.NEXT_PUBLIC_TV_EMBED_4 || "",
     process.env.NEXT_PUBLIC_TV_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://xprime.tv/watch/${id}/${season}/${episode}"];
+  return providers.length > 0 ? providers : [""];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
