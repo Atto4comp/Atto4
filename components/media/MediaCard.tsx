@@ -87,7 +87,7 @@ export default function MediaCard({
 
   return (
     <div
-      className="relative w-48 flex-shrink-0 group cursor-pointer"
+      className="relative w-48 cursor-pointer"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
