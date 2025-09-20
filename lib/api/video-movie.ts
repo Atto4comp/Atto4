@@ -7,14 +7,14 @@ interface MovieEmbedResult {
 
 function getMovieProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://xprime.tv/watch/${id}",
+    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_2 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_3 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
     process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://xprime.tv/watch/${id}"];
+  return providers.length > 0 ? providers : [""];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
