@@ -82,7 +82,7 @@ export default function MediaCard({
 
   const navigateToDetails = () => {
     // navigate to details page
-    router.push(`/${mediaType}/${media.id}`);
+    <Link href={`/${mediaType}/${media.id}`}>
   };
 
   const title = mediaType === 'movie' ? (media as any).title : (media as any).name;
@@ -91,7 +91,6 @@ export default function MediaCard({
 
   return (
     <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} role="button" tabIndex={0}>
-      <Link href={`/${mediaType}/${media.id}`}>
       {/* Poster */}
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
         <Image
