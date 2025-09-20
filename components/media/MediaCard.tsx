@@ -80,10 +80,6 @@ export default function MediaCard({
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
-  const navigateToDetails = () => {
-    // navigate to details page
-    router.push(`/${mediaType}/${media.id}`);
-  };
 
   const title = mediaType === 'movie' ? (media as any).title : (media as any).name;
   const date = mediaType === 'movie' ? (media as any).release_date : (media as any).first_air_date;
