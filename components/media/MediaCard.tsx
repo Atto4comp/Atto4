@@ -90,7 +90,11 @@ export default function MediaCard({
   const year = date ? new Date(date).getFullYear() : '-';
 
   return (
-    <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} role="button" tabIndex={0}>
+    <div className="relative w-48 cursor-pointer" role="button" tabIndex={0}>
+      <Link>href={`/${mediaType}/${media.id}`} 
+            onClick={(e) => { e.stopPropagation(); }}
+      </Link>
+    </div>
       {/* Poster */}
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
         <Image
