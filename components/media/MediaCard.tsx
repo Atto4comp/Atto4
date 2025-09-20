@@ -93,7 +93,7 @@ export default function MediaCard({
     >
       <Link href={`/${mediaType}/${media.id}`}>
         {/* Poster */}
-        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
           <Image
             src={img(media.poster_path)}
             alt={title || 'Poster'}
