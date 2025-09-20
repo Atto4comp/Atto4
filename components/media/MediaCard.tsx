@@ -91,7 +91,7 @@ export default function MediaCard({
 
   return (
     <div className="relative w-48 cursor-pointer" onClick={navigateToDetails} tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'touch') router.push(`/${mediaType}/${media.id}`); }} role="button" tabIndex={0}>
+      onKeyDown={(e) => { if (e.key === 'Click') router.push(`/${mediaType}/${media.id}`); }} role="button" tabIndex={0}>
       {/* Poster */}
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
         <Image
