@@ -103,70 +103,72 @@ export default function MediaCard({
             className="object-cover"
           />
 
-          {/* Rating */}
-          {media.vote_average > 0 && (
-            <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
-              <Star className="w-3 h-3 fill-yellow-400" />
-              {media.vote_average.toFixed(1)}
+            {/* Rating */}
+        {(media as any).vote_average > 0 && (
+          <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
+            <Star className="w-3 h-3 fill-yellow-400" />
+            {(media as any).vote_average.toFixed(1)}
+          </div>
+        )}
+
+        {/* Hover toolbar */}
+        {isHovered && (
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex flex-col justify-end p-4 transition-all duration-300"
+            onClick={(e) => e.stopPropagation()} // prevent outer click when pressing toolbar buttons
+          >
+            <div className="flex gap-2">
+              {/* Play Button - keep as Link (anchor) */}
+              <Link
+                href={`/watch/${mediaType}/${media.id}`}
+                className="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform"
+                title="Play"
+                onClick={(e) => { e.stopPropagation(); }}
+              >
+                <Play className="w-4 h-4 fill-current" />
+              </Link>
+
+              {/* Watchlist Button */}
+              <button
+                onClick={toggleWatch}
+                title={inWatch ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors ${
+                  inWatch ? 'bg-green-600' : 'bg-gray-800/80 hover:bg-gray-700'
+                }`}
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+
+              {/* Like Button */}
+              <button
+                onClick={toggleLike}
+                title={liked ? 'Unlike' : 'Like'}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors ${
+                  liked ? 'bg-red-600' : 'bg-gray-800/80 hover:bg-gray-700'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
+              </button>
+
+              {/* Info Button */}
+              <Link
+                href={`/${mediaType}/${media.id}`}
+                title="More Info"
+                onClick={(e) => { e.stopPropagation(); }}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-800/80 text-white hover:bg-gray-700"
+              >
+                <Info className="w-4 h-4" />
+              </Link>
             </div>
-          )}
+          </div>
+        )}
+      </div>
 
-          {/* Hover toolbar - UPDATED PLAY BUTTON */}
-          {hover && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="flex gap-2">
-                {/* ▶ Play - Now navigates to /watch route */}
-                <Link
-                  href={`/watch/${mediaType}/${media.id}`}
-                  className="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform"
-                  title="Play"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                </Link>
-
-                {/* ➕ Watchlist */}
-                <button
-                  onClick={toggleWatch}
-                  title={inWatch ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors ${
-                    inWatch ? 'bg-green-600' : 'bg-gray-800/80 hover:bg-gray-700'
-                  }`}
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-
-                {/* ❤ Like */}
-                <button
-                  onClick={toggleLike}
-                  title={liked ? 'Unlike' : 'Like'}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors ${
-                    liked ? 'bg-red-600' : 'bg-gray-800/80 hover:bg-gray-700'
-                  }`}
-                >
-                  <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
-                </button>
-
-                {/* ℹ Info */}
-                <Link
-                  href={`/${mediaType}/${media.id}`}
-                  title="More Info"
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-800/80 text-white hover:bg-gray-700"
-                >
-                  <Info className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Title */}
-        <h3 className="mt-3 text-sm font-medium leading-tight line-clamp-2 text-white hover:text-blue-400 transition-colors">
-          {title}
-        </h3>
-        <p className="text-xs text-gray-400">{year}</p>
-      </Link>
+      {/* Title */}
+      <h3 className="mt-3 text-sm font-medium leading-tight line-clamp-2 text-white hover:text-blue-400 transition-colors">
+        {title}
+      </h3>
+      <p className="text-xs text-gray-400">{year}</p>
     </div>
   );
 }
