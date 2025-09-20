@@ -91,8 +91,9 @@ export default function MediaCard({
 
   return (
     <div className="relative w-48 cursor-pointer" role="button" tabIndex={0}>
-      <Link>href={`/${mediaType}/${media.id}`} 
-            onClick={(e) => { e.stopPropagation(); }}
+      <Link>
+        href={`/${mediaType}/${media.id}`} 
+        onClick={(e) => { e.stopPropagation(); }}
       </Link>
     </div>
       {/* Poster */}
