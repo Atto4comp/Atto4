@@ -7,7 +7,7 @@ interface MovieEmbedResult {
 
 function getMovieProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://atto4.pro/a158b2e8-86e0-4fd4-817b-23617f81fe55",
+    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_2 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_3 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
