@@ -7,7 +7,7 @@ interface MovieEmbedResult {
 
 function getMovieProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://iframe.aether.mom/embed/${id}",
+    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://iframe.aether.mom/embed/tmdb-movie-${id}?logo=false&tips=false&theme=noir&allinone=true&&backlink=https://justchill.app/#",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_2 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_3 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
