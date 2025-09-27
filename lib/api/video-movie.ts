@@ -14,7 +14,7 @@ function getMovieProviders() {
     process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : [""];
+  return providers.length > 0 ? providers : ["https://iframe.aether.mom/embed/tmdb-movie-${id}?logo=false&tips=false&theme=noir&allinone=true&&backlink=https://justchill.app/#"];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
