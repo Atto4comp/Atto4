@@ -21,67 +21,6 @@ export default function WatchPage() {
   const season = parseInt(searchParams.get('season') || '1', 10);
   const episode = parseInt(searchParams.get('episode') || '1', 10);
 
-  // ---------- DevTools detection (runs only on this page) ----------
-  useEffect(() => {
-    // Safety: only run in browser
-    if (typeof window === 'undefined') return;
-
-    let wasOpen = false;
-    const threshold = 160;
-    let intervalId: number | undefined;
-
-    // console getter trick
-    const detector = new Image();
-    Object.defineProperty(detector, 'id', {
-      get: function () {
-        wasOpen = true;
-        return '';
-      },
-    });
-
-    function reportAndBlock() {
-      try {
-        // best-effort report to server to let backend revoke tokens/session
-        fetch('/api/report-devtools', { method: 'POST', credentials: 'include' }).catch(() => {});
-      } catch (e) {
-        // ignore
-      }
-      // wipe page content immediately
-      try {
-        document.documentElement.innerHTML = '<h1 style="color:white;background-color:black;height:100vh;display:flex;align-items:center;justify-content:center;margin:0">Session blocked</h1>';
-      } catch (e) {
-        // fallback: navigate back
-        try { router.back(); } catch {}
-      }
-    }
-
-    intervalId = window.setInterval(() => {
-      // viewport heuristic
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
-      const viewportDetected = widthDiff > threshold || heightDiff > threshold;
-
-      // console getter detection (logs detector - getter runs if console open)
-      wasOpen = false;
-      // eslint-disable-next-line no-console
-      console.log(detector);
-
-      const detected = viewportDetected || wasOpen;
-
-      if (detected) {
-        reportAndBlock();
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-      }
-    }, 400);
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [router]);
-  // -----------------------------------------------------------------
-
   useEffect(() => {
     // Hide body scroll for fullscreen experience
     const prevOverflow = document.body.style.overflow;
