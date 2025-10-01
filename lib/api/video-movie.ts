@@ -7,14 +7,14 @@ interface MovieEmbedResult {
 
 function getMovieProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://player.vidplus.to/embed/movie/${id}?autoplay=true&poster=true&title=true&watchparty=false&chromecast=true&servericon=true&setting=true&pip=true&hideprimarycolor=true&hidesecondarycolor=true&hideiconcolor=true&hideprogresscontrol=true&hideiconset=true&hideautonext=true&hideautoplay=true&hidenextbutton=true&hideposter=true&hidetitle=true&hidechromecast=true&hideepisodelist=true&hideservericon=true&hidepip=true&icons=netflix&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5",
+    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://www.vidking.net/embed/movie/${id}?color=5865f2",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_2 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_3 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
     process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://player.vidplus.to/embed/movie/${id}?autoplay=true&poster=true&title=true&watchparty=false&chromecast=true&servericon=true&setting=true&pip=true&hideprimarycolor=true&hidesecondarycolor=true&hideiconcolor=true&hideprogresscontrol=true&hideiconset=true&hideautonext=true&hideautoplay=true&hidenextbutton=true&hideposter=true&hidetitle=true&hidechromecast=true&hideepisodelist=true&hideservericon=true&hidepip=true&icons=netflix&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5"];
+  return providers.length > 0 ? providers : ["https://www.vidking.net/embed/movie/${id}?color=5865f2"];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
