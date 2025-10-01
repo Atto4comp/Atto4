@@ -25,8 +25,8 @@ export function getTVEmbed(id: string | number): TVEmbedResult {
   // Direct template replacement - instant
   const embedUrl = providerUrl
     .replace(/\$\{id\}/g, String(id))
-    .replace(/\$\{season\}/g, '1')
-    .replace(/\$\{episode\}/g, '1');
+    .replace(/\$\{season\}/g, String(season))
+    .replace(/\$\{episode\}/g, String(episode));
 
   return {
     embedUrl,
