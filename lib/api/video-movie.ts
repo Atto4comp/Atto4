@@ -7,14 +7,14 @@ interface MovieEmbedResult {
 
 function getMovieProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://watch.bludclart.com/movie/${id}/watch",
+    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://iframe.watch.bludclart.com/movie/${id}/watch",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_2 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_3 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
     process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://watch.bludclart.com/movie/${id}/watch"];
+  return providers.length > 0 ? providers : ["https://iframe.watch.bludclart.com/movie/${id}/watch"];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
