@@ -9,6 +9,8 @@ import { getTVEmbed } from '@/lib/api/video-tv';
 interface VideoPlayerProps {
   mediaId: number | string;
   mediaType: 'movie' | 'tv';
+  season?: number;
+  episode?: number;
   title?: string;
   onClose?: () => void;
 }
@@ -16,6 +18,8 @@ interface VideoPlayerProps {
 export default function VideoPlayer({
   mediaId,
   mediaType,
+  season = 1,
+  episode = 1,
   title,
   onClose
 }: VideoPlayerProps) {
@@ -24,27 +28,36 @@ export default function VideoPlayer({
   
   const router = useRouter();
 
+  // DevTools protection (same as before)
   useEffect(() => {
-    // ✅ INSTANT: No async calls, no validation delays
+    // ... DevTools protection code (same as in TvPlayer)
+  }, [router]);
+
+  useEffect(() => {
+    // ✅ FIXED: Use correct parameters for TV shows
     let result;
     if (mediaType === 'movie') {
       result = getMovieEmbed(mediaId);
     } else {
-      result = getTVEmbed(mediaId);
+      // Pass actual season and episode for TV shows
+      result = getTVEmbed(mediaId, season, episode);
     }
     
     setEmbedUrl(result.embedUrl);
     setLoading(false);
     
-    console.log(`${mediaType} embed: ${result.embedUrl}`);
-  }, [mediaId, mediaType]);
+    const displayInfo = mediaType === 'tv' ? `S${season}E${episode}` : 'Movie';
+    console.log(`${mediaType} embed: ${displayInfo} - ${result.embedUrl}`);
+  }, [mediaId, mediaType, season, episode]);
 
   const handleClose = () => onClose ? onClose() : router.back();
 
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+        <div className="text-white">
+          Loading {mediaType === 'tv' ? `Season ${season}, Episode ${episode}` : 'Movie'}...
+        </div>
       </div>
     );
   }
@@ -67,10 +80,13 @@ export default function VideoPlayer({
           <ArrowLeft className="w-6 h-6" />
         </button>
         {title && (
-          <h1 className="text-white font-bold text-lg">{title}</h1>
+          <h1 className="text-white font-bold text-lg">
+            {title} {mediaType === 'tv' ? `- S${season}E${episode}` : ''}
+          </h1>
         )}
       </div>
     </div>
   );
 }
+
 
