@@ -7,14 +7,14 @@ interface TVEmbedResult {
 
 function getTVProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_TV_EMBED_1 || "https://www.vidking.net/embed/tv/${id}/${season}/${episode}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
+    process.env.NEXT_PUBLIC_TV_EMBED_1 || "https://cinemaos.tech/player/${id}/${season}/${episode}",
     process.env.NEXT_PUBLIC_TV_EMBED_2 || "",
     process.env.NEXT_PUBLIC_TV_EMBED_3 || "",
     process.env.NEXT_PUBLIC_TV_EMBED_4 || "",
     process.env.NEXT_PUBLIC_TV_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://www.vidking.net/embed/tv/${id}/${season}/${episode}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true"];
+  return providers.length > 0 ? providers : ["https://cinemaos.tech/player/${id}/${season}/${episode}"];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
