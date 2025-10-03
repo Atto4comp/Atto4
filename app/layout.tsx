@@ -71,6 +71,7 @@ export default function RootLayout({
         </main>
         <Footer /> {/* ✅ Added Footer at the bottom */}
       </body>
+      <Analytics />
     </html>
   );
 }
