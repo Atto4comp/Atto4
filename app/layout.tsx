@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer'; // ✅ Added Footer import
 import { SITE_CONFIG } from '@/lib/constants';
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ 
   subsets: ['latin'],
