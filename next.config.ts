@@ -1,10 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // 🚫 Completely disable Vercel Image Optimization
-  //    This ensures no optimizer quota, cache writes, or billing.
+  // 🚫 Disable Vercel Image Optimization (uses plain <img> instead)
   images: {
-    unoptimized: true, // disables /_next/image optimizer
+    unoptimized: true, // <— This disables costly optimization
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,20 +12,24 @@ const nextConfig: NextConfig = {
         pathname: '/t/p/**',
       },
     ],
+    formats: ['image/webp', 'image/avif'],
   },
 
-  // ✅ Core Next.js settings
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
 
-  // ✅ Ignore linting/type errors during Vercel build (safe for deployment)
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  // ✅ Ignore build errors/warnings during deployment
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 
-  // ⚡ Small build-time optimization (optional)
+  // ✅ Future-proof optimizations
   experimental: {
-    optimizePackageImports: ['lucide-react'],
+    optimizePackageImports: ['lucide-react'], // faster builds
   },
 };
 
