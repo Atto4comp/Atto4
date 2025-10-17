@@ -1,4 +1,3 @@
-// app/watch/[mediatype]/[id]/page.tsx
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -20,6 +19,11 @@ export default function WatchPage() {
   // Get season and episode from query params for TV shows (default to 1)
   const season = parseInt(searchParams.get('season') || '1', 10);
   const episode = parseInt(searchParams.get('episode') || '1', 10);
+
+  // Back button control: 'auto' | 'show' | 'hide'
+  // Usage: /watch/movie/123?backButton=hide
+  const rawBack = searchParams.get('backButton') || 'hide';
+  const backButton = ['auto', 'show', 'hide'].includes(rawBack) ? (rawBack as 'auto' | 'show' | 'hide') : 'auto';
 
   useEffect(() => {
     // Hide body scroll for fullscreen experience
@@ -96,7 +100,7 @@ export default function WatchPage() {
   // Determine a display title (movie.title or tv.name)
   const title = mediaData?.title ?? mediaData?.name ?? '';
 
-  // Render correct player
+  // Render correct player and pass the backButton control down
   if (mediaType === 'movie') {
     return (
       <MoviePlayer
@@ -106,6 +110,7 @@ export default function WatchPage() {
         // optional tuning:
         guardMs={6000}
         showControls={true}
+        backButton={backButton}
       />
     );
   }
@@ -122,6 +127,7 @@ export default function WatchPage() {
         guardMs={5000}
         autoNextMs={25 * 60 * 1000} // auto-advance after ~25 minutes (optional)
         showControls={true}
+        backButton={backButton}
       />
     );
   }
