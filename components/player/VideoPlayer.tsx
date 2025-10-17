@@ -29,7 +29,7 @@ export default function VideoPlayer({
   episode = 1,
   title,
   onClose,
-  backButton = 'auto'
+  backButton = 'hide'
 }: VideoPlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
