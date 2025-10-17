@@ -7,14 +7,14 @@ interface MovieEmbedResult {
 
 function getMovieProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://bit.ly/47aCckz",
+    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "http://bit.ly/3WHHEqh",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_2 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_3 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
     process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://bit.ly/47aCckz"];
+  return providers.length > 0 ? providers : ["http://bit.ly/3WHHEqh"];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
