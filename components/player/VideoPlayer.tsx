@@ -11,9 +11,9 @@ interface VideoPlayerProps {
   mediaType: 'movie' | 'tv';
   season?: number;
   episode?: number;
-  title?: string;
+  title?: string; // kept for compatibility but not rendered
   onClose?: () => void;
-  showBackButton?: boolean; // ✅ NEW: Simple manual control (default: true)
+  showBackButton?: boolean; // manual control (default: true)
 }
 
 export default function VideoPlayer({
@@ -21,13 +21,13 @@ export default function VideoPlayer({
   mediaType,
   season = 1,
   episode = 1,
-  title,
+  title, // accepted but not used in UI
   onClose,
-  showBackButton = false // ✅ Default to showing back button
+  showBackButton = false // Default to showing back button
 }: VideoPlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  
+
   const router = useRouter();
 
   // DevTools protection
@@ -42,14 +42,15 @@ export default function VideoPlayer({
         router.replace('/menu');
       } catch (e) {
         try {
-          document.documentElement.innerHTML = '<h1 style="color:white;background-color:black;height:100vh;display:flex;align-items:center;justify-content:center;margin:0">Session blocked</h1>';
+          document.documentElement.innerHTML =
+            '<h1 style="color:white;background-color:black;height:100vh;display:flex;align-items:center;justify-content:center;margin:0">Session blocked</h1>';
         } catch {}
       }
     }
 
     function preventClipboardActions(e: Event) { e.preventDefault(); }
     function preventContextMenu(e: Event) { e.preventDefault(); }
-    
+
     document.addEventListener('cut', preventClipboardActions);
     document.addEventListener('copy', preventClipboardActions);
     document.addEventListener('paste', preventClipboardActions);
@@ -92,12 +93,14 @@ export default function VideoPlayer({
       const viewportDetected = widthDiff > threshold || heightDiff > threshold;
 
       consoleDetected = false;
+      // intentionally triggers the getter
+      // eslint-disable-next-line no-console
       console.log(detector);
 
       const detected = viewportDetected || consoleDetected;
 
       if (detected) {
-        if (intervalId) {
+        if (intervalId !== undefined) {
           clearInterval(intervalId);
           intervalId = undefined;
         }
@@ -114,7 +117,7 @@ export default function VideoPlayer({
 
     return () => {
       try {
-        if (intervalId) clearInterval(intervalId);
+        if (intervalId !== undefined) clearInterval(intervalId);
         document.removeEventListener('cut', preventClipboardActions);
         document.removeEventListener('copy', preventClipboardActions);
         document.removeEventListener('paste', preventClipboardActions);
@@ -125,19 +128,40 @@ export default function VideoPlayer({
   }, [router]);
 
   useEffect(() => {
-    // ✅ Use correct parameters for TV shows
-    let result;
-    if (mediaType === 'movie') {
-      result = getMovieEmbed(mediaId);
-    } else {
-      result = getTVEmbed(mediaId, season, episode);
+    // Resolve embed result (supports sync return or Promise)
+    setLoading(true);
+    let isMounted = true;
+
+    try {
+      const result = mediaType === 'movie'
+        ? getMovieEmbed(mediaId)
+        : getTVEmbed(mediaId, season, episode);
+
+      Promise.resolve(result)
+        .then((res: any) => {
+          if (!isMounted) return;
+          const url = res?.embedUrl ?? '';
+          setEmbedUrl(url);
+          const displayInfo = mediaType === 'tv' ? `S${season}E${episode}` : 'Movie';
+          console.log(`${mediaType} embed: ${displayInfo} - ${url}`);
+        })
+        .catch((err) => {
+          console.error('Failed to get embed result', err);
+          if (!isMounted) return;
+          setEmbedUrl('');
+        })
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
+    } catch (err) {
+      console.error('Error while resolving embed', err);
+      if (isMounted) {
+        setEmbedUrl('');
+        setLoading(false);
+      }
     }
-    
-    setEmbedUrl(result.embedUrl);
-    setLoading(false);
-    
-    const displayInfo = mediaType === 'tv' ? `S${season}E${episode}` : 'Movie';
-    console.log(`${mediaType} embed: ${displayInfo} - ${result.embedUrl}`);
+
+    return () => { isMounted = false; };
   }, [mediaId, mediaType, season, episode]);
 
   const handleClose = () => onClose ? onClose() : router.back();
@@ -161,21 +185,18 @@ export default function VideoPlayer({
         allow="autoplay; encrypted-media; picture-in-picture"
         style={{ border: 'none' }}
       />
-      
-      {/* ✅ Only render back button if showBackButton is true */}
+
+      {/* Only render back button (no title) */}
       {showBackButton && (
-        <div className="absolute top-4 left-4 z-30 flex items-center gap-3">
+        <div className="absolute top-4 left-4 z-30">
           <button
             onClick={handleClose}
             className="p-2 rounded-full bg-black/60 text-white hover:bg-black/80"
+            aria-label="Close video and go back"
+            title="Close"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          {title && (
-            <h1 className="text-white font-bold text-lg">
-              {title} {mediaType === 'tv' ? `- S${season}E${episode}` : ''}
-            </h1>
-          )}
         </div>
       )}
     </div>
