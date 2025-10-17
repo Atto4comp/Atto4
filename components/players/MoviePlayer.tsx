@@ -1,46 +1,112 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 
 interface MoviePlayerProps {
   mediaId: number | string;
-  title?: string;
+  title?: string; // kept for compatibility but not rendered
   onClose?: () => void;
+  /**
+   * Control back button rendering:
+   * - 'auto' (default): try to detect from embed URL and listen for postMessage from iframe
+   * - 'show': always show host back button
+   * - 'hide': always hide host back button
+   */
+  backButton?: 'auto' | 'show' | 'hide';
 }
 
-export default function MoviePlayer({ mediaId, title, onClose }: MoviePlayerProps) {
-  // ✅ URL STORAGE: Store movie embed URL
+export default function MoviePlayer({ mediaId, title, onClose, backButton = 'hide' }: MoviePlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+  const [showBackBtn, setShowBackBtn] = useState<boolean>(true);
+
   const router = useRouter();
 
+  const handleClose = useCallback(() => onClose?.() || router.back(), [onClose, router]);
+
+  // Heuristic: detect common tokens in the embed URL that hint it already includes a close/back UI
+  const detectEmbedHasBack = (url?: string) => {
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    const tokens = [
+      'close',
+      'closebutton',
+      'close_btn',
+      'back',
+      'backbutton',
+      'back_btn',
+      'return',
+      'exit',
+      'dismiss',
+      'overlay-close',
+      'hasback',
+      'show_back',
+      'player-close'
+    ];
+    return tokens.some(t => lower.includes(t));
+  };
+
   useEffect(() => {
+    let mounted = true;
+
     const loadMovieEmbed = async () => {
       setLoading(true);
+      setError('');
+
       try {
-        // ✅ FAST MOVIE FETCH
         const result = await getMovieEmbed(mediaId);
-        
-        // ✅ STORE MOVIE URL
-        setEmbedUrl(result.embedUrl);
-        
-        console.log(`🎬 Movie URL stored: ${result.embedUrl}`);
+        if (!mounted) return;
+
+        const url = result?.embedUrl ?? '';
+        setEmbedUrl(url);
+
+        // Decide show/hide based on backButton prop
+        if (backButton === 'show') {
+          setShowBackBtn(true);
+        } else if (backButton === 'hide') {
+          setShowBackBtn(false);
+        } else {
+          // auto: heuristic detection from URL
+          const hasBack = detectEmbedHasBack(url);
+          setShowBackBtn(!hasBack);
+        }
+
+        console.log(`🎬 Movie URL stored: ${url}`);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load movie');
+        console.error('Failed to load movie embed', err);
+        if (!mounted) return;
+        setError(err instanceof Error ? err.message : String(err) || 'Failed to load movie');
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     loadMovieEmbed();
-  }, [mediaId]);
 
-  const handleClose = () => onClose?.() || router.back();
+    return () => { mounted = false; };
+  }, [mediaId, backButton]);
+
+  // Listen to postMessage from embed (best-effort) to allow embed to declare it has its own back/close UI
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (data && data.type === 'embed-back-button' && typeof data.hasBackButton === 'boolean') {
+          // If embed says it has a back button, hide host button; otherwise show it.
+          setShowBackBtn(!data.hasBackButton);
+        }
+      } catch (err) {
+        // ignore malformed messages
+      }
+    };
+
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
 
   if (loading) {
     return (
@@ -66,7 +132,6 @@ export default function MoviePlayer({ mediaId, title, onClose }: MoviePlayerProp
 
   return (
     <div className="fixed inset-0 z-50 bg-black">
-      {/* ✅ MOVIE IFRAME: Uses stored embedUrl */}
       <iframe
         src={embedUrl}
         className="w-full h-full"
@@ -74,18 +139,20 @@ export default function MoviePlayer({ mediaId, title, onClose }: MoviePlayerProp
         allow="autoplay; encrypted-media; picture-in-picture"
         style={{ border: 'none' }}
       />
-      
-      <div className="absolute top-4 left-4 z-30 flex items-center gap-3">
-        <button
-          onClick={handleClose}
-          className="p-2 rounded-full bg-black/60 text-white hover:bg-black/80"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        {title && (
-          <h1 className="text-white font-bold text-lg">{title}</h1>
-        )}
-      </div>
+
+      {/* Only render back button (title intentionally not rendered) */}
+      {showBackBtn && (
+        <div className="absolute top-4 left-4 z-30">
+          <button
+            onClick={handleClose}
+            className="p-2 rounded-full bg-black/60 text-white hover:bg-black/80"
+            aria-label="Close video and go back"
+            title="Close"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
