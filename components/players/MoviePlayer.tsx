@@ -20,10 +20,12 @@ interface MoviePlayerProps {
 
 export default function MoviePlayer({ mediaId, title, onClose, backButton = 'hide' }: MoviePlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showBackBtn, setShowBackBtn] = useState<boolean>(true);
 
   const router = useRouter();
+
   const handleClose = useCallback(() => onClose?.() || router.back(), [onClose, router]);
 
   // Heuristic: detect common tokens in the embed URL that hint it already includes a close/back UI
@@ -31,16 +33,30 @@ export default function MoviePlayer({ mediaId, title, onClose, backButton = 'hid
     if (!url) return false;
     const lower = url.toLowerCase();
     const tokens = [
-      'close','closebutton','close_btn','back','backbutton','back_btn',
-      'return','exit','dismiss','overlay-close','hasback','show_back','player-close'
+      'close',
+      'closebutton',
+      'close_btn',
+      'back',
+      'backbutton',
+      'back_btn',
+      'return',
+      'exit',
+      'dismiss',
+      'overlay-close',
+      'hasback',
+      'show_back',
+      'player-close'
     ];
     return tokens.some(t => lower.includes(t));
   };
 
   useEffect(() => {
     let mounted = true;
+
     const loadMovieEmbed = async () => {
+      setLoading(true);
       setError('');
+
       try {
         const result = await getMovieEmbed(mediaId);
         if (!mounted) return;
@@ -49,35 +65,56 @@ export default function MoviePlayer({ mediaId, title, onClose, backButton = 'hid
         setEmbedUrl(url);
 
         // Decide show/hide based on backButton prop
-        if (backButton === 'show') setShowBackBtn(true);
-        else if (backButton === 'hide') setShowBackBtn(false);
-        else setShowBackBtn(!detectEmbedHasBack(url)); // auto
+        if (backButton === 'show') {
+          setShowBackBtn(true);
+        } else if (backButton === 'hide') {
+          setShowBackBtn(false);
+        } else {
+          // auto: heuristic detection from URL
+          const hasBack = detectEmbedHasBack(url);
+          setShowBackBtn(!hasBack);
+        }
 
-        // eslint-disable-next-line no-console
         console.log(`🎬 Movie URL stored: ${url}`);
       } catch (err) {
-        if (!mounted) return;
         console.error('Failed to load movie embed', err);
+        if (!mounted) return;
         setError(err instanceof Error ? err.message : String(err) || 'Failed to load movie');
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
+
     loadMovieEmbed();
+
     return () => { mounted = false; };
   }, [mediaId, backButton]);
 
-  // postMessage handshake to allow embed to declare it has a back/close UI
+  // Listen to postMessage from embed (best-effort) to allow embed to declare it has its own back/close UI
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       try {
         const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
         if (data && data.type === 'embed-back-button' && typeof data.hasBackButton === 'boolean') {
+          // If embed says it has a back button, hide host button; otherwise show it.
           setShowBackBtn(!data.hasBackButton);
         }
-      } catch {}
+      } catch (err) {
+        // ignore malformed messages
+      }
     };
+
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+        <div className="text-white">Loading movie player...</div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -85,7 +122,9 @@ export default function MoviePlayer({ mediaId, title, onClose, backButton = 'hid
         <div className="text-white text-center">
           <h2 className="text-xl mb-4">Error Loading Movie</h2>
           <p className="mb-4">{error}</p>
-          <button onClick={handleClose} className="px-4 py-2 bg-gray-600 rounded">Go Back</button>
+          <button onClick={handleClose} className="px-4 py-2 bg-gray-600 rounded">
+            Go Back
+          </button>
         </div>
       </div>
     );
@@ -100,6 +139,8 @@ export default function MoviePlayer({ mediaId, title, onClose, backButton = 'hid
         allow="autoplay; encrypted-media; picture-in-picture"
         style={{ border: 'none' }}
       />
+
+      {/* Only render back button (title intentionally not rendered) */}
       {showBackBtn && (
         <div className="absolute top-4 left-4 z-30">
           <button
