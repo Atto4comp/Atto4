@@ -17,20 +17,17 @@ function getTVProviders() {
   return providers.length > 0 ? providers : ["https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}?logo=false&tips=false&theme=default&allinone=true&backlink=https://atto4.pro/"];
 }
 
-// ✅ Uses actual season/episode parameters instead of defaulting
+// ✅ Return a masked, first-party embed route instead of the third-party URL
 export function getTVEmbed(
-  id: string | number, 
-  season: string | number, 
+  id: string | number,
+  season: string | number,
   episode: string | number
 ): TVEmbedResult {
   const providers = getTVProviders();
   const providerUrl = providers[0];
 
-  // Use the actual parameters passed to the function
-  const embedUrl = providerUrl
-    .replace(/\$\{id\}/g, String(id))
-    .replace(/\$\{season\}/g, String(season))
-    .replace(/\$\{episode\}/g, String(episode));
+  // We no longer return the 3P URL here — the player loads our own route
+  const embedUrl = `/api/embed/tv?mid=${encodeURIComponent(String(id))}&s=${encodeURIComponent(String(season))}&e=${encodeURIComponent(String(episode))}`;
 
   return {
     embedUrl,
@@ -39,4 +36,3 @@ export function getTVEmbed(
 }
 
 export default { getTVEmbed };
-
