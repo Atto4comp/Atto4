@@ -17,13 +17,13 @@ function getMovieProviders() {
   return providers.length > 0 ? providers : ["https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=default&allinone=true&&backlink=https://atto4.pro/"];
 }
 
-// ✅ Return a masked, first-party embed route instead of the third-party URL
+// ✅ FAST: Direct URL building - no validation overhead
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
   const providers = getMovieProviders();
   const providerUrl = providers[0];
 
-  // We no longer return the 3P URL here — the player loads our own route
-  const embedUrl = `/api/embed/movie?mid=${encodeURIComponent(String(id))}`;
+  // Direct template replacement - instant
+  const embedUrl = providerUrl.replace(/\$\{id\}/g, String(id));
 
   return {
     embedUrl,
