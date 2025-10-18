@@ -166,16 +166,6 @@ export default function VideoPlayer({
 
   const handleClose = () => onClose ? onClose() : router.back();
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-        <div className="text-white">
-          Loading {mediaType === 'tv' ? `Season ${season}, Episode ${episode}` : 'Movie'}...
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="fixed inset-0 z-50 bg-black">
       <iframe
@@ -202,5 +192,3 @@ export default function VideoPlayer({
     </div>
   );
 }
-
-
