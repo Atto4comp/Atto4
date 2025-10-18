@@ -13,22 +13,21 @@ function getMovieProviders() {
     process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
     process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
   ].filter(p => p.trim());
-
-  return providers.length > 0
-    ? providers
-    : ["https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=default&allinone=true&&backlink=https://atto4.pro/"];
+  
+  return providers.length > 0 ? providers : ["https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=default&allinone=true&&backlink=https://atto4.pro/"];
 }
 
-// ✅ Return masked first-party path; rewrites in next.config.ts proxy to the real URL
+// ✅ FAST: Direct URL building - no validation overhead
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
   const providers = getMovieProviders();
   const providerUrl = providers[0];
 
-  const embedUrl = `/embed/movie/${encodeURIComponent(String(id))}`;
+  // Direct template replacement - instant
+  const embedUrl = providerUrl.replace(/\$\{id\}/g, String(id));
 
   return {
     embedUrl,
-    provider: getServerLabel(providerUrl),
+    provider: getServerLabel(providerUrl)
   };
 }
 
