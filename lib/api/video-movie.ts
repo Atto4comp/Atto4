@@ -7,14 +7,14 @@ interface MovieEmbedResult {
 
 function getMovieProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=blue&allinone=true&&backlink=https://atto4.pro/",
+    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=default&allinone=true&&backlink=https://atto4.pro/",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_2 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_3 || "",
     process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
     process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=blue&allinone=true&&backlink=https://atto4.pro/"];
+  return providers.length > 0 ? providers : ["https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=default&allinone=true&&backlink=https://atto4.pro/"];
 }
 
 // ✅ FAST: Direct URL building - no validation overhead
