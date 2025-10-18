@@ -35,9 +35,11 @@ export default function TvPlayer({
   backButton = 'hide',
 }: TvPlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
+  const [loading, setLoading] = useState(true);
   const [showBackBtn, setShowBackBtn] = useState<boolean>(true);
 
   const router = useRouter();
+
   const handleClose = useCallback(() => onClose ? onClose() : router.back(), [onClose, router]);
 
   // DevTools protection (same as before)
@@ -45,9 +47,16 @@ export default function TvPlayer({
     if (typeof window === 'undefined') return;
 
     function reportDevtoolsAndRedirect() {
-      try { fetch('/api/report-devtools', { method: 'POST', credentials: 'include' }).catch(() => {}); } catch {}
-      try { router.replace('/menu'); }
-      catch { try { document.documentElement.innerHTML = '<h1 style="color:white;background-color:black;height:100vh;display:flex;align-items:center;justify-content:center;margin:0">Session blocked</h1>'; } catch {} }
+      try {
+        fetch('/api/report-devtools', { method: 'POST', credentials: 'include' }).catch(() => {});
+      } catch {}
+      try {
+        router.replace('/menu');
+      } catch {
+        try {
+          document.documentElement.innerHTML = '<h1 style="color:white;background-color:black;height:100vh;display:flex;align-items:center;justify-content:center;margin:0">Session blocked</h1>';
+        } catch {}
+      }
     }
 
     function preventClipboardActions(e: Event) { e.preventDefault(); }
@@ -70,7 +79,12 @@ export default function TvPlayer({
     let consoleDetected = false;
 
     const detector = new Image();
-    Object.defineProperty(detector, 'id', { get() { consoleDetected = true; return ''; } });
+    Object.defineProperty(detector, 'id', {
+      get() {
+        consoleDetected = true;
+        return '';
+      },
+    });
 
     intervalId = window.setInterval(() => {
       const widthDiff = window.outerWidth - window.innerWidth;
@@ -82,6 +96,7 @@ export default function TvPlayer({
       console.log(detector);
 
       const detected = viewportDetected || consoleDetected;
+
       if (detected) {
         if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
         try {
@@ -112,14 +127,15 @@ export default function TvPlayer({
     if (!url) return false;
     const lower = url.toLowerCase();
     const tokens = [
-      'close','closebutton','close_btn','back','backbutton','back_btn',
-      'return','exit','dismiss','overlay-close','hasback','show_back','player-close'
+      'close', 'closebutton', 'close_btn', 'back', 'backbutton', 'back_btn', 'return', 'exit', 'dismiss', 'overlay-close', 'hasback', 'show_back', 'player-close'
     ];
     return tokens.some(t => lower.includes(t));
   };
 
   useEffect(() => {
+    setLoading(true);
     let mounted = true;
+
     try {
       const result = getTVEmbed(mediaId, season, episode);
       Promise.resolve(result)
@@ -130,7 +146,7 @@ export default function TvPlayer({
 
           if (backButton === 'show') setShowBackBtn(true);
           else if (backButton === 'hide') setShowBackBtn(false);
-          else setShowBackBtn(!detectEmbedHasBack(url)); // auto
+          else setShowBackBtn(!detectEmbedHasBack(url));
 
           // eslint-disable-next-line no-console
           console.log(`TV embed: S${season}E${episode} - ${url}`);
@@ -139,11 +155,14 @@ export default function TvPlayer({
           if (!mounted) return;
           console.error('Failed to get TV embed', err);
           setEmbedUrl('');
-        });
+        })
+        .finally(() => { if (mounted) setLoading(false); });
     } catch (err) {
       console.error('Error resolving TV embed', err);
       setEmbedUrl('');
+      setLoading(false);
     }
+
     return () => { mounted = false; };
   }, [mediaId, season, episode, backButton]);
 
@@ -157,9 +176,18 @@ export default function TvPlayer({
         }
       } catch {}
     };
+
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+        <div className="text-white">Loading Season {season}, Episode {episode}...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black">
@@ -170,6 +198,8 @@ export default function TvPlayer({
         allow="autoplay; encrypted-media; picture-in-picture"
         style={{ border: 'none' }}
       />
+
+      {/* Only render back button (title intentionally not rendered) */}
       {showBackBtn && (
         <div className="absolute top-4 left-4 z-30">
           <button
@@ -185,4 +215,3 @@ export default function TvPlayer({
     </div>
   );
 }
-
