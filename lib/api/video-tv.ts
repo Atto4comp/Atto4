@@ -7,14 +7,14 @@ interface TVEmbedResult {
 
 function getTVProviders() {
   const providers = [
-    process.env.NEXT_PUBLIC_TV_EMBED_1 || "https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}?logo=false&tips=false&theme=blue&allinone=true&backlink=https://atto4.pro/",
+    process.env.NEXT_PUBLIC_TV_EMBED_1 || "https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}?logo=false&tips=false&theme=default&allinone=true&backlink=https://atto4.pro/",
     process.env.NEXT_PUBLIC_TV_EMBED_2 || "",
     process.env.NEXT_PUBLIC_TV_EMBED_3 || "",
     process.env.NEXT_PUBLIC_TV_EMBED_4 || "",
     process.env.NEXT_PUBLIC_TV_API_BASE || "",
   ].filter(p => p.trim());
   
-  return providers.length > 0 ? providers : ["https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}?logo=false&tips=false&theme=blue&allinone=true&backlink=https://atto4.pro/"];
+  return providers.length > 0 ? providers : ["https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}?logo=false&tips=false&theme=default&allinone=true&backlink=https://atto4.pro/"];
 }
 
 // ✅ Uses actual season/episode parameters instead of defaulting
