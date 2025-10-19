@@ -17,21 +17,30 @@ function getTVProviders() {
   return providers.length > 0 ? providers : ["https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}?logo=false&tips=false&theme=default&allinone=true&backlink=https://atto4.pro/"];
 }
 
-// ✅ Uses actual season/episode parameters instead of defaulting
+/**
+ * Get TV show embed URL using browser proxy
+ * @param id - TMDB TV show ID
+ * @param season - Season number
+ * @param episode - Episode number
+ * @returns Embed URL and provider info
+ */
 export function getTVEmbed(
   id: string | number, 
   season: string | number, 
   episode: string | number
 ): TVEmbedResult {
+  // Get configured providers (kept for future extensibility)
   const providers = getTVProviders();
   const providerUrl = providers[0];
+  const providerLabel = getServerLabel(providerUrl);
 
-  // Use the actual parameters passed to the function
-const embedUrl = `/embed/tv/${id}/${season}/${episode}`;
+  // Use internal browser proxy route
+  // This bypasses Cloudflare 403 errors using Puppeteer with stealth plugin
+  const embedUrl = `/embed/tv/${id}/${season}/${episode}`;
 
-return {
-  embedUrl,
-  provider: 'Browser Proxy'
+  return {
+    embedUrl,
+    provider: `Browser Proxy (${providerLabel})`
   };
 }
 
