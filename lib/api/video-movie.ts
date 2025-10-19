@@ -23,7 +23,7 @@ export function getMovieEmbed(id: string | number): MovieEmbedResult {
   const providerUrl = providers[0];
 
   // Direct template replacement - instant
-  const embedUrl = providerUrl.replace(/\$\{id\}/g, String(id));
+   const embedUrl = `/player/movie/${encodeURIComponent(String(id))}`;
 
   return {
     embedUrl,
