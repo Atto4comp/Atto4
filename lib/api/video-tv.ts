@@ -27,10 +27,8 @@ export function getTVEmbed(
   const providerUrl = providers[0];
 
   // Use the actual parameters passed to the function
-  const embedUrl = providerUrl
-    .replace(/\$\{id\}/g, String(id))
-    .replace(/\$\{season\}/g, String(season))
-    .replace(/\$\{episode\}/g, String(episode));
+  const embedUrl =
+    `/player/tv/${encodeURIComponent(String(id))}?s=${encodeURIComponent(String(season))}&e=${encodeURIComponent(String(episode))}`;
 
   return {
     embedUrl,
