@@ -31,24 +31,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'], // faster builds
   },
-
-  // ✅ Secure proxy rewrites to mask real streaming URLs
-  async rewrites() {
-    return [
-      {
-        source: '/embed/movie/:id',
-        destination:
-          process.env.NEXT_PUBLIC_MOVIE_EMBED_1 ??
-          'https://iframe.pstream.mov/embed/tmdb-movie-:id?logo=false&tips=false&theme=default&allinone=true&&backlink=https://atto4.pro/',
-      },
-      {
-        source: '/embed/tv/:id/:season/:episode',
-        destination:
-          process.env.NEXT_PUBLIC_TV_EMBED_1 ??
-          'https://iframe.pstream.mov/embed/tmdb-tv-:id/:season/:episode?logo=false&tips=false&theme=default&allinone=true&backlink=https://atto4.pro/',
-      },
-    ];
-  },
 };
 
 export default nextConfig;
