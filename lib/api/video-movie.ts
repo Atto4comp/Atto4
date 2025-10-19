@@ -23,11 +23,11 @@ export function getMovieEmbed(id: string | number): MovieEmbedResult {
   const providerUrl = providers[0];
 
   // Direct template replacement - instant
-   const embedUrl = providerUrl.replace(/\$\{id\}/g, String(id));
+    const embedUrl = `/embed/movie/${id}`;
 
   return {
     embedUrl,
-    provider: getServerLabel(providerUrl)
+    provider: 'Internal Proxy'
   };
 }
 
