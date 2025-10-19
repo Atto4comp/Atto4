@@ -27,14 +27,11 @@ export function getTVEmbed(
   const providerUrl = providers[0];
 
   // Use the actual parameters passed to the function
-  const embedUrl = providerUrl
-    .replace(/\$\{id\}/g, String(id))
-    .replace(/\$\{season\}/g, '1')
-    .replace(/\$\{episode\}/g, '1');
+const embedUrl = `/embed/tv/${id}/${season}/${episode}`;
 
-  return {
+   return {
     embedUrl,
-    provider: getServerLabel(providerUrl)
+    provider: 'Browser Proxy'
   };
 }
 
