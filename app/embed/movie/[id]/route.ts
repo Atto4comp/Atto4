@@ -6,7 +6,6 @@ export const runtime = 'nodejs';
 
 const BACKLINK = process.env.NEXT_PUBLIC_BACKLINK ?? 'https://atto4.pro/';
 
-/** Safe RL init */
 function getRatelimit(): Ratelimit | null {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -25,27 +24,22 @@ const UA =
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; season: string; episode: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { id, season, episode } = params;
+  const { id } = params;
 
-  // Validate parameters (numeric TMDB id/season/episode)
-  if (
-    !id || !season || !episode ||
-    Number.isNaN(Number(id)) || Number.isNaN(Number(season)) || Number.isNaN(Number(episode))
-  ) {
+  if (!id || Number.isNaN(Number(id))) {
     return new NextResponse(
       `<!doctype html><html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
         <div style="text-align:center">
-          <h2>Invalid TV Show Parameters</h2>
-          <p>Please provide valid numeric ID, season, and episode.</p>
+          <h2>Invalid Movie ID</h2>
+          <p>Please provide a valid numeric TMDB movie ID.</p>
         </div>
       </body></html>`,
       { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     );
   }
 
-  // Rate limiting (optional)
   if (ratelimit) {
     const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || request.ip || 'anon';
     const { success } = await ratelimit.limit(ip);
@@ -54,13 +48,11 @@ export async function GET(
 
   try {
     const upstreamUrl =
-      `https://iframe.pstream.mov/embed/tmdb-tv-${encodeURIComponent(id)}` +
-      `/${encodeURIComponent(season)}/${encodeURIComponent(episode)}` +
+      `https://iframe.pstream.mov/embed/tmdb-movie-${encodeURIComponent(id)}` +
       `?logo=false&tips=false&theme=default&allinone=true&backlink=${encodeURIComponent(BACKLINK)}`;
 
     const upstreamOrigin = new URL(upstreamUrl).origin;
 
-    // Use upstream origin as Referer; don't send Origin header
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
@@ -69,6 +61,7 @@ export async function GET(
         'User-Agent': UA,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
+        // IMPORTANT: set referer to upstream origin for this host
         'Referer': `${upstreamOrigin}/`,
       },
       signal: controller.signal,
@@ -78,8 +71,8 @@ export async function GET(
       return new NextResponse(
         `<!doctype html><html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
           <div style="text-align:center">
-            <h2>Episode Not Available</h2>
-            <p>Season ${season}, Episode ${episode} (ID: ${id})</p>
+            <h2>Movie Not Available</h2>
+            <p>ID: ${id}</p>
             <p style="color:#888">Upstream returned: ${res.status} ${res.statusText}</p>
           </div>
         </body></html>`,
@@ -89,7 +82,6 @@ export async function GET(
 
     let html = await res.text();
 
-    // Inject <base> for relative assets
     const baseTag = `<base href="${upstreamOrigin}/">`;
     if (/<head[^>]*>/i.test(html)) {
       html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
@@ -99,7 +91,6 @@ export async function GET(
       html = `<!doctype html><html><head>${baseTag}</head><body>${html}</body></html>`;
     }
 
-    // Defang simple frame-busting
     html = html
       .replace(
         /if\s*\(\s*(?:window\.)?top\s*!==?\s*(?:window\.)?self\s*\)\s*top\.location\s*=\s*self\.location\s*;?/gi,
@@ -122,7 +113,7 @@ export async function GET(
     return new NextResponse(
       `<!doctype html><html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
         <div style="text-align:center">
-          <h2>Failed to Load Episode</h2>
+          <h2>Failed to Load Movie</h2>
           <p>${msg}</p>
         </div>
       </body></html>`,
