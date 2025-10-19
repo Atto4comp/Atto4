@@ -16,18 +16,25 @@ function getRatelimit(): Ratelimit | null {
     redis: new Redis({ url, token }),
     limiter: Ratelimit.slidingWindow(10, '10 s'),
     analytics: true,
-    prefix: 'rl-browser',
+    prefix: 'rl-embed-tv',
   });
 }
 const ratelimit = getRatelimit();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; season: string; episode: string } } // ✅
+  context: { params: Promise<{ id: string; season: string; episode: string }> }
 ) {
-  const { id, season, episode } = params;
+  const { id, season, episode } = await context.params;
 
-  if ([id, season, episode].some((v) => !v || Number.isNaN(Number(v)))) {
+  if (
+    !id ||
+    !season ||
+    !episode ||
+    Number.isNaN(Number(id)) ||
+    Number.isNaN(Number(season)) ||
+    Number.isNaN(Number(episode))
+  ) {
     return new NextResponse('Invalid parameters', { status: 400 });
   }
 
@@ -37,94 +44,89 @@ export async function GET(
     if (!success) return new NextResponse('Rate limit exceeded', { status: 429 });
   }
 
-  const upstreamUrl =
-    `https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}` +
-    `?logo=false&tips=false&theme=default&allinone=true&backlink=${encodeURIComponent(BACKLINK)}`;
+  const baseUrl = `https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}`;
+  const upstreamUrl = `${baseUrl}?` + new URLSearchParams({
+    logo: 'false',
+    tips: 'false',
+    theme: 'default',
+    allinone: 'true',
+    backlink: BACKLINK,
+  }).toString();
 
-  // headless first
-  const headless = await fetchWithBrowserSafe({
+  // 1) Try headless browser first (if enabled)
+  const browserRes = await fetchWithBrowserSafe({
     url: upstreamUrl,
     timeout: 30000,
     waitForSelector: 'video, iframe, .player',
   });
 
-  if (!headless.error && headless.html) {
-    let html = injectBaseAndDefang(headless.html, upstreamUrl);
-    return okHtml(html);
+  if (browserRes.status !== 501 && browserRes.html) {
+    const html = postProcessHtml(browserRes.html, upstreamUrl);
+    return new NextResponse(html, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Security-Policy': "frame-ancestors 'self'",
+        'Cache-Control': 'no-store, must-revalidate',
+      },
+    });
   }
 
-  // fallback
+  // 2) Fallback to regular fetch
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const resp = await fetch(upstreamUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept':
+          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
-        Referer: BACKLINK,
-        Origin: BACKLINK.replace(/\/$/, ''),
+        'Referer': BACKLINK,
+        'Origin': BACKLINK.replace(/\/$/, ''),
       },
+      signal: controller.signal,
       cache: 'no-store',
-    });
+    }).finally(() => clearTimeout(timeoutId));
 
-    const htmlRaw = await resp.text();
-    if (!resp.ok) return notAvailableTv(id, season, episode, resp.status);
-
-    const lower = htmlRaw.toLowerCase();
-    if (lower.includes('couldn\'t find that page') || lower.includes('not found')) {
-      return notFoundPretty(`S${season}E${episode} not found on provider.`);
+    if (!resp.ok) {
+      return new NextResponse('Upstream error', { status: resp.status });
     }
 
-    const html = injectBaseAndDefang(htmlRaw, upstreamUrl);
-    return okHtml(html);
-  } catch (e: any) {
-    return errorPretty(e?.message || 'Failed to fetch upstream');
+    const html = await resp.text();
+    const processed = postProcessHtml(html, upstreamUrl);
+    return new NextResponse(processed, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Security-Policy': "frame-ancestors 'self'",
+        'Cache-Control': 'no-store, must-revalidate',
+      },
+    });
+  } catch {
+    return new NextResponse('Failed to load episode', { status: 500 });
   }
 }
 
-/* helpers — same as movie, plus one: */
-function injectBaseAndDefang(html: string, upstreamUrl: string) {
+function postProcessHtml(html: string, upstreamUrl: string) {
   const origin = new URL(upstreamUrl).origin;
   const baseTag = `<base href="${origin}/">`;
-  if (/<head[^>]*>/i.test(html)) html = html.replace(/<head([^>]*)>/i, `<head$1>\n  ${baseTag}`);
-  else if (/<html[^>]*>/i.test(html)) html = html.replace(/<html([^>]*)>/i, `<html$1>\n<head>${baseTag}</head>`);
-  else html = `<!DOCTYPE html><html><head>${baseTag}</head><body>${html}</body></html>`;
-  return html
+
+  if (/<head[^>]*>/i.test(html)) {
+    html = html.replace(/<head([^>]*)>/i, `<head$1>\n  ${baseTag}`);
+  } else if (/<html[^>]*>/i.test(html)) {
+    html = html.replace(/<html([^>]*)>/i, `<html$1>\n<head>${baseTag}</head>`);
+  } else {
+    html = `<!DOCTYPE html><html><head>${baseTag}</head><body>${html}</body></html>`;
+  }
+
+  html = html
     .replace(/if\s*\(\s*(?:window\.)?top\s*!==?\s*(?:window\.)?self\s*\)/gi, 'if(false)')
+    .replace(/if\s*\(\s*(?:window\.)?parent\s*!==?\s*(?:window\.)?self\s*\)/gi, 'if(false)')
     .replace(/top\.location\s*=/gi, '// top.location =')
     .replace(/parent\.location\s*=/gi, '// parent.location =');
-}
-function okHtml(html: string) { /* identical to movie */ 
-  return new NextResponse(html, { status: 200, headers: {
-    'Content-Type': 'text/html; charset=utf-8',
-    'Content-Security-Policy': "frame-ancestors 'self'",
-    'Cache-Control': 'no-store',
-  }});
-}
-function notFoundPretty(msg: string) { /* identical to movie */ 
-  return new NextResponse(
-    `<html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
-      <div style="text-align:center"><h2>Not Found</h2><p>${msg}</p></div>
-    </body></html>`,
-    { status: 404, headers: { 'Content-Type': 'text/html' } }
-  );
-}
-function errorPretty(msg: string) { /* identical to movie */ 
-  return new NextResponse(
-    `<html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
-      <div style="text-align:center"><h2>Failed to Load Episode</h2><p>${msg}</p></div>
-    </body></html>`,
-    { status: 500, headers: { 'Content-Type': 'text/html' } }
-  );
-}
-function notAvailableTv(id: string, s: string, e: string, status: number) {
-  return new NextResponse(
-    `<html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
-      <div style="text-align:center">
-        <h2>Episode Not Available</h2>
-        <p>Show ${id} — S${s}E${e} (${status})</p>
-      </div>
-    </body></html>`,
-    { status, headers: { 'Content-Type': 'text/html' } }
-  );
-}
 
+  return html;
+}
