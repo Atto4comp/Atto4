@@ -1,11 +1,12 @@
 // lib/browser-proxy-runtime.ts
-// Keep your original stealth implementation here (unchanged logic).
+// Node-only implementation. Imported dynamically from browser-proxy.ts.
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 puppeteer.use(StealthPlugin());
 
 let browserInstance: any = null;
+
 async function getBrowser() {
   if (!browserInstance) {
     browserInstance = await puppeteer.launch({
@@ -34,13 +35,15 @@ export async function fetchWithBrowser({
   try {
     const browser = await getBrowser();
     page = await browser.newPage();
+
     await page.setViewport({ width: 1920, height: 1080 });
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     );
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'en-US,en;q=0.9',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      Accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
     });
 
     const resp = await page.goto(url, { waitUntil: 'networkidle2', timeout });
@@ -53,9 +56,18 @@ export async function fetchWithBrowser({
   } catch (e: any) {
     return { html: '', status: 500, error: e?.message || 'browser fetch error' };
   } finally {
-    try { await page?.close(); } catch {}
+    try {
+      await page?.close();
+    } catch {}
   }
 }
 
 // optional cleanup
-process.on('exit', async () => { try { await browserInstance?.close(); } catch {} });
+try {
+  // @ts-ignore - only in Node
+  process.on('exit', async () => {
+    try {
+      await browserInstance?.close();
+    } catch {}
+  });
+} catch {}
