@@ -29,9 +29,9 @@ export function getTVEmbed(
   // Use the actual parameters passed to the function
 const embedUrl = `/embed/tv/${id}/${season}/${episode}`;
 
-   return {
-    embedUrl,
-    provider: 'Browser Proxy'
+return {
+  embedUrl,
+  provider: 'Browser Proxy'
   };
 }
 
