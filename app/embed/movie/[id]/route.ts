@@ -2,180 +2,132 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-// Initialize rate limiter (optional)
-const ratelimit = process.env.UPSTASH_REDIS_REST_URL
-  ? new Ratelimit({
-      redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(10, '10 s'),
-      analytics: true,
-    })
-  : null;
-
 export const runtime = 'nodejs';
+
+const BACKLINK = process.env.NEXT_PUBLIC_BACKLINK ?? 'https://atto4.pro/';
+
+/** Safe RL init */
+function getRatelimit(): Ratelimit | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token || !/^https:\/\//i.test(url)) return null;
+  return new Ratelimit({
+    redis: new Redis({ url, token }),
+    limiter: Ratelimit.slidingWindow(10, '10 s'),
+    analytics: true,
+    prefix: 'rl',
+  });
+}
+const ratelimit = getRatelimit();
+
+const UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string; season: string; episode: string } }
 ) {
-  const { id } = await params;
+  const { id, season, episode } = params;
 
-  // Validate ID
-  if (!id || isNaN(Number(id))) {
+  // Validate parameters (numeric TMDB id/season/episode)
+  if (
+    !id || !season || !episode ||
+    Number.isNaN(Number(id)) || Number.isNaN(Number(season)) || Number.isNaN(Number(episode))
+  ) {
     return new NextResponse(
-      `<html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
+      `<!doctype html><html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
         <div style="text-align:center">
-          <h2>Invalid Movie ID</h2>
-          <p>Please provide a valid movie ID</p>
+          <h2>Invalid TV Show Parameters</h2>
+          <p>Please provide valid numeric ID, season, and episode.</p>
         </div>
       </body></html>`,
-      { 
-        status: 400,
-        headers: { 'Content-Type': 'text/html' }
-      }
+      { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     );
   }
 
-  // Rate limiting
+  // Rate limiting (optional)
   if (ratelimit) {
-    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'anonymous';
-    const { success, limit, remaining } = await ratelimit.limit(ip);
-    
-    if (!success) {
-      return new NextResponse('Rate limit exceeded', { 
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': limit.toString(),
-          'X-RateLimit-Remaining': remaining.toString(),
-        }
-      });
-    }
+    const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || request.ip || 'anon';
+    const { success } = await ratelimit.limit(ip);
+    if (!success) return new NextResponse('Rate limit exceeded', { status: 429 });
   }
 
   try {
-    // ✅ Build upstream URL with proper query parameters using URLSearchParams
-    const baseUrl = `https://iframe.pstream.mov/embed/tmdb-movie-${id}`;
-    const queryParams = new URLSearchParams({
-      logo: 'false',
-      tips: 'false',
-      theme: 'default',
-      allinone: 'true',
-      backlink: 'https://atto4.pro/'
-    });
-    
-    const upstreamUrl = `${baseUrl}?${queryParams.toString()}`;
-    
-    console.log(`🎬 Proxying movie ID: ${id}`);
-    console.log(`📍 Upstream URL: ${upstreamUrl}`);
+    const upstreamUrl =
+      `https://iframe.pstream.mov/embed/tmdb-tv-${encodeURIComponent(id)}` +
+      `/${encodeURIComponent(season)}/${encodeURIComponent(episode)}` +
+      `?logo=false&tips=false&theme=default&allinone=true&backlink=${encodeURIComponent(BACKLINK)}`;
 
-    // Fetch with timeout
+    const upstreamOrigin = new URL(upstreamUrl).origin;
+
+    // Use upstream origin as Referer; don't send Origin header
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch(upstreamUrl, {
+    const res = await fetch(upstreamUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'User-Agent': UA,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Referer': 'https://atto4.pro/',
-        'Origin': 'https://atto4.pro',
+        'Referer': `${upstreamOrigin}/`,
       },
       signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
+    }).finally(() => clearTimeout(timeout));
 
-    // Check if upstream returned error
-    if (!response.ok) {
-      console.error(`❌ Upstream returned ${response.status} for movie ${id}`);
-      
+    if (!res.ok) {
       return new NextResponse(
-        `<html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
+        `<!doctype html><html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
           <div style="text-align:center">
-            <h2>Movie Not Available</h2>
-            <p>This movie (ID: ${id}) is not available on the streaming service.</p>
-            <p style="color:#888;font-size:0.9em">Error: ${response.status} ${response.statusText}</p>
+            <h2>Episode Not Available</h2>
+            <p>Season ${season}, Episode ${episode} (ID: ${id})</p>
+            <p style="color:#888">Upstream returned: ${res.status} ${res.statusText}</p>
           </div>
         </body></html>`,
-        { 
-          status: response.status,
-          headers: { 'Content-Type': 'text/html' }
-        }
+        { status: res.status, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
       );
     }
 
-    // Get HTML content
-    let html = await response.text();
+    let html = await res.text();
 
-    // Check if content contains error messages
-    const lowerHtml = html.toLowerCase();
-    if (lowerHtml.includes('not found') || 
-        lowerHtml.includes('couldn\'t find that page') ||
-        lowerHtml.includes('404')) {
-      console.warn(`⚠️ Movie ${id} returned "not found" content`);
-      
-      return new NextResponse(
-        `<html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
-          <div style="text-align:center">
-            <h2>Movie Not Found</h2>
-            <p>The requested movie (ID: ${id}) was not found in the streaming database.</p>
-            <p style="color:#888;font-size:0.9em">The movie may not be available on this provider.</p>
-          </div>
-        </body></html>`,
-        { 
-          status: 404,
-          headers: { 'Content-Type': 'text/html' }
-        }
-      );
-    }
-
-    // Inject base tag to fix relative URLs
-    const embedOrigin = new URL(upstreamUrl).origin;
-    const baseTag = `<base href="${embedOrigin}/">`;
-    
-    if (html.includes('<head>')) {
-      html = html.replace('<head>', `<head>\n  ${baseTag}`);
-    } else if (html.includes('<html>')) {
-      html = html.replace('<html>', `<html>\n<head>${baseTag}</head>`);
+    // Inject <base> for relative assets
+    const baseTag = `<base href="${upstreamOrigin}/">`;
+    if (/<head[^>]*>/i.test(html)) {
+      html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
+    } else if (/<html[^>]*>/i.test(html)) {
+      html = html.replace(/<html([^>]*)>/i, `<html$1><head>${baseTag}</head>`);
     } else {
-      html = `<!DOCTYPE html><html><head>${baseTag}</head><body>${html}</body></html>`;
+      html = `<!doctype html><html><head>${baseTag}</head><body>${html}</body></html>`;
     }
 
-    // Remove frame-busting scripts
-    html = html.replace(/if\s*\(\s*(?:window\.)?top\s*!==?\s*(?:window\.)?self\s*\)/gi, 'if(false)');
-    html = html.replace(/if\s*\(\s*(?:window\.)?parent\s*!==?\s*(?:window\.)?self\s*\)/gi, 'if(false)');
-    html = html.replace(/top\.location\s*=/gi, '// top.location =');
-    html = html.replace(/parent\.location\s*=/gi, '// parent.location =');
-
-    console.log(`✅ Successfully proxied movie ${id}`);
+    // Defang simple frame-busting
+    html = html
+      .replace(
+        /if\s*\(\s*(?:window\.)?top\s*!==?\s*(?:window\.)?self\s*\)\s*top\.location\s*=\s*self\.location\s*;?/gi,
+        '/* removed */'
+      )
+      .replace(/top\.location\s*=/gi, '// top.location =')
+      .replace(/parent\.location\s*=/gi, '// parent.location =');
 
     return new NextResponse(html, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'X-Frame-Options': 'ALLOWALL',
-        'Content-Security-Policy': "frame-ancestors 'self'",
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+        'Content-Security-Policy': `frame-ancestors 'self'`,
+        'Cache-Control': 'no-store, must-revalidate',
+        Pragma: 'no-cache',
       },
     });
-
-  } catch (error: any) {
-    console.error('❌ Proxy error:', error);
-    
-    const isTimeout = error.name === 'AbortError';
-    
+  } catch (err: any) {
+    const msg = err?.name === 'AbortError' ? 'Request timed out.' : 'Upstream fetch failed.';
     return new NextResponse(
-      `<html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
+      `<!doctype html><html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui">
         <div style="text-align:center">
-          <h2>Failed to Load Movie</h2>
-          <p>${isTimeout ? 'Request timed out. The streaming service is not responding.' : 'Unable to connect to streaming service.'}</p>
-          <p style="color:#888;font-size:0.9em">${error.message || 'Unknown error'}</p>
+          <h2>Failed to Load Episode</h2>
+          <p>${msg}</p>
         </div>
       </body></html>`,
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'text/html' }
-      }
+      { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     );
   }
 }
+
