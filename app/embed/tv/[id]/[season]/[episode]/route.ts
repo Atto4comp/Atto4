@@ -2,76 +2,108 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-const ratelimit = process.env.UPSTASH_REDIS_REST_URL
-  ? new Ratelimit({
-      redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(10, '10 s'),
-      analytics: true,
-    })
-  : null;
-
 export const runtime = 'nodejs';
+
+const BACKLINK = process.env.NEXT_PUBLIC_BACKLINK ?? 'https://atto4.pro';
+
+function getRatelimit(): Ratelimit | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token || !/^https:\/\//i.test(url)) return null;
+  return new Ratelimit({
+    redis: new Redis({ url, token }),
+    limiter: Ratelimit.slidingWindow(10, '10 s'),
+    analytics: true,
+    prefix: 'rl',
+  });
+}
+const ratelimit = getRatelimit();
+
+function clientIp(req: NextRequest) {
+  const fwd = req.headers.get('x-forwarded-for') || '';
+  return fwd.split(',')[0].trim() || req.ip || 'anonymous';
+}
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; season: string; episode: string }> }
+  { params }: { params: { id: string; season: string; episode: string } }
 ) {
-  const { id, season, episode } = await params;
+  const { id, season, episode } = params;
 
-  // Rate limiting
   if (ratelimit) {
-    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'anonymous';
-    const { success } = await ratelimit.limit(ip);
+    const ip = clientIp(request);
+    const { success, limit, remaining, reset } = await ratelimit.limit(ip);
     if (!success) {
-      return new NextResponse('Rate limit exceeded', { status: 429 });
+      return new NextResponse('Rate limit exceeded', {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': String(limit ?? 0),
+          'X-RateLimit-Remaining': String(remaining ?? 0),
+          'X-RateLimit-Reset': reset ? String(reset) : '',
+          'Cache-Control': 'no-store',
+        },
+      });
     }
   }
 
   try {
-    const upstreamUrl = `https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}?logo=false&tips=false&theme=default&allinone=true`;
-    
-    console.log(`📺 Proxying TV: ${id} S${season}E${episode}`);
+    const upstreamUrl =
+      `https://iframe.pstream.mov/embed/tmdb-tv-${encodeURIComponent(id)}` +
+      `/${encodeURIComponent(season)}/${encodeURIComponent(episode)}` +
+      `?logo=false&tips=false&theme=default&allinone=true&backlink=${encodeURIComponent(BACKLINK)}`;
 
-    const response = await fetch(upstreamUrl, {
+    const upstreamOrigin = new URL(upstreamUrl).origin;
+
+    const upstreamRes = await fetch(upstreamUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36',
+        'Accept':
+          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': `${BACKLINK}/`,
+        'Origin': BACKLINK,
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`Upstream returned ${response.status}`);
+    if (!upstreamRes.ok) {
+      return new NextResponse(
+        `Upstream error: ${upstreamRes.status} ${upstreamRes.statusText}`,
+        { status: 502 }
+      );
     }
 
-    let html = await response.text();
+    let html = await upstreamRes.text();
 
-    // Inject base tag
-    const baseUrl = new URL(upstreamUrl).origin;
-    const baseTag = `<base href="${baseUrl}/">`;
-    
-    if (html.includes('<head>')) {
-      html = html.replace('<head>', `<head>\n${baseTag}`);
+    const baseTag = `<base href="${upstreamOrigin}/">`;
+    if (/<head[^>]*>/i.test(html)) {
+      html = html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
+    } else if (/<html[^>]*>/i.test(html)) {
+      html = html.replace(/<html([^>]*)>/i, `<html$1><head>${baseTag}</head>`);
+    } else {
+      html = `<head>${baseTag}</head>${html}`;
     }
 
-    // Remove frame-busting
-    html = html.replace(/if\s*\(\s*(?:window\.)?top\s*!==?\s*(?:window\.)?self\s*\)/gi, 'if(false)');
-    html = html.replace(/top\.location\s*=/gi, '// top.location =');
+    html = html
+      .replace(
+        /if\s*\(\s*(?:window\.)?top\s*!==?\s*(?:window\.)?self\s*\)\s*top\.location\s*=\s*self\.location\s*;?/gi,
+        '/* removed */'
+      )
+      .replace(/top\.location\s*=/gi, '// top.location =');
 
-    return new NextResponse(html, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'X-Frame-Options': 'ALLOWALL',
-        'Content-Security-Policy': "frame-ancestors 'self'",
-        'Cache-Control': 'no-store, must-revalidate',
-      },
+    const headers = new Headers({
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Security-Policy': `frame-ancestors 'self'`,
+      'Cache-Control': 'no-store, must-revalidate',
+      Pragma: 'no-cache',
     });
 
+    return new NextResponse(html, { status: 200, headers });
   } catch (error) {
     console.error('TV Proxy error:', error);
-    return new NextResponse('<html><body>Failed to load video</body></html>', { 
-      status: 500,
-      headers: { 'Content-Type': 'text/html' }
-    });
+    return new NextResponse(
+      '<html><body style="background:#000;color:#fff;text-align:center;padding:2rem">Failed to load video</body></html>',
+      { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
   }
 }
