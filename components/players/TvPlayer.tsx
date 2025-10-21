@@ -20,7 +20,7 @@ export default function TvPlayer({
   episode,
   title,
   onClose,
-  backButton = 'hide',
+  backButton = 'show',
 }: TvPlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
