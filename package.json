@@ -8,6 +8,7 @@
     "cache:clean": "node scripts/clean-cache.js"
   },
   "dependencies": {
+    "@filiptypjeu/streamlink": "^1.0.2",
     "@radix-ui/react-slot": "^1.2.3",
     "@sparticuz/chromium": "^141.0.0",
     "@types/hls.js": "^1.0.0",
@@ -31,6 +32,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-error-boundary": "^6.0.0",
+    "streamlink": "^1.0.4",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
