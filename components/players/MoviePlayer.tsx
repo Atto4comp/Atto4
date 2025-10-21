@@ -16,7 +16,7 @@ export default function MoviePlayer({
   mediaId, 
   title, 
   onClose, 
-  backButton = 'show' 
+  backButton = 'hide' 
 }: MoviePlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
