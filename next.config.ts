@@ -32,3 +32,5 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react'], // faster builds
   },
 };
+
+export default nextConfig;
