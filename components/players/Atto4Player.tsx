@@ -2,14 +2,14 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Hls from 'hls.js';
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize, 
-  Minimize, 
-  Settings, 
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Minimize,
+  Settings,
   ArrowLeft,
   Loader2,
   SkipForward,
@@ -39,7 +39,14 @@ export interface PlayerControls {
 }
 
 export interface TelemetryEvent {
-  type: 'play' | 'pause' | 'end' | 'seek' | 'quality_change' | 'error' | 'source_failed';
+  type:
+    | 'play'
+    | 'pause'
+    | 'end'
+    | 'seek'
+    | 'quality_change'
+    | 'error'
+    | 'source_failed';
   titleId?: string;
   position: number;
   duration: number;
@@ -71,13 +78,27 @@ export default function Atto4Player({
   const hlsRef = useRef<Hls | null>(null);
   const telemetryIntervalRef = useRef<NodeJS.Timeout>();
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const extractAbortRef = useRef<AbortController | null>(null);
 
-  // State management
+  // State
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(initialTime);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState<number>(() => {
+    // sticky volume (0..1) if available
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('atto4:volume');
+      const n = saved ? Number(saved) : 1;
+      return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 1;
+    }
+    return 1;
+  });
+  const [isMuted, setIsMuted] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('atto4:muted') === '1';
+    }
+    return false;
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [buffered, setBuffered] = useState(0);
@@ -95,7 +116,7 @@ export default function Atto4Player({
   const [m3u8Url, setM3u8Url] = useState<string | null>(null);
   const [extractionAttempts, setExtractionAttempts] = useState<string[]>([]);
 
-  // Extract stream on mount
+  // Extract stream (aborts on props change/unmount)
   useEffect(() => {
     let mounted = true;
 
@@ -103,43 +124,54 @@ export default function Atto4Player({
       setExtracting(true);
       setLoading(true);
       setError(null);
+      setM3u8Url(null);
+      setQualityLevels([]);
+      setCurrentQuality(-1);
+      setCurrentProvider('');
+      setExtractionAttempts([]);
+
+      extractAbortRef.current?.abort();
+      const controller = new AbortController();
+      extractAbortRef.current = controller;
 
       try {
-        console.log(`🔄 Extracting stream for ${mediaType} ${titleId}${mediaType === 'tv' ? ` S${season}E${episode}` : ''}`);
+        const body = {
+          mediaType,
+          id: titleId,
+          season: mediaType === 'tv' ? season : undefined,
+          episode: mediaType === 'tv' ? episode : undefined,
+          quality: 'best',
+        };
 
-        const response = await fetch('/api/stream/extract', {
+        const res = await fetch('/api/stream/extract', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mediaType,
-            id: titleId,
-            season: mediaType === 'tv' ? season : undefined,
-            episode: mediaType === 'tv' ? episode : undefined,
-            quality: 'best',
-          }),
+          body: JSON.stringify(body),
+          signal: controller.signal,
+          cache: 'no-store',
         });
 
-        const data = await response.json();
+        const data = await res.json().catch(() => ({}));
 
         if (!mounted) return;
 
-        if (!response.ok || !data.success) {
-          setExtractionAttempts(data.attempts?.map((a: any) => a.provider) || []);
-          throw new Error(data.error || 'Failed to extract stream from all providers');
+        if (!res.ok || !data?.success) {
+          setExtractionAttempts(
+            (data?.attempts || []).map((a: any) => a?.provider).filter(Boolean)
+          );
+          throw new Error(data?.error || 'Failed to extract stream from all providers');
         }
 
-        console.log(`✅ Stream extracted from ${data.provider}${data.cached ? ' (cached)' : ''}`);
-        
-        setM3u8Url(data.m3u8Url);
-        setCurrentProvider(data.provider);
+        setM3u8Url(String(data.m3u8Url));
+        setCurrentProvider(String(data.provider || 'unknown'));
         setExtracting(false);
-      } catch (error: any) {
-        console.error('❌ Stream extraction failed:', error);
-        if (mounted) {
-          setError(error.message || 'Failed to extract stream');
-          setExtracting(false);
-          setLoading(false);
-        }
+      } catch (err: any) {
+        if (!mounted || controller.signal.aborted) return;
+        console.error('❌ Stream extraction failed:', err);
+        setError(err?.message || 'Failed to extract stream');
+        setExtracting(false);
+        setLoading(false);
+        sendTelemetry('error', { error: err?.message || String(err) });
       }
     }
 
@@ -147,20 +179,33 @@ export default function Atto4Player({
 
     return () => {
       mounted = false;
+      extractAbortRef.current?.abort();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [titleId, mediaType, season, episode]);
 
-  // Initialize HLS when m3u8 URL is available
+  // Initialize HLS on m3u8 change
   useEffect(() => {
-    if (!m3u8Url || !videoRef.current) return;
-
     const video = videoRef.current;
+    if (!m3u8Url || !video) return;
+
     setLoading(true);
     setError(null);
 
-    console.log(`🎬 Loading m3u8: ${m3u8Url}`);
+    // Clean any previous instance
+    if (hlsRef.current) {
+      try {
+        hlsRef.current.destroy();
+      } catch {}
+      hlsRef.current = null;
+    }
 
-    // Check if HLS is supported
+    // Set initial audio state from sticky prefs
+    video.volume = volume;
+    video.muted = isMuted;
+
+    const onAutoPlayRejected = (e: any) => console.warn('Autoplay prevented:', e);
+
     if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
@@ -173,56 +218,45 @@ export default function Atto4Player({
       });
 
       hlsRef.current = hls;
-      hls.loadSource(m3u8Url);
       hls.attachMedia(video);
+      hls.loadSource(m3u8Url);
 
-      // Manifest parsed - HLS ready
-      hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        console.log('✅ HLS manifest parsed', data);
+      hls.on(Hls.Events.MANIFEST_PARSED, (_evt, data) => {
         setQualityLevels(data.levels as Hls.Level[]);
         setLoading(false);
-        
-        // Resume from initial time if provided
+
         if (initialTime > 0) {
-          video.currentTime = initialTime;
+          video.currentTime = Math.max(0, Math.min(initialTime, video.duration || initialTime));
         }
-        
-        // Auto-play
-        video.play().catch(err => {
-          console.warn('Auto-play prevented:', err);
-        });
+
+        video.play().catch(onAutoPlayRejected);
       });
 
-      // Quality level switched
-      hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+      hls.on(Hls.Events.LEVEL_SWITCHED, (_evt, data) => {
         setCurrentQuality(data.level);
-        sendTelemetry('quality_change', { 
-          level: data.level, 
-          height: data.levelInfo?.height 
+        sendTelemetry('quality_change', {
+          level: data.level,
+          height: data.levelInfo?.height,
+          bitrate: data.levelInfo?.bitrate,
         });
       });
 
-      // Error handling
-      hls.on(Hls.Events.ERROR, (event, data) => {
+      hls.on(Hls.Events.ERROR, (_evt, data) => {
         console.error('HLS error:', data);
-        
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.error('Network error, trying to recover...');
               hls.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
-              console.error('Media error, trying to recover...');
               hls.recoverMediaError();
               break;
             default:
-              console.error('Fatal HLS error');
-              sendTelemetry('source_failed', { 
+              sendTelemetry('source_failed', {
                 error: data.details,
-                provider: currentProvider
+                provider: currentProvider,
               });
-              setError(`Playback failed: ${data.details}`);
+              setError(`Playback failed: ${data.details || 'fatal error'}`);
               setLoading(false);
               break;
           }
@@ -230,63 +264,63 @@ export default function Atto4Player({
       });
 
       return () => {
-        hls.destroy();
+        try {
+          hls.destroy();
+        } catch {}
+        hlsRef.current = null;
       };
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Native HLS support (Safari)
+    }
+
+    // Safari / native HLS path
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = m3u8Url;
       setLoading(false);
-      
       if (initialTime > 0) {
-        video.currentTime = initialTime;
+        video.currentTime = Math.max(0, Math.min(initialTime, video.duration || initialTime));
       }
-      
-      video.play().catch(err => {
-        console.warn('Auto-play prevented:', err);
-      });
-    } else {
-      setError('HLS not supported in this browser');
-      setLoading(false);
+      video.play().catch(onAutoPlayRejected);
+      return () => {
+        // Clean native src
+        video.removeAttribute('src');
+        video.load();
+      };
     }
+
+    setError('HLS not supported in this browser');
+    setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [m3u8Url, initialTime, currentProvider]);
 
-  // Telemetry
-  const sendTelemetry = useCallback((
-    type: TelemetryEvent['type'], 
-    metadata?: Record<string, any>
-  ) => {
-    if (!onTelemetry || !videoRef.current) return;
+  // Telemetry callback
+  const sendTelemetry = useCallback(
+    (type: TelemetryEvent['type'], metadata?: Record<string, any>) => {
+      const v = videoRef.current;
+      if (!onTelemetry || !v) return;
+      onTelemetry({
+        type,
+        titleId,
+        position: v.currentTime || 0,
+        duration: v.duration || 0,
+        timestamp: Date.now(),
+        metadata,
+      });
+    },
+    [onTelemetry, titleId]
+  );
 
-    onTelemetry({
-      type,
-      titleId,
-      position: videoRef.current.currentTime,
-      duration: videoRef.current.duration || 0,
-      timestamp: Date.now(),
-      metadata,
-    });
-  }, [onTelemetry, titleId]);
-
-  // Periodic telemetry (every 15 seconds)
+  // Periodic telemetry (every 15s while playing)
   useEffect(() => {
     if (isPlaying) {
-      telemetryIntervalRef.current = setInterval(() => {
-        sendTelemetry('play');
-      }, 15000);
-    } else {
-      if (telemetryIntervalRef.current) {
-        clearInterval(telemetryIntervalRef.current);
-      }
+      telemetryIntervalRef.current = setInterval(() => sendTelemetry('play'), 15000);
+    } else if (telemetryIntervalRef.current) {
+      clearInterval(telemetryIntervalRef.current);
     }
-
     return () => {
-      if (telemetryIntervalRef.current) {
-        clearInterval(telemetryIntervalRef.current);
-      }
+      if (telemetryIntervalRef.current) clearInterval(telemetryIntervalRef.current);
     };
   }, [isPlaying, sendTelemetry]);
 
-  // Video event handlers
+  // Video events
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -295,34 +329,31 @@ export default function Atto4Player({
       setIsPlaying(true);
       sendTelemetry('play');
     };
-
     const handlePause = () => {
       setIsPlaying(false);
       sendTelemetry('pause');
     };
-
     const handleTimeUpdate = () => {
-      setCurrentTime(video.currentTime);
-      
-      // Update buffered
-      if (video.buffered.length > 0) {
-        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        setBuffered((bufferedEnd / video.duration) * 100);
+      setCurrentTime(video.currentTime || 0);
+      if (video.buffered.length > 0 && Number.isFinite(video.duration) && video.duration > 0) {
+        const end = video.buffered.end(video.buffered.length - 1);
+        setBuffered(Math.max(0, Math.min(100, (end / video.duration) * 100)));
       }
     };
-
     const handleLoadedMetadata = () => {
-      setDuration(video.duration);
+      setDuration(Number.isFinite(video.duration) ? video.duration : 0);
     };
-
     const handleEnded = () => {
       setIsPlaying(false);
       sendTelemetry('end');
     };
-
     const handleVolumeChange = () => {
       setVolume(video.volume);
       setIsMuted(video.muted);
+      try {
+        localStorage.setItem('atto4:volume', String(video.volume));
+        localStorage.setItem('atto4:muted', video.muted ? '1' : '0');
+      } catch {}
     };
 
     video.addEventListener('play', handlePlay);
@@ -348,10 +379,19 @@ export default function Atto4Player({
       const video = videoRef.current;
       if (!video) return;
 
-      const shortcuts = [' ', 'k', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'f', 'm', 'j', 'l'];
-      if (shortcuts.includes(e.key)) {
-        e.preventDefault();
-      }
+      const shortcuts = [
+        ' ',
+        'k',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'f',
+        'm',
+        'j',
+        'l',
+      ];
+      if (shortcuts.includes(e.key)) e.preventDefault();
 
       switch (e.key) {
         case ' ':
@@ -364,16 +404,18 @@ export default function Atto4Player({
           break;
         case 'ArrowRight':
         case 'l':
-          video.currentTime = Math.min(video.duration, video.currentTime + 10);
+          video.currentTime = Math.min(video.duration || video.currentTime + 10, video.currentTime + 10);
           break;
-        case 'ArrowUp':
-          setVolume(Math.min(1, volume + 0.1));
-          if (video) video.volume = Math.min(1, volume + 0.1);
+        case 'ArrowUp': {
+          const nv = Math.min(1, Math.round((volume + 0.1) * 100) / 100);
+          handleVolumeChange(nv);
           break;
-        case 'ArrowDown':
-          setVolume(Math.max(0, volume - 0.1));
-          if (video) video.volume = Math.max(0, volume - 0.1);
+        }
+        case 'ArrowDown': {
+          const nv = Math.max(0, Math.round((volume - 0.1) * 100) / 100);
+          handleVolumeChange(nv);
           break;
+        }
         case 'f':
           toggleFullscreen();
           break;
@@ -389,10 +431,11 @@ export default function Atto4Player({
         case '6':
         case '7':
         case '8':
-        case '9':
-          const percent = parseInt(e.key) / 10;
-          video.currentTime = video.duration * percent;
+        case '9': {
+          const percent = parseInt(e.key, 10) / 10;
+          video.currentTime = (video.duration || 0) * percent;
           break;
+        }
       }
     };
 
@@ -405,114 +448,131 @@ export default function Atto4Player({
     const handleMouseMove = () => {
       setShowControls(true);
       clearTimeout(controlsTimeoutRef.current);
-      
       if (isPlaying) {
-        controlsTimeoutRef.current = setTimeout(() => {
-          setShowControls(false);
-        }, 3000);
+        controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
       }
     };
 
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('mousemove', handleMouseMove);
-      container.addEventListener('touchstart', handleMouseMove);
+    const c = containerRef.current;
+    if (c) {
+      c.addEventListener('mousemove', handleMouseMove);
+      c.addEventListener('touchstart', handleMouseMove, { passive: true } as any);
+      // Double-click toggle fullscreen
+      c.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        toggleFullscreen();
+      });
     }
 
     return () => {
       clearTimeout(controlsTimeoutRef.current);
-      if (container) {
-        container.removeEventListener('mousemove', handleMouseMove);
-        container.removeEventListener('touchstart', handleMouseMove);
+      if (c) {
+        c.removeEventListener('mousemove', handleMouseMove);
+        c.removeEventListener('touchstart', handleMouseMove as any);
       }
     };
   }, [isPlaying]);
 
-  // Fullscreen change detection
+  // Fullscreen state
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
+    const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Control functions
+  // Controls
   const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-    }
+    const v = videoRef.current;
+    if (!v) return;
+    if (isPlaying) v.pause();
+    else v.play().catch(() => {});
   };
 
   const toggleMute = () => {
-    if (videoRef.current) {
-      const newMuted = !isMuted;
-      videoRef.current.muted = newMuted;
-      setIsMuted(newMuted);
-    }
+    const v = videoRef.current;
+    if (!v) return;
+    const newMuted = !isMuted;
+    v.muted = newMuted;
+    setIsMuted(newMuted);
+    try {
+      localStorage.setItem('atto4:muted', newMuted ? '1' : '0');
+    } catch {}
   };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
+      containerRef.current?.requestFullscreen().catch(() => {});
     } else {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => {});
     }
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const video = videoRef.current;
-    if (!video) return;
-
+    const v = videoRef.current;
+    if (!v || !Number.isFinite(v.duration) || v.duration <= 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    const newTime = percent * video.duration;
-    video.currentTime = newTime;
+    const percent = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    const newTime = percent * v.duration;
+    v.currentTime = newTime;
     sendTelemetry('seek', { from: currentTime, to: newTime });
   };
 
   const handleVolumeChange = (newVolume: number) => {
-    setVolume(newVolume);
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume;
+    const v = videoRef.current;
+    if (!v) return;
+    const nv = Math.min(1, Math.max(0, newVolume));
+    setVolume(nv);
+    v.volume = nv;
+    if (nv > 0 && v.muted) {
+      v.muted = false;
+      setIsMuted(false);
     }
+    try {
+      localStorage.setItem('atto4:volume', String(nv));
+    } catch {}
   };
 
   const changeQuality = (level: number) => {
     if (hlsRef.current) {
       hlsRef.current.currentLevel = level;
+      setCurrentQuality(level);
       setShowQualityMenu(false);
     }
   };
 
   const changeSpeed = (speed: number) => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = speed;
-      setPlaybackRate(speed);
-      setShowSpeedMenu(false);
-    }
+    const v = videoRef.current;
+    if (!v) return;
+    v.playbackRate = speed;
+    setPlaybackRate(speed);
+    setShowSpeedMenu(false);
   };
 
   const skipTime = (seconds: number) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = Math.max(
-        0,
-        Math.min(videoRef.current.duration, videoRef.current.currentTime + seconds)
-      );
+    const v = videoRef.current;
+    if (!v) return;
+    const dur = v.duration || 0;
+    v.currentTime = Math.max(0, Math.min(dur, (v.currentTime || 0) + seconds));
+  };
+
+  const enterPiP = async () => {
+    const v = videoRef.current as any;
+    if (!v) return;
+    try {
+      if (document.pictureInPictureEnabled && typeof v.requestPictureInPicture === 'function') {
+        await v.requestPictureInPicture();
+      }
+    } catch {
+      // ignore
     }
   };
 
   const formatTime = (seconds: number) => {
-    if (isNaN(seconds)) return '0:00';
+    if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
-    return h > 0 
+    return h > 0
       ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
       : `${m}:${s.toString().padStart(2, '0')}`;
   };
@@ -524,7 +584,7 @@ export default function Atto4Player({
         <div className="text-center max-w-md px-4">
           <h2 className="text-2xl font-semibold mb-4">Stream Extraction Failed</h2>
           <p className="text-[var(--player-muted-text)] mb-6">{error}</p>
-          
+
           {extractionAttempts.length > 0 && (
             <div className="mb-6">
               <p className="text-sm text-[var(--player-muted-text)] mb-2">
@@ -532,14 +592,17 @@ export default function Atto4Player({
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {extractionAttempts.map((provider) => (
-                  <span key={provider} className="px-3 py-1 bg-red-900/30 text-red-400 rounded-full text-xs">
+                  <span
+                    key={provider}
+                    className="px-3 py-1 bg-red-900/30 text-red-400 rounded-full text-xs"
+                  >
                     {provider}
                   </span>
                 ))}
               </div>
             </div>
           )}
-          
+
           {onBack && (
             <button
               onClick={onBack}
@@ -563,14 +626,15 @@ export default function Atto4Player({
             {extracting ? 'Extracting stream...' : 'Loading video...'}
           </p>
           {currentProvider && (
-            <p className="text-sm text-[var(--player-muted-text)]">
-              Provider: {currentProvider}
-            </p>
+            <p className="text-sm text-[var(--player-muted-text)]">Provider: {currentProvider}</p>
           )}
         </div>
       </div>
     );
   }
+
+  const progressPct =
+    Number.isFinite(duration) && duration > 0 ? Math.max(0, Math.min(100, (currentTime / duration) * 100)) : 0;
 
   return (
     <div
@@ -579,7 +643,7 @@ export default function Atto4Player({
       data-player-theme={theme}
       onClick={() => showControls && togglePlay()}
     >
-      {/* Video element */}
+      {/* Video */}
       <video
         ref={videoRef}
         className="w-full h-full object-contain"
@@ -588,7 +652,7 @@ export default function Atto4Player({
         onClick={(e) => e.stopPropagation()}
       />
 
-      {/* Controls overlay */}
+      {/* Overlay */}
       <div
         className={`absolute inset-0 transition-opacity pointer-events-none ${
           showControls ? 'opacity-100' : 'opacity-0'
@@ -600,7 +664,10 @@ export default function Atto4Player({
           <div className="flex items-center justify-between">
             {controls.showBack && onBack && (
               <button
-                onClick={(e) => { e.stopPropagation(); onBack(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBack();
+                }}
                 className="p-2 rounded-full bg-[var(--player-glass)] hover:bg-[var(--player-glass-strong)] transition-colors"
                 aria-label="Go back"
               >
@@ -612,9 +679,7 @@ export default function Atto4Player({
               <div className="flex-1 mx-4">
                 <div className="text-white text-lg font-medium line-clamp-1">{title}</div>
                 {mediaType === 'tv' && season && episode && (
-                  <div className="text-[var(--player-muted-text)] text-sm">
-                    S{season} E{episode}
-                  </div>
+                  <div className="text-[var(--player-muted-text)] text-sm">S{season} E{episode}</div>
                 )}
               </div>
             )}
@@ -627,11 +692,14 @@ export default function Atto4Player({
           </div>
         </div>
 
-        {/* Center play button (when paused) */}
+        {/* Center play button */}
         {!isPlaying && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
             <button
-              onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
               className="p-6 rounded-full bg-[var(--player-accent)] hover:scale-110 transition-transform"
               aria-label="Play"
             >
@@ -644,7 +712,10 @@ export default function Atto4Player({
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent pointer-events-auto">
           {/* Seek bar */}
           <div
-            onClick={(e) => { e.stopPropagation(); handleSeek(e); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSeek(e);
+            }}
             className="relative w-full h-[var(--player-seekbar-height)] bg-white/20 rounded-full cursor-pointer mb-4 group"
           >
             <div
@@ -653,23 +724,23 @@ export default function Atto4Player({
             />
             <div
               className="absolute h-full bg-[var(--player-accent)] rounded-full pointer-events-none"
-              style={{ width: `${(currentTime / duration) * 100}%` }}
+              style={{ width: `${progressPct}%` }}
             />
             <div
               className="absolute top-1/2 w-4 h-4 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg"
-              style={{ 
-                left: `${(currentTime / duration) * 100}%`, 
-                transform: 'translate(-50%, -50%)' 
-              }}
+              style={{ left: `${progressPct}%`, transform: 'translate(-50%, -50%)' }}
             />
           </div>
 
           <div className="flex items-center justify-between">
             {/* Left controls */}
             <div className="flex items-center gap-3">
-              <button 
-                onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                className="text-white hover:text-[var(--player-accent)] transition-colors" 
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePlay();
+                }}
+                className="text-white hover:text-[var(--player-accent)] transition-colors"
                 aria-label={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying ? <Pause size={28} /> : <Play size={28} />}
@@ -678,14 +749,20 @@ export default function Atto4Player({
               {controls.showSkip && (
                 <>
                   <button
-                    onClick={(e) => { e.stopPropagation(); skipTime(-10); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      skipTime(-10);
+                    }}
                     className="text-white hover:text-[var(--player-accent)] transition-colors"
                     aria-label="Skip back 10 seconds"
                   >
                     <SkipBack size={24} />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); skipTime(10); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      skipTime(10);
+                    }}
                     className="text-white hover:text-[var(--player-accent)] transition-colors"
                     aria-label="Skip forward 10 seconds"
                   >
@@ -695,9 +772,12 @@ export default function Atto4Player({
               )}
 
               <div className="flex items-center gap-2 group">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                  className="text-white hover:text-[var(--player-accent)] transition-colors" 
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleMute();
+                  }}
+                  className="text-white hover:text-[var(--player-accent)] transition-colors"
                   aria-label={isMuted ? 'Unmute' : 'Mute'}
                 >
                   {isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}
@@ -708,9 +788,13 @@ export default function Atto4Player({
                   max="1"
                   step="0.01"
                   value={isMuted ? 0 : volume}
-                  onChange={(e) => { e.stopPropagation(); handleVolumeChange(parseFloat(e.target.value)); }}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    handleVolumeChange(parseFloat(e.target.value));
+                  }}
                   onClick={(e) => e.stopPropagation()}
                   className="w-0 opacity-0 group-hover:w-20 group-hover:opacity-100 transition-all duration-200"
+                  aria-label="Volume"
                 />
               </div>
 
@@ -721,18 +805,21 @@ export default function Atto4Player({
 
             {/* Right controls */}
             <div className="flex items-center gap-3">
-              {/* Speed control */}
+              {/* Speed */}
               <div className="relative">
                 <button
-                  onClick={(e) => { e.stopPropagation(); setShowSpeedMenu(!showSpeedMenu); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSpeedMenu((s) => !s);
+                    setShowQualityMenu(false);
+                  }}
                   className="text-white hover:text-[var(--player-accent)] transition-colors text-sm font-medium min-w-[3rem]"
                   aria-label="Playback speed"
                 >
                   {playbackRate}x
                 </button>
-
                 {showSpeedMenu && (
-                  <div 
+                  <div
                     className="absolute bottom-full right-0 mb-2 bg-[var(--player-bg-800)] rounded-lg p-2 min-w-[100px] shadow-xl"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -740,7 +827,10 @@ export default function Atto4Player({
                     {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((speed) => (
                       <button
                         key={speed}
-                        onClick={(e) => { e.stopPropagation(); changeSpeed(speed); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          changeSpeed(speed);
+                        }}
                         className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                           playbackRate === speed
                             ? 'bg-[var(--player-accent)] text-black'
@@ -754,11 +844,15 @@ export default function Atto4Player({
                 )}
               </div>
 
-              {/* Quality selector */}
+              {/* Quality */}
               {controls.showQuality && qualityLevels.length > 1 && (
                 <div className="relative">
                   <button
-                    onClick={(e) => { e.stopPropagation(); setShowQualityMenu(!showQualityMenu); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowQualityMenu((s) => !s);
+                      setShowSpeedMenu(false);
+                    }}
                     className="text-white hover:text-[var(--player-accent)] transition-colors"
                     aria-label="Quality settings"
                   >
@@ -766,26 +860,33 @@ export default function Atto4Player({
                   </button>
 
                   {showQualityMenu && (
-                    <div 
-                      className="absolute bottom-full right-0 mb-2 bg-[var(--player-bg-800)] rounded-lg p-2 min-w-[120px] shadow-xl"
+                    <div
+                      className="absolute bottom-full right-0 mb-2 bg-[var(--player-bg-800)] rounded-lg p-2 min-w-[160px] shadow-xl"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="text-white text-sm font-semibold mb-2 px-2">Quality</div>
                       {qualityLevels.map((level, index) => (
                         <button
                           key={index}
-                          onClick={(e) => { e.stopPropagation(); changeQuality(index); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            changeQuality(index);
+                          }}
                           className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                             currentQuality === index
                               ? 'bg-[var(--player-accent)] text-black'
                               : 'text-white hover:bg-white/10'
                           }`}
                         >
-                          {level.height}p
+                          {level.height ? `${level.height}p` : 'Auto'}{' '}
+                          {level.bitrate ? `• ${(level.bitrate / 1000).toFixed(0)} kbps` : ''}
                         </button>
                       ))}
                       <button
-                        onClick={(e) => { e.stopPropagation(); changeQuality(-1); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          changeQuality(-1);
+                        }}
                         className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                           currentQuality === -1
                             ? 'bg-[var(--player-accent)] text-black'
@@ -799,10 +900,27 @@ export default function Atto4Player({
                 </div>
               )}
 
+              {/* PiP */}
+              {controls.showPip && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    enterPiP();
+                  }}
+                  className="text-white hover:text-[var(--player-accent)] transition-colors text-sm font-medium"
+                  aria-label="Picture in picture"
+                >
+                  PiP
+                </button>
+              )}
+
               {/* Fullscreen */}
-              <button 
-                onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
-                className="text-white hover:text-[var(--player-accent)] transition-colors" 
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFullscreen();
+                }}
+                className="text-white hover:text-[var(--player-accent)] transition-colors"
                 aria-label="Toggle fullscreen"
               >
                 {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
