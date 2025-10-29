@@ -2,7 +2,7 @@ import { Redis } from '@upstash/redis';
 
 const redis = process.env.UPSTASH_REDIS_REST_URL
   ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
+      url: process.env.UPSTASH_REDIS_REST_URL!,
       token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     })
   : null;
@@ -15,11 +15,8 @@ export interface CachedStream {
 }
 
 export class StreamCache {
-  private static TTL = 3600; // 1 hour
+  private static TTL = 3600; // seconds (1 hour)
 
-  /**
-   * Generate cache key
-   */
   private static getKey(
     mediaType: 'movie' | 'tv',
     id: string,
@@ -29,14 +26,11 @@ export class StreamCache {
   ): string {
     const parts = ['stream', mediaType, id, provider];
     if (mediaType === 'tv') {
-      parts.push(`s${season}`, `e${episode}`);
+      parts.push(`s${season ?? 1}`, `e${episode ?? 1}`);
     }
     return parts.join(':');
   }
 
-  /**
-   * Get cached stream
-   */
   static async get(
     mediaType: 'movie' | 'tv',
     id: string,
@@ -45,16 +39,13 @@ export class StreamCache {
     episode?: number
   ): Promise<CachedStream | null> {
     if (!redis) return null;
-
     try {
       const key = this.getKey(mediaType, id, provider, season, episode);
       const cached = await redis.get<CachedStream>(key);
-      
       if (cached && Date.now() - cached.extractedAt < this.TTL * 1000) {
         console.log(`💾 Cache hit: ${key}`);
         return cached;
       }
-
       return null;
     } catch (error) {
       console.error('Cache get error:', error);
@@ -62,9 +53,6 @@ export class StreamCache {
     }
   }
 
-  /**
-   * Set cached stream
-   */
   static async set(
     mediaType: 'movie' | 'tv',
     id: string,
@@ -74,30 +62,26 @@ export class StreamCache {
     episode?: number
   ): Promise<void> {
     if (!redis) return;
-
     try {
       const key = this.getKey(mediaType, id, provider, season, episode);
-      await redis.setex(key, this.TTL, stream);
+      // Upstash Redis SDK supports EX via options on set()
+      await redis.set(key, stream, { ex: this.TTL });
       console.log(`💾 Cached: ${key}`);
     } catch (error) {
       console.error('Cache set error:', error);
     }
   }
 
-  /**
-   * Clear cache for a title
-   */
   static async clear(
     mediaType: 'movie' | 'tv',
     id: string,
-    season?: number,
-    episode?: number
+    _season?: number,
+    _episode?: number
   ): Promise<void> {
     if (!redis) return;
-
     try {
       const pattern = `stream:${mediaType}:${id}:*`;
-      // Note: Redis SCAN would be used here in production
+      // Implement SCAN/DEL if you need active invalidation
       console.log(`🗑️ Would clear cache matching: ${pattern}`);
     } catch (error) {
       console.error('Cache clear error:', error);
