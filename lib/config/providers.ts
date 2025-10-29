@@ -57,7 +57,9 @@ export const providers: ProviderConfig[] = [
 ];
 
 export function getEnabledProviders(): ProviderConfig[] {
-  return providers.filter(p => p.enabled).sort((a, b) => a.priority - b.priority);
+  return providers
+    .filter((p) => p.enabled)
+    .sort((a, b) => a.priority - b.priority);
 }
 
 export function buildProviderUrl(
@@ -68,9 +70,8 @@ export function buildProviderUrl(
   episode?: number
 ): string {
   const template = mediaType === 'movie' ? provider.movieTemplate : provider.tvTemplate;
-  
   return template
     .replace('${id}', String(id))
-    .replace('${season}', String(season || 1))
-    .replace('${episode}', String(episode || 1));
+    .replace('${season}', String(season ?? 1))
+    .replace('${episode}', String(episode ?? 1));
 }
