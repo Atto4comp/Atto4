@@ -1,16 +1,12 @@
 // app/api/tmdb/proxy/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import Redis from 'ioredis';
+import { Redis } from '@upstash/redis';
 
-const REDIS_URL = process.env.REDIS_URL!; // e.g. Redis Cloud / Upstash URL
-const redis = new Redis(REDIS_URL);
-
+const redis = Redis.fromEnv();  // reads URl and token from env: UPSTASH_REDIS_REST_URL & UPSTASH_REDIS_REST_TOKEN
 const TMDB_BASE = 'https://api.themoviedb.org/3';
+const CACHE_TTL = 60 * 5; // 5 minutes
 
-const CACHE_TTL = 60 * 5; // 5 minutes — adjust as needed
-
-// Helper: build TMDB API URL
-function buildTmdbUrl(path: string, params: Record<string, any>) {
+function buildTmdbUrl(path: string, params: Record<string, any>): string {
   const url = new URL(`${TMDB_BASE}${path}`);
   const search = new URLSearchParams({ api_key: process.env.TMDB_API_KEY! });
   for (const [k, v] of Object.entries(params)) {
@@ -23,14 +19,14 @@ function buildTmdbUrl(path: string, params: Record<string, any>) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams, pathname } = new URL(req.url);
-    // e.g. pathname: '/api/tmdb/proxy/search' or '/api/tmdb/proxy/movie/123'
     const tmdbPath = pathname.replace('/api/tmdb/proxy', '');
 
-    // derive cache key: path + sorted params
+    // collect params
     const params: Record<string, any> = {};
     searchParams.forEach((v, k) => {
       params[k] = v;
     });
+
     const cacheKey = `tmdb:${tmdbPath}:${JSON.stringify(params)}`;
 
     // try cache
@@ -41,7 +37,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // fetch from TMDB
+    // fetch fresh
     const url = buildTmdbUrl(tmdbPath, params);
     const tmdbRes = await fetch(url, { headers: { Accept: 'application/json' } });
 
@@ -53,9 +49,7 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await tmdbRes.json();
-
-    // cache it (with TTL)
-    await redis.setEx(cacheKey, CACHE_TTL, JSON.stringify(data));
+    await redis.set(cacheKey, JSON.stringify(data), { ex: CACHE_TTL });
 
     return NextResponse.json(data, {
       headers: { 'X-Cache': 'MISS' },
