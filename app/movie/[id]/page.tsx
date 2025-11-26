@@ -16,9 +16,16 @@ export async function generateStaticParams() {
     // Fetch popular movies to pre-render
     const popularMovies = await tmdbApi.getPopularMovies();
     
-    // Return first 100 popular movie IDs (adjust as needed)
-    return popularMovies.results.slice(0, 100).map((movie) => ({
-      id: movie.id.toString(),
+    // Also fetch top rated movies
+    const topRatedMovies = await tmdbApi.getTopRatedMovies();
+    
+    // Combine and deduplicate movie IDs
+    const allMovies = [...popularMovies.results, ...topRatedMovies.results];
+    const uniqueMovieIds = Array.from(new Set(allMovies.map(m => m.id)));
+    
+    // Return first 200 movie IDs for static generation
+    return uniqueMovieIds.slice(0, 200).map((id) => ({
+      id: id.toString(),
     }));
   } catch (error) {
     console.error('Failed to generate static params:', error);
@@ -26,10 +33,11 @@ export async function generateStaticParams() {
   }
 }
 
-// ✅ Enable static rendering with revalidation
+// ✅ Enable static rendering with ISR (Incremental Static Regeneration)
 export const dynamic = 'force-static';
 export const revalidate = 86400; // Revalidate once per day (24 hours)
 
+// ✅ Fetch movie data with direct TMDB image URLs
 async function getMovieData(id: string) {
   try {
     const movieId = parseInt(id);
@@ -37,11 +45,14 @@ async function getMovieData(id: string) {
       return null;
     }
 
+    // Fetch movie details and genres in parallel
     const [movieDetails, genres] = await Promise.all([
       tmdbApi.getMovieDetails(movieId),
       tmdbApi.getMovieGenres(),
     ]);
 
+    // Images are already in the format: /path/to/image.jpg
+    // No need to fetch image URLs separately - we'll build them directly in the client
     return {
       movie: movieDetails,
       genres,
@@ -52,6 +63,69 @@ async function getMovieData(id: string) {
   }
 }
 
+// ✅ Generate metadata for SEO with direct TMDB image URLs
+export async function generateMetadata({ params }: MoviePageProps) {
+  const { id } = await params;
+  const data = await getMovieData(id);
+
+  if (!data || !data.movie) {
+    return {
+      title: 'Movie Not Found',
+      description: 'The requested movie could not be found.',
+    };
+  }
+
+  const { movie } = data;
+
+  // ✅ Build TMDB image URLs directly (no API key needed)
+  const posterUrl = movie.poster_path 
+    ? `https://image.tmdb.org/t/p/w780${movie.poster_path}` 
+    : undefined;
+  
+  const backdropUrl = movie.backdrop_path
+    ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
+    : undefined;
+
+  return {
+    title: `${movie.title} (${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}) - Atto4`,
+    description: movie.overview || `Watch ${movie.title} on Atto4`,
+    keywords: [
+      movie.title,
+      'watch online',
+      'stream movie',
+      ...(movie.genres?.map(g => g.name) || []),
+    ].join(', '),
+    openGraph: {
+      title: movie.title,
+      description: movie.overview,
+      type: 'video.movie',
+      url: `https://atto4.pro/movie/${movie.id}`,
+      images: [
+        {
+          url: backdropUrl || posterUrl || '',
+          width: 1280,
+          height: 720,
+          alt: `${movie.title} backdrop`,
+        },
+        ...(posterUrl ? [{
+          url: posterUrl,
+          width: 780,
+          height: 1170,
+          alt: `${movie.title} poster`,
+        }] : []),
+      ],
+      releaseDate: movie.release_date,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: movie.title,
+      description: movie.overview,
+      images: [backdropUrl || posterUrl || ''],
+    },
+  };
+}
+
+// ✅ Main page component
 export default async function MoviePage({ params }: MoviePageProps) {
   const { id } = await params;
   const data = await getMovieData(id);
@@ -67,32 +141,4 @@ export default async function MoviePage({ params }: MoviePageProps) {
       </Suspense>
     </main>
   );
-}
-
-// ✅ Generate metadata for SEO
-export async function generateMetadata({ params }: MoviePageProps) {
-  const { id } = await params;
-  const data = await getMovieData(id);
-
-  if (!data || !data.movie) {
-    return {
-      title: 'Movie Not Found',
-    };
-  }
-
-  return {
-    title: `${data.movie.title} - Atto4`,
-    description: data.movie.overview,
-    openGraph: {
-      title: data.movie.title,
-      description: data.movie.overview,
-      images: [
-        {
-          url: `https://image.tmdb.org/t/p/w1280${data.movie.backdrop_path}`,
-          width: 1280,
-          height: 720,
-        },
-      ],
-    },
-  };
 }
