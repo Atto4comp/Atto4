@@ -9,7 +9,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 export const revalidate = 3600; // 1 hour ISR
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
-const TMDB_API_KEY = process.env.TMDB_API_KEY; // server-only key
+const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY; // server-only key
 const SKIP_SSG_FETCH = String(process.env.SKIP_SSG_FETCH ?? '0') === '1'; // env toggle
 
 const mockMovies = [
