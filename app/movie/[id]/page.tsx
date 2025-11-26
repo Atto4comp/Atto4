@@ -9,16 +9,8 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 export const revalidate = 3600; // 1 hour ISR
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
-const TMDB_API_KEY = process.env.TMDB_API_KEY; // server-only: required
-const DEFAULT_TIMEOUT = 7000; // ms
-const REQUEST_RETRIES = 2;
-
-if (!TMDB_API_KEY) {
-  // Fail early during dev/build so you notice environment misconfig
-  // (we still recover at runtime with demo content, but build-time should have key).
-  // eslint-disable-next-line no-console
-  console.warn('Warning: TMDB_API_KEY is not set. Home page will show demo content.');
-}
+const TMDB_API_KEY = process.env.TMDB_API_KEY; // server-only key
+const SKIP_SSG_FETCH = String(process.env.SKIP_SSG_FETCH ?? '0') === '1'; // env toggle
 
 const mockMovies = [
   {
@@ -36,16 +28,15 @@ const mockMovies = [
   },
 ];
 
-async function fetchWithTimeout(url: string, opts: RequestInit = {}, timeout = DEFAULT_TIMEOUT) {
+async function fetchWithTimeout(url: string, opts: RequestInit = {}, timeout = 7000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
     const res = await fetch(url, { ...opts, signal: controller.signal });
     clearTimeout(id);
     return res;
-  } catch (err) {
+  } finally {
     clearTimeout(id);
-    throw err;
   }
 }
 
@@ -60,90 +51,59 @@ function buildTmdbUrl(path: string, params: Record<string, any> = {}) {
   return url.toString();
 }
 
-/** Retry wrapper for TMDB fetches */
-async function tmdbGet(path: string, params: Record<string, any> = {}, timeout = DEFAULT_TIMEOUT, retries = REQUEST_RETRIES) {
-  if (!TMDB_API_KEY) {
-    throw new Error('Missing TMDB_API_KEY');
-  }
-
+async function tmdbGet(path: string, params: Record<string, any> = {}, timeout = 7000) {
+  if (!TMDB_API_KEY) throw new Error('Missing TMDB_API_KEY');
   const url = buildTmdbUrl(path, params);
-
-  let lastErr: any = null;
-  for (let attempt = 0; attempt <= retries; attempt += 1) {
-    try {
-      const res = await fetchWithTimeout(url, { headers: { Accept: 'application/json' }, next: { revalidate } }, timeout);
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        const err: any = new Error(`TMDB ${res.status} ${res.statusText}`);
-        err.status = res.status;
-        err.body = text;
-        throw err;
-      }
-      return await res.json();
-    } catch (err: any) {
-      lastErr = err;
-      // don't retry 4xx auth errors
-      if (err?.status === 401 || err?.status === 403) break;
-      // small backoff before next retry
-      if (attempt < retries) {
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 200));
-        continue;
-      }
-    }
+  const res = await fetchWithTimeout(url, { headers: { Accept: 'application/json' }, next: { revalidate } }, timeout);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    const err: any = new Error(`TMDB ${res.status}`);
+    err.status = res.status;
+    err.body = body;
+    throw err;
   }
-  throw lastErr;
+  return res.json();
 }
 
 async function getHomePageData() {
+  // If the build environment has SKIP_SSG_FETCH=1 we return demo content immediately.
+  if (SKIP_SSG_FETCH) {
+    return {
+      trending: mockMovies,
+      popular: mockMovies,
+      topRated: mockMovies,
+      latest: mockMovies,
+      popularTV: [],
+      topRatedTV: [],
+      genres: [],
+      isDemo: true,
+      error: 'Build-time: skipped remote fetch (SKIP_SSG_FETCH=1)',
+    };
+  }
+
+  // Otherwise perform direct server TMDB fetches (kept compact to avoid timeouts)
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    // endpoints and params
-    const endpoints = {
-      trending: { path: '/trending/movie/week', params: {} },
-      popular: { path: '/movie/popular', params: { page: 1 } },
-      topRated: { path: '/movie/top_rated', params: { page: 1 } },
-      latest: {
-        path: '/discover/movie',
-        params: {
-          sort_by: 'release_date.desc',
-          'vote_count.gte': 10,
-          release_date_lte: today, // note: TMDB expects release_date.lte but we will encode correctly below
-          page: 1,
-        },
-      },
-      popularTV: { path: '/tv/popular', params: { page: 1 } },
-      topRatedTV: { path: '/tv/top_rated', params: { page: 1 } },
-      genres: { path: '/genre/movie/list', params: {} },
-    };
-
-    // Fire requests in parallel with Promise.allSettled
-    const promises = await Promise.allSettled([
-      tmdbGet(endpoints.trending.path, endpoints.trending.params),
-      tmdbGet(endpoints.popular.path, endpoints.popular.params),
-      tmdbGet(endpoints.topRated.path, endpoints.topRated.params),
-      // for discover, use proper param names (TMDB expects release_date.lte)
-      tmdbGet('/discover/movie', {
-        sort_by: 'release_date.desc',
-        'vote_count.gte': 10,
-        'release_date.lte': today,
-        page: 1,
-      }),
-      tmdbGet(endpoints.popularTV.path, endpoints.popularTV.params),
-      tmdbGet(endpoints.topRatedTV.path, endpoints.topRatedTV.params),
-      tmdbGet(endpoints.genres.path, endpoints.genres.params),
+    const results = await Promise.allSettled([
+      tmdbGet('/trending/movie/week'),
+      tmdbGet('/movie/popular', { page: 1 }),
+      tmdbGet('/movie/top_rated', { page: 1 }),
+      tmdbGet('/discover/movie', { sort_by: 'release_date.desc', 'vote_count.gte': 10, 'release_date.lte': today, page: 1 }),
+      tmdbGet('/tv/popular', { page: 1 }),
+      tmdbGet('/tv/top_rated', { page: 1 }),
+      tmdbGet('/genre/movie/list'),
     ]);
 
     const safe = <T,>(p: PromiseSettledResult<T>, fallback: T) => (p.status === 'fulfilled' ? p.value : fallback);
 
-    const trending = (safe(promises[0], { results: [] } as any).results ?? []).slice(0, 20);
-    const popular = safe(promises[1], { results: [] } as any).results ?? [];
-    const topRated = safe(promises[2], { results: [] } as any).results ?? [];
-    const latest = safe(promises[3], { results: [] } as any).results ?? [];
-    const popularTV = safe(promises[4], { results: [] } as any).results ?? [];
-    const topRatedTV = safe(promises[5], { results: [] } as any).results ?? [];
-    const genres = (safe(promises[6], { genres: [] } as any).genres) ?? [];
+    const trending = (safe(results[0], { results: [] } as any).results ?? []).slice(0, 20);
+    const popular = safe(results[1], { results: [] } as any).results ?? [];
+    const topRated = safe(results[2], { results: [] } as any).results ?? [];
+    const latest = safe(results[3], { results: [] } as any).results ?? [];
+    const popularTV = safe(results[4], { results: [] } as any).results ?? [];
+    const topRatedTV = safe(results[5], { results: [] } as any).results ?? [];
+    const genres = (safe(results[6], { genres: [] } as any).genres) ?? [];
 
     const hasAny =
       (trending && trending.length > 0) ||
@@ -161,7 +121,7 @@ async function getHomePageData() {
         topRatedTV: [],
         genres: [],
         isDemo: true,
-        error: 'No data returned from TMDB. Showing demo content.',
+        error: 'No data returned from TMDB (empty results).',
       };
     }
 
@@ -177,7 +137,6 @@ async function getHomePageData() {
       error: undefined,
     };
   } catch (err: any) {
-    // graceful fallback: return demo content on error
     return {
       trending: mockMovies,
       popular: mockMovies,
