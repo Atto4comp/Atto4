@@ -1,22 +1,27 @@
+// components/media/WatchlistRow.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, X, Calendar, Star } from 'lucide-react';
+import { X, Calendar, Star, Play, Check } from 'lucide-react';
 import { watchlistStorage, WatchlistItem } from '@/lib/storage/watchlist';
+
+const TMDB_IMAGE_SIZES = {
+  backdrop: 'w780',
+  poster: 'w500',
+} as const;
 
 export default function WatchlistRow() {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper function to build TMDB image URLs
-  const buildTmdbImage = (path: string | null, size: string = 'w500'): string => {
-    if (!path) return '/placeholder-movie.jpg';
-    return `https://image.tmdb.org/t/p/${size}${path}`;
+  const buildImage = (item: WatchlistItem) => {
+    if (item.poster_path) return `https://image.tmdb.org/t/p/${TMDB_IMAGE_SIZES.backdrop}${item.poster_path}`;
+    return '/placeholder-movie.jpg';
   };
 
-  // Load watchlist on component mount
   useEffect(() => {
     const loadWatchlist = () => {
       const items = watchlistStorage.getWatchlist();
@@ -26,41 +31,29 @@ export default function WatchlistRow() {
 
     loadWatchlist();
 
-    // Listen for storage changes (when items are added/removed)
-    const handleStorageChange = () => {
-      loadWatchlist();
-    };
-
+    const handleStorageChange = () => loadWatchlist();
     window.addEventListener('watchlist-updated', handleStorageChange);
     return () => window.removeEventListener('watchlist-updated', handleStorageChange);
   }, []);
 
-  // Remove from watchlist
   const handleRemove = (id: number, mediaType: 'movie' | 'tv', event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    
     watchlistStorage.removeFromWatchlist(id, mediaType);
     setWatchlist(prev => prev.filter(item => !(item.id === id && item.media_type === mediaType)));
-    
-    // Dispatch custom event
     window.dispatchEvent(new CustomEvent('watchlist-updated'));
   };
 
   if (loading) {
     return (
-      <div className="mb-10">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-white">My Watchlist</h2>
+      <div className="mb-12 relative group">
+        <div className="px-4 md:px-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">My Watchlist</h2>
           </div>
-          <div className="flex space-x-6 overflow-x-auto scrollbar-hide">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-48 animate-pulse">
-                <div className="aspect-[2/3] bg-gray-800 rounded-lg mb-3"></div>
-                <div className="h-4 bg-gray-800 rounded mb-2"></div>
-                <div className="h-3 bg-gray-800 rounded w-2/3"></div>
-              </div>
+          <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-video bg-gray-900 rounded-xl animate-pulse border border-white/5" />
             ))}
           </div>
         </div>
@@ -68,85 +61,89 @@ export default function WatchlistRow() {
     );
   }
 
-  if (watchlist.length === 0) {
-    return (
-      <div className="mb-10">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-white">My Watchlist</h2>
-          </div>
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-gray-600" />
-            </div>
-            <h3 className="text-lg font-medium text-white mb-2">Your watchlist is empty</h3>
-            <p className="text-gray-400">Add movies and TV shows to your watchlist to see them here</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (watchlist.length === 0) return null;
 
   return (
-    <div className="relative group mb-10">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-white">My Watchlist</h2>
-          <span className="text-sm text-gray-400">{watchlist.length} item{watchlist.length !== 1 ? 's' : ''}</span>
+    <div className="relative mb-12 group/row">
+      <div className="px-4 md:px-12">
+        <div className="flex items-end justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">My Watchlist</h2>
+            <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
+              {watchlist.length}
+            </span>
+          </div>
         </div>
 
-        <div className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4">
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory">
           {watchlist.map((item) => {
             const title = item.media_type === 'movie' ? item.title : item.name;
             const releaseDate = item.media_type === 'movie' ? item.release_date : item.first_air_date;
             const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
 
             return (
-              <div key={`${item.media_type}-${item.id}`} className="flex-shrink-0 w-48 group/item">
+              <div key={`${item.media_type}-${item.id}`} className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] group/card">
                 <Link href={`/${item.media_type}/${item.id}`} className="block">
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg group-hover/item:shadow-2xl transition-all duration-300 group-hover/item:scale-105">
+                  
+                  {/* Horizontal Card Container */}
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 border border-white/5 transition-all duration-300 group-hover/card:border-white/20 group-hover/card:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                    
+                    {/* Image */}
                     <Image
-                      src={buildTmdbImage(item.poster_path, 'w500')}
-                      alt={title || 'Poster'}
+                      src={buildImage(item)}
+                      alt={title || 'Media'}
                       fill
-                      className="object-cover"
-                      sizes="200px"
+                      className="object-cover transition-transform duration-500 group-hover/card:scale-105"
+                      sizes="(max-width: 768px) 280px, 320px"
                     />
 
-                    {/* Remove Button */}
-                    <button
-                      onClick={(e) => handleRemove(item.id, item.media_type, e)}
-                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity duration-200 z-10"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
 
-                    {/* Rating Badge */}
-                    {item.vote_average > 0 && (
-                      <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                        <span>{item.vote_average.toFixed(1)}</span>
+                    {/* Hover Actions */}
+                    <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
+                      
+                      <button
+                        onClick={(e) => handleRemove(item.id, item.media_type, e)}
+                        className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-green-500 hover:border-green-500 hover:scale-110 transition-all shadow-lg"
+                        title="Remove (Watched)"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      
+                      <div className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center shadow-lg">
+                        <Play className="w-4 h-4 fill-current ml-0.5" />
                       </div>
-                    )}
-
-                    {/* Media Type Badge */}
-                    <div className="absolute bottom-2 left-2 bg-blue-600/80 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-medium">
-                      {item.media_type === 'movie' ? 'Movie' : 'TV'}
                     </div>
-                  </div>
 
-                  <div className="mt-3">
-                    <h3 className="font-medium text-sm leading-tight line-clamp-2 mb-1 text-white">
-                      {title}
-                    </h3>
-                    <p className="text-gray-400 text-xs">
-                      {year || 'Unknown'}
-                    </p>
+                    {/* Top Badges */}
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      {item.vote_average > 0 && (
+                        <div className="bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded-lg flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          <span className="text-[10px] font-bold text-white">{item.vote_average.toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content Info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="text-white font-bold text-base leading-tight line-clamp-1 font-chillax group-hover/card:text-blue-400 transition-colors">
+                        {title}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                        {year && <span>{year}</span>}
+                        <span className="w-1 h-1 bg-gray-600 rounded-full" />
+                        <span className="uppercase">{item.media_type === 'movie' ? 'Movie' : 'TV'}</span>
+                      </div>
+                    </div>
                   </div>
                 </Link>
               </div>
             );
           })}
+          
+          <div className="w-4 flex-shrink-0" />
         </div>
       </div>
     </div>
