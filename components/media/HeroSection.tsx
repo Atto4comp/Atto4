@@ -143,7 +143,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
     // ✅ FIXED: Added -mt-[4rem] to pull the hero section UP behind the header
     // The header is 4rem height, so we pull this up by 4rem.
     // Also ensured z-index is 0 so it sits BEHIND the navbar (z-50).
-    <div className="relative w-full h-[100vh] min-h-[800px] overflow-hidden -mt-[4rem] z-0">
+    <div className="relative w-full h-[100vh] min-h-[800px] overflow-hidden -mt-[6rem] z-0">
       
       {/* Background Image Layer */}
       <div className="absolute inset-0">
