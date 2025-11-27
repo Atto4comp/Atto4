@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, Menu, User, Home, Film, Tv, Grid3X3, X } from 'lucide-react';
+import { Search, Menu, User, Home, Film, Tv, Grid3X3, X, Sparkles } from 'lucide-react';
 import SearchBar from '@/components/common/SearchBar';
 
 const navigationItems = [
@@ -41,18 +41,8 @@ export default function Header() {
       {/* Floating Header Wrapper */}
       <header className={`modern-header-wrapper ${scrolled ? 'scrolled' : ''}`}>
         
-        {/* Glass Capsule Island
-            NOTE: background made transparent and backdrop disabled via inline style
-            so the floating header doesn't show a dark/black block behind it.
-        */}
-        <div
-          className="glass-capsule"
-          style={{
-            background: 'transparent',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-          }}
-        >
+        {/* Glass Capsule Island */}
+        <div className="glass-capsule">
           
           {/* Brand Identity */}
           <Link href="/" className="flex items-center group">
