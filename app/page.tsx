@@ -1,174 +1,158 @@
-// app/movie/[id]/page.tsx
-
+// app/page.tsx
 import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
+import fs from 'fs/promises';
+import path from 'path';
 import { tmdbApi } from '@/lib/api/tmdb';
-import MovieDetailsClient from '@/components/media/MovieDetailsClient';
+import HeroSection from '@/components/media/HeroSection';
+import MediaRow from '@/components/media/MediaRow';
+import WatchlistRow from '@/components/media/WatchlistRow';
+import LikedRow from '@/components/media/LikedRow';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
-interface MoviePageProps {
-  params: Promise<{ id: string }>;
-}
+// make this static with ISR
+export const dynamic = 'force-static';
+export const revalidate = 3600; // 1 hour
 
-// ✅ STEP 1: Generate Static Paths (getStaticPaths equivalent)
-// This tells Next.js which movie pages to pre-render at build time
-export async function generateStaticParams() {
+const DATA_HOME = path.join(process.cwd(), 'data', 'homepage.json');
+
+const mockMovies = [
+  {
+    id: 1,
+    title: 'Demo Movie',
+    overview: 'This is a fallback demo movie description.',
+    poster_path: null,
+    backdrop_path: null,
+    release_date: '2025-01-01',
+    vote_average: 8,
+    vote_count: 1000,
+    genre_ids: [28],
+    popularity: 99,
+  },
+];
+
+async function readSnapshot() {
   try {
-    console.log('🔨 Building static movie pages...');
-
-    // Fetch multiple sources of movies to pre-render
-    const [popular, topRated, nowPlaying, upcoming] = await Promise.all([
-      tmdbApi.getPopularMovies(),
-      tmdbApi.getTopRatedMovies(),
-      tmdbApi.getNowPlayingMovies(),
-      tmdbApi.getUpcomingMovies(),
-    ]);
-
-    // Combine all movies and remove duplicates
-    const allMovies = [
-      ...popular.results,
-      ...topRated.results,
-      ...nowPlaying.results,
-      ...upcoming.results,
-    ];
-
-    // Get unique movie IDs
-    const uniqueMovieIds = Array.from(
-      new Set(allMovies.map(movie => movie.id))
-    );
-
-    console.log(`📊 Pre-rendering ${uniqueMovieIds.length} movie pages`);
-
-    // Return all unique movie IDs as strings
-    // This generates static pages for all these movies at build time
-    return uniqueMovieIds.map((id) => ({
-      id: id.toString(),
-    }));
-
-  } catch (error) {
-    console.error('❌ Failed to generate static params:', error);
-    return [];
-  }
-}
-
-// ✅ STEP 2: Configure Static Generation
-// Force static generation and set revalidation time
-export const dynamic = 'force-static'; // Force static generation
-export const revalidate = 86400; // Revalidate every 24 hours (ISR)
-export const dynamicParams = true; // Allow dynamic params not in generateStaticParams
-
-// ✅ STEP 3: Fetch Data at Build Time (getStaticProps equivalent)
-// This function fetches data for each movie at build time
-async function getMovieData(id: string) {
-  try {
-    const movieId = parseInt(id);
-    if (isNaN(movieId)) {
-      console.error(`❌ Invalid movie ID: ${id}`);
-      return null;
-    }
-
-    console.log(`📥 Fetching data for movie ID: ${movieId}`);
-
-    // Fetch movie details and genres at build time
-    const [movieDetails, genres] = await Promise.all([
-      tmdbApi.getMovieDetails(movieId),
-      tmdbApi.getMovieGenres(),
-    ]);
-
-    console.log(`✅ Data fetched for: ${movieDetails.title}`);
-
-    return {
-      movie: movieDetails,
-      genres,
-    };
-  } catch (error) {
-    console.error(`❌ Failed to fetch movie data for ID ${id}:`, error);
+    const raw = await fs.readFile(DATA_HOME, 'utf8');
+    return JSON.parse(raw);
+  } catch {
     return null;
   }
 }
 
-// ✅ STEP 4: Generate Metadata for SEO
-// This creates meta tags for each static page
-export async function generateMetadata({ params }: MoviePageProps) {
-  const { id } = await params;
-  const data = await getMovieData(id);
+async function getHomePageData() {
+  // Prefer local snapshot (fast)
+  const snapshot = await readSnapshot();
+  if (snapshot) {
+    return { ...snapshot, isDemo: false, error: undefined };
+  }
 
-  if (!data || !data.movie) {
+  // fallback: try runtime tmdbApi (this will be done during build if snapshot absent)
+  try {
+    const connection = await tmdbApi.testConnection();
+    if (!connection.success) {
+      return {
+        trending: mockMovies,
+        popular: mockMovies,
+        topRated: mockMovies,
+        latest: mockMovies,
+        popularTV: [],
+        topRatedTV: [],
+        genres: [],
+        isDemo: true,
+        error: connection.message,
+      };
+    }
+
+    const [
+      trending,
+      popularRes,
+      topRatedRes,
+      latestRes,
+      popularTVRes,
+      topRatedTVRes,
+      genres,
+    ] = await Promise.allSettled([
+      tmdbApi.getTrending(),
+      tmdbApi.getPopularMovies(),
+      tmdbApi.getTopRatedMovies(),
+      tmdbApi.getLatestReleases('movie', 1),
+      tmdbApi.getTVByCategory('popular'),
+      tmdbApi.getTVByCategory('top-rated'),
+      tmdbApi.getMovieGenres(),
+    ]);
+
+    const safe = <T,>(p: PromiseSettledResult<T>, fallback: T) =>
+      p.status === 'fulfilled' ? p.value : fallback;
+
     return {
-      title: 'Movie Not Found',
-      description: 'The requested movie could not be found.',
+      trending: safe(trending, [] as any[]).slice(0, 20) || mockMovies,
+      popular: safe(popularRes, { results: [] }).results || mockMovies,
+      topRated: safe(topRatedRes, { results: [] }).results || mockMovies,
+      latest: safe(latestRes, { results: [] }).results || mockMovies,
+      popularTV: safe(popularTVRes, { results: [] }).results,
+      topRatedTV: safe(topRatedTVRes, { results: [] }).results,
+      genres: safe(genres, [] as any[]),
+      isDemo: false,
+      error: undefined,
+    };
+  } catch (err: any) {
+    return {
+      trending: mockMovies,
+      popular: mockMovies,
+      topRated: mockMovies,
+      latest: mockMovies,
+      popularTV: [],
+      topRatedTV: [],
+      genres: [],
+      isDemo: true,
+      error: err.message ?? 'Unknown error',
     };
   }
-
-  const { movie } = data;
-
-  // Build direct TMDB image URLs (no API key needed)
-  const posterUrl = movie.poster_path 
-    ? `https://image.tmdb.org/t/p/w780${movie.poster_path}` 
-    : undefined;
-  
-  const backdropUrl = movie.backdrop_path
-    ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
-    : undefined;
-
-  return {
-    title: `${movie.title} (${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}) | Watch Online - Atto4`,
-    description: movie.overview || `Watch ${movie.title} online. ${movie.tagline || ''}`,
-    keywords: [
-      movie.title,
-      'watch online',
-      'stream movie',
-      'Atto4',
-      ...(movie.genres?.map(g => g.name) || []),
-    ].join(', '),
-    openGraph: {
-      title: movie.title,
-      description: movie.overview,
-      type: 'video.movie',
-      url: `https://atto4.pro/movie/${movie.id}`,
-      images: [
-        {
-          url: backdropUrl || posterUrl || '',
-          width: 1280,
-          height: 720,
-          alt: `${movie.title} backdrop`,
-        },
-        ...(posterUrl ? [{
-          url: posterUrl,
-          width: 780,
-          height: 1170,
-          alt: `${movie.title} poster`,
-        }] : []),
-      ],
-      releaseDate: movie.release_date,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: movie.title,
-      description: movie.overview,
-      images: [backdropUrl || posterUrl || ''],
-    },
-  };
 }
 
-// ✅ STEP 5: Main Page Component
-// This renders the static page with pre-fetched data
-export default async function MoviePage({ params }: MoviePageProps) {
-  const { id } = await params;
-  const data = await getMovieData(id);
-
-  // If movie not found, show 404
-  if (!data || !data.movie) {
-    notFound();
-  }
-
-  console.log(`🎬 Rendering static page for: ${data.movie.title}`);
+export default async function HomePage() {
+  const {
+    trending,
+    popular,
+    topRated,
+    latest,
+    popularTV,
+    topRatedTV,
+    genres,
+    isDemo,
+    error,
+  } = await getHomePageData();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <main className="min-h-screen bg-gradient-to-b from-black to-gray-900">
+      {(isDemo || error) && (
+        <div className="bg-yellow-500 text-black text-center py-3 text-sm font-medium">
+          {error
+            ? `API Error: ${error}`
+            : 'Showing demo content — Check your TMDB API key or network.'}
+        </div>
+      )}
+
       <Suspense fallback={<LoadingSpinner />}>
-        <MovieDetailsClient movie={data.movie} genres={data.genres} />
+        <HeroSection media={(trending || []).slice(0, 5)} />
       </Suspense>
+
+      <div className="relative z-10 pt-16 pb-20 bg-gradient-to-b from-black via-gray-900 to-black space-y-16">
+        <MediaRow title="Trending Movies" items={trending} genres={genres} category="trending" mediaType="movie" priority />
+        <MediaRow title="Popular Movies" items={popular} genres={genres} category="popular" mediaType="movie" />
+        <MediaRow title="Top-Rated Movies" items={topRated} genres={genres} category="top-rated" mediaType="movie" />
+        <MediaRow title="Latest Movies" items={latest} genres={genres} category="latest" mediaType="movie" />
+
+        {popularTV?.length > 0 && (
+          <MediaRow title="Popular TV Shows" items={popularTV} genres={genres} category="popular" mediaType="tv" />
+        )}
+        {topRatedTV?.length > 0 && (
+          <MediaRow title="Top-Rated TV Shows" items={topRatedTV} genres={genres} category="top-rated" mediaType="tv" />
+        )}
+
+        <Suspense fallback={<div className="h-64" />}><WatchlistRow /></Suspense>
+        <Suspense fallback={<div className="h-64" />}><LikedRow /></Suspense>
+      </div>
     </main>
   );
 }
