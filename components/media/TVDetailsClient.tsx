@@ -49,6 +49,16 @@ interface TVDetailsClientProps {
   seasons?: Season[];
 }
 
+// ✅ TMDB Image size constants
+const TMDB_IMAGE_SIZES = {
+  backdrop: 'w1280',
+  poster: 'w500',
+  posterLarge: 'w780',
+  profile: 'w185',
+  still: 'w300',
+  original: 'original',
+} as const;
+
 export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDetailsClientProps) {
   const [showTrailer, setShowTrailer] = useState(false);
   const [trailerMuted, setTrailerMuted] = useState(true);
@@ -56,10 +66,15 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set([1])); // Season 1 expanded by default
 
-  // Helper to build TMDB image URLs safely
-  const buildTmdbImage = (path: string | null | undefined, size: string = "w500"): string => {
+  // ✅ Build TMDB image URLs directly (no API key needed)
+  const buildTmdbImage = (
+    path: string | null | undefined,
+    size: keyof typeof TMDB_IMAGE_SIZES | string = "w500"
+  ): string => {
     if (!path) return "/placeholder-movie.jpg";
-    return `https://image.tmdb.org/t/p/${size}${path}`;
+    
+    const imageSize = TMDB_IMAGE_SIZES[size as keyof typeof TMDB_IMAGE_SIZES] || size;
+    return `https://image.tmdb.org/t/p/${imageSize}${path}`;
   };
 
   // Sync liked & watchlist state
@@ -169,14 +184,15 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
 
   return (
     <div className="relative min-h-screen text-white">
-      {/* Backdrop */}
+      {/* Background with Backdrop - Using direct TMDB URL */}
       <div className="absolute inset-0">
         <Image
-          src={buildTmdbImage(tv.backdrop_path, "w1280")}
-          alt={tv.name}
+          src={buildTmdbImage(tv.backdrop_path, "backdrop")}
+          alt={`${tv.name} backdrop`}
           fill
           className="object-cover"
           priority
+          quality={85}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/40" />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
@@ -197,21 +213,23 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
       <div className="relative z-10 px-4 sm:px-6 lg:px-8 pb-20">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-            {/* Poster */}
+            {/* Poster - Using direct TMDB URL */}
             <div className="lg:col-span-1">
               <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl max-w-md mx-auto lg:mx-0">
                 <Image
-                  src={buildTmdbImage(tv.poster_path, "w780")}
-                  alt={tv.name}
+                  src={buildTmdbImage(tv.poster_path, "posterLarge")}
+                  alt={`${tv.name} poster`}
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  quality={90}
                 />
               </div>
             </div>
 
-            {/* Info */}
+            {/* TV Show Info */}
             <div className="lg:col-span-2">
-              {/* Title */}
+              {/* Title and Basic Info */}
               <div className="mb-6">
                 <h1 className="text-4xl lg:text-6xl font-black mb-4 leading-tight">
                   {tv.name}
@@ -223,9 +241,9 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                   </p>
                 )}
 
-                {/* Meta */}
+                {/* Meta Info */}
                 <div className="flex flex-wrap items-center gap-4 mb-6">
-                  {tv.vote_average !== undefined && (
+                  {tv.vote_average > 0 && (
                     <div className="flex items-center gap-1 bg-yellow-500 text-black px-3 py-1 rounded-full font-bold">
                       <Star className="w-4 h-4 fill-current" />
                       <span>{tv.vote_average.toFixed(1)}</span>
@@ -276,7 +294,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                 {/* Watch Now Button - Links to first episode */}
                 <Link
                   href={`/watch/tv/${tv.id}?season=1&episode=1`}
-                  className="flex items-center gap-3 bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full font-bold text-lg transition-colors shadow-lg"
+                  className="flex items-center gap-3 bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-lg"
                 >
                   <Play className="w-6 h-6 fill-current" />
                   Watch Now
@@ -285,7 +303,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                 {trailer && (
                   <button
                     onClick={() => setShowTrailer(true)}
-                    className="flex items-center gap-3 bg-gray-700/80 hover:bg-gray-700 px-6 py-4 rounded-full font-semibold transition-colors"
+                    className="flex items-center gap-3 bg-gray-700/80 hover:bg-gray-700 px-6 py-4 rounded-full font-semibold transition-all hover:scale-105"
                   >
                     <Play className="w-5 h-5" />
                     Play Trailer
@@ -294,11 +312,12 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
 
                 <button
                   onClick={toggleWatchlist}
-                  className={`flex items-center gap-3 px-6 py-4 rounded-full font-semibold transition-colors ${
+                  className={`flex items-center gap-3 px-6 py-4 rounded-full font-semibold transition-all hover:scale-105 ${
                     isInWatchlist
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-gray-700/80 hover:bg-gray-700"
                   }`}
+                  aria-label={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
                 >
                   <Plus className="w-5 h-5" />
                   {isInWatchlist ? "In Watchlist" : "Watchlist"}
@@ -306,11 +325,12 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
 
                 <button
                   onClick={toggleLike}
-                  className={`p-4 rounded-full transition-colors ${
+                  className={`p-4 rounded-full transition-all hover:scale-105 ${
                     isLiked
                       ? "bg-red-600 hover:bg-red-700"
                       : "bg-gray-700/80 hover:bg-gray-700"
                   }`}
+                  aria-label={isLiked ? "Unlike" : "Like"}
                 >
                   <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
                 </button>
@@ -326,7 +346,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                 </div>
               )}
 
-              {/* Extra Info */}
+              {/* Additional Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                 {creator && (
                   <div>
@@ -344,7 +364,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
 
                 {tv.number_of_episodes && (
                   <div>
-                    <h3 className="font-semibold text-gray-400 mb-2">Episodes</h3>
+                    <h3 className="font-semibold text-gray-400 mb-2">Total Episodes</h3>
                     <p className="text-white">{tv.number_of_episodes}</p>
                   </div>
                 )}
@@ -353,6 +373,20 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                   <div>
                     <h3 className="font-semibold text-gray-400 mb-2">Episode Runtime</h3>
                     <p className="text-white">{tv.episode_run_time[0]} min</p>
+                  </div>
+                )}
+
+                {tv.last_air_date && (
+                  <div>
+                    <h3 className="font-semibold text-gray-400 mb-2">Last Aired</h3>
+                    <p className="text-white">{formatAirDate(tv.last_air_date)}</p>
+                  </div>
+                )}
+
+                {tv.type && (
+                  <div>
+                    <h3 className="font-semibold text-gray-400 mb-2">Type</h3>
+                    <p className="text-white">{tv.type}</p>
                   </div>
                 )}
               </div>
@@ -369,6 +403,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                     <button
                       onClick={() => toggleSeason(season.season_number)}
                       className="w-full flex items-center justify-between mb-4 hover:text-gray-300 transition-colors"
+                      aria-label={`Toggle ${season.name}`}
                     >
                       <div className="flex items-center gap-4">
                         <div className="relative w-16 h-24 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
@@ -377,6 +412,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                             alt={season.name}
                             fill
                             className="object-cover"
+                            sizes="64px"
                           />
                         </div>
                         <div className="text-left">
@@ -404,10 +440,11 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                             <div className="flex gap-4">
                               <div className="relative w-24 h-14 rounded overflow-hidden bg-gray-700 flex-shrink-0">
                                 <Image
-                                  src={buildTmdbImage(episode.still_path, "w300")}
+                                  src={buildTmdbImage(episode.still_path, "still")}
                                   alt={episode.name}
                                   fill
                                   className="object-cover"
+                                  sizes="96px"
                                 />
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Play className="w-6 h-6 text-white fill-current" />
@@ -418,10 +455,12 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                                   <span className="text-gray-400 text-sm font-medium">
                                     E{episode.episode_number}
                                   </span>
-                                  <span className="text-yellow-400 text-sm flex items-center gap-1">
-                                    <Star className="w-3 h-3 fill-current" />
-                                    {episode.vote_average.toFixed(1)}
-                                  </span>
+                                  {episode.vote_average > 0 && (
+                                    <span className="text-yellow-400 text-sm flex items-center gap-1">
+                                      <Star className="w-3 h-3 fill-current" />
+                                      {episode.vote_average.toFixed(1)}
+                                    </span>
+                                  )}
                                   {episode.runtime && (
                                     <span className="text-gray-400 text-sm flex items-center gap-1">
                                       <Clock className="w-3 h-3" />
@@ -432,9 +471,11 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
                                 <h4 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-white">
                                   {episode.name}
                                 </h4>
-                                <p className="text-gray-400 text-xs line-clamp-2">
-                                  {episode.overview}
-                                </p>
+                                {episode.overview && (
+                                  <p className="text-gray-400 text-xs line-clamp-2">
+                                    {episode.overview}
+                                  </p>
+                                )}
                                 <p className="text-gray-500 text-xs mt-1">
                                   {formatAirDate(episode.air_date)}
                                 </p>
@@ -450,19 +491,20 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
             </div>
           )}
 
-          {/* Cast */}
+          {/* Cast Section - Using direct TMDB URLs */}
           {cast.length > 0 && (
             <div className="mt-12">
               <h2 className="text-3xl font-bold mb-8">Cast</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
                 {cast.map((person) => (
-                  <div key={person.id} className="text-center">
-                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-3 bg-gray-800">
+                  <div key={person.id} className="text-center group">
+                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-3 bg-gray-800 group-hover:scale-105 transition-transform duration-200">
                       <Image
-                        src={buildTmdbImage(person.profile_path, "w500")}
+                        src={buildTmdbImage(person.profile_path, "profile")}
                         alt={person.name}
                         fill
                         className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
                       />
                     </div>
                     <h3 className="font-semibold text-sm mb-1 line-clamp-2">
@@ -477,24 +519,35 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
             </div>
           )}
 
-          {/* Similar */}
+          {/* Similar TV Shows - Using direct TMDB URLs */}
           {tv.similar?.results?.length > 0 && (
             <div className="mt-12">
               <h2 className="text-3xl font-bold mb-8">Similar TV Shows</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
                 {tv.similar.results.slice(0, 12).map((similarShow) => (
-                  <Link key={similarShow.id} href={`/tv/${similarShow.id}`} className="group">
+                  <Link 
+                    key={similarShow.id} 
+                    href={`/tv/${similarShow.id}`} 
+                    className="group"
+                  >
                     <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 bg-gray-800 group-hover:scale-105 transition-transform duration-200">
                       <Image
                         src={buildTmdbImage(similarShow.poster_path, "w500")}
                         alt={similarShow.name}
                         fill
                         className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
                       />
                     </div>
-                    <h3 className="font-semibold text-sm line-clamp-2">
+                    <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-red-500 transition-colors">
                       {similarShow.name}
                     </h3>
+                    {similarShow.vote_average > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                        <span className="text-xs text-gray-400">{similarShow.vote_average.toFixed(1)}</span>
+                      </div>
+                    )}
                   </Link>
                 ))}
               </div>
@@ -505,23 +558,29 @@ export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDeta
 
       {/* Trailer Modal */}
       {showTrailer && trailer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-          <div className="relative w-full max-w-6xl aspect-video">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setShowTrailer(false)}
+        >
+          <div
+            className="relative w-full max-w-6xl aspect-video"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setShowTrailer(false)}
               className="absolute -top-12 right-0 z-10 bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors"
+              aria-label="Close trailer"
             >
               <X className="w-6 h-6" />
             </button>
 
-            <div className="absolute top-4 left-4 z-10 flex gap-2">
-              <button
-                onClick={() => setTrailerMuted(!trailerMuted)}
-                className="bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
-              >
-                {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </button>
-            </div>
+            <button
+              onClick={() => setTrailerMuted(!trailerMuted)}
+              className="absolute top-4 left-4 z-10 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+              aria-label={trailerMuted ? "Unmute" : "Mute"}
+            >
+              {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            </button>
 
             <iframe
               src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=${
