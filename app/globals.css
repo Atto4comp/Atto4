@@ -73,29 +73,35 @@ body {
    IMPROVED DESKTOP HEADER LAYOUT - FIXED
    ============================================ */
 
-/* ✅ FIXED: Transparent navbar that doesn't overlay content */
+/* ✅ FIXED: Header height locked and border removed to prevent overlay bleeding */
 .soft-glass-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  height: 4rem; /* ✅ Strictly lock height to match container */
   z-index: 50;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 70%, transparent 100%);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  border-bottom: none; /* ✅ Removed border that caused separation */
+  
+  /* Seamless gradient fade instead of solid block */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 80%, transparent 100%);
+  
+  /* Softer blur that doesn't create a hard line */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  
+  /* ✅ REMOVED the border-bottom that caused the "underline" effect */
+  border-bottom: 0; 
+  
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  /* ✅ Only the height of the container, no extra padding */
-  padding-bottom: 0;
 }
 
-/* ✅ Stronger background when scrolled */
+/* Scrolled state adds the background back when needed */
 .soft-glass-header.scrolled {
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  height: 4rem; /* Keep height consistent */
 }
 
 .header-container {
@@ -105,13 +111,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 4rem; /* ✅ Exact height, no extra space */
+  height: 100%; /* ✅ Fill the parent height exactly */
 }
 
 @media (max-width: 768px) {
+  .soft-glass-header {
+    height: 3.5rem; /* Adjust mobile height */
+  }
+  
   .header-container {
     padding: 0 1rem;
-    height: 3.5rem;
   }
 }
 
@@ -141,7 +150,6 @@ body {
     0 2px 12px var(--glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: all 0.3s ease;
-  overflow: hidden; /* ✅ Prevent logo overflow */
 }
 
 @media (max-width: 768px) {
@@ -167,7 +175,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -495,7 +502,6 @@ body {
   box-shadow: 
     0 1px 6px var(--glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  overflow: hidden;
 }
 
 .mobile-brand-text h2 {
