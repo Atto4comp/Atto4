@@ -5,7 +5,13 @@
   "scripts": {
     "db:setup": "node scripts/setup-db.js",
     "db:migrate": "node scripts/migrate-db.js",
-    "cache:clean": "node scripts/clean-cache.js"
+    "cache:clean": "node scripts/clean-cache.js",
+    "dev": "next dev",
+    "build": "next build",
+    "vercel-build": "next build",
+    "snapshot:homepage": "node scripts/fetch-homepage.js",
+    "snapshot:movies": "node scripts/fetch-movies.js",
+    "snapshot:all": "npm run snapshot:homepage && npm run snapshot:movies"
   },
   "dependencies": {
     "@filiptypjeu/streamlink": "^1.0.2",
