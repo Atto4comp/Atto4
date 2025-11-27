@@ -9,7 +9,7 @@ export interface MovieEmbedResult {
 }
 
 const PROVIDERS = [
-  { url: "https://vidsrc.to/embed/movie/${id}", label: "VidSrc To" },
+  { url: "https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=default&allinone=true&backlink=${backlink}", label: "Atto4" },
   { url: "https://vidsrc.me/embed/movie?tmdb=${id}", label: "VidSrc Me" },
   { url: "https://vidbinge.com/embed/movie/${id}", label: "VidBinge" },
   { url: "https://www.2embed.cc/embed/${id}", label: "2Embed" },
