@@ -24,16 +24,30 @@ interface MovieDetailsClientProps {
   genres: Genre[];
 }
 
+// ✅ TMDB Image size constants
+const TMDB_IMAGE_SIZES = {
+  backdrop: 'w1280',
+  poster: 'w500',
+  posterLarge: 'w780',
+  profile: 'w185',
+  original: 'original',
+} as const;
+
 export default function MovieDetailsClient({ movie, genres }: MovieDetailsClientProps) {
   const [showTrailer, setShowTrailer] = useState(false);
   const [trailerMuted, setTrailerMuted] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
 
-  // Helper function to build TMDB image URLs
-  const buildTmdbImage = (path: string | null, size: string = 'w500'): string => {
+  // ✅ Build TMDB image URLs directly (no API key needed)
+  const buildTmdbImage = (
+    path: string | null, 
+    size: keyof typeof TMDB_IMAGE_SIZES | string = 'w500'
+  ): string => {
     if (!path) return '/placeholder-movie.jpg';
-    return `https://image.tmdb.org/t/p/${size}${path}`;
+    
+    const imageSize = TMDB_IMAGE_SIZES[size as keyof typeof TMDB_IMAGE_SIZES] || size;
+    return `https://image.tmdb.org/t/p/${imageSize}${path}`;
   };
 
   // Check if item is in watchlist/liked on mount
@@ -61,7 +75,6 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
       setIsInWatchlist(true);
     }
     
-    // Dispatch custom event to update UI
     window.dispatchEvent(new CustomEvent('watchlist-updated'));
   };
 
@@ -84,7 +97,6 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
       setIsLiked(true);
     }
     
-    // Dispatch custom event to update UI
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
@@ -118,19 +130,21 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   return (
     <div className="relative min-h-screen text-white">
-      {/* Background with Backdrop */}
+      {/* Background with Backdrop - Using direct TMDB URL */}
       <div className="absolute inset-0">
         <Image
-          src={buildTmdbImage(movie.backdrop_path, 'w1280')}
-          alt={movie.title}
+          src={buildTmdbImage(movie.backdrop_path, 'backdrop')}
+          alt={`${movie.title} backdrop`}
           fill
           className="object-cover"
           priority
+          quality={85}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/40" />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
@@ -138,7 +152,10 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
 
       {/* Back Button */}
       <div className="relative z-10 p-4">
-        <Link href="/" className="inline-flex items-center gap-2 bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-black/70 transition-colors">
+        <Link 
+          href="/" 
+          className="inline-flex items-center gap-2 bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-black/70 transition-colors"
+        >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Home</span>
         </Link>
@@ -149,14 +166,16 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
             
-            {/* Poster */}
+            {/* Poster - Using direct TMDB URL */}
             <div className="lg:col-span-1">
               <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl max-w-md mx-auto lg:mx-0">
                 <Image
-                  src={buildTmdbImage(movie.poster_path, 'w780')}
-                  alt={movie.title}
+                  src={buildTmdbImage(movie.poster_path, 'posterLarge')}
+                  alt={`${movie.title} poster`}
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  quality={90}
                 />
               </div>
             </div>
@@ -175,10 +194,12 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
 
                 {/* Meta Info */}
                 <div className="flex flex-wrap items-center gap-4 mb-6">
-                  <div className="flex items-center gap-1 bg-yellow-500 text-black px-3 py-1 rounded-full font-bold">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span>{movie.vote_average?.toFixed(1)}</span>
-                  </div>
+                  {movie.vote_average > 0 && (
+                    <div className="flex items-center gap-1 bg-yellow-500 text-black px-3 py-1 rounded-full font-bold">
+                      <Star className="w-4 h-4 fill-current" />
+                      <span>{movie.vote_average.toFixed(1)}</span>
+                    </div>
+                  )}
                   
                   {movie.release_date && (
                     <div className="flex items-center gap-1 bg-gray-700/70 px-3 py-1 rounded-full">
@@ -217,12 +238,12 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
                 )}
               </div>
 
-              {/* Action Buttons - Updated with Watch Now Link */}
+              {/* Action Buttons */}
               <div className="flex flex-wrap gap-4 mb-8">
-                {/* Watch Now Button - Links to watch page */}
+                {/* Watch Now Button */}
                 <Link
                   href={`/watch/movie/${movie.id}`}
-                  className="flex items-center gap-3 bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full font-bold text-lg transition-colors shadow-lg"
+                  className="flex items-center gap-3 bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-lg"
                 >
                   <Play className="w-6 h-6 fill-current" />
                   Watch Now
@@ -231,7 +252,7 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
                 {trailer && (
                   <button 
                     onClick={() => setShowTrailer(true)}
-                    className="flex items-center gap-3 bg-gray-700/80 hover:bg-gray-700 px-6 py-4 rounded-full font-semibold transition-colors"
+                    className="flex items-center gap-3 bg-gray-700/80 hover:bg-gray-700 px-6 py-4 rounded-full font-semibold transition-all hover:scale-105"
                   >
                     <Play className="w-5 h-5" />
                     Play Trailer
@@ -240,11 +261,12 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
                 
                 <button 
                   onClick={toggleWatchlist}
-                  className={`flex items-center gap-3 px-6 py-4 rounded-full font-semibold transition-colors ${
+                  className={`flex items-center gap-3 px-6 py-4 rounded-full font-semibold transition-all hover:scale-105 ${
                     isInWatchlist 
                       ? 'bg-green-600 hover:bg-green-700' 
                       : 'bg-gray-700/80 hover:bg-gray-700'
                   }`}
+                  aria-label={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
                 >
                   <Plus className="w-5 h-5" />
                   {isInWatchlist ? 'In Watchlist' : 'Watchlist'}
@@ -252,23 +274,26 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
                 
                 <button 
                   onClick={toggleLike}
-                  className={`p-4 rounded-full transition-colors ${
+                  className={`p-4 rounded-full transition-all hover:scale-105 ${
                     isLiked 
                       ? 'bg-red-600 hover:bg-red-700' 
                       : 'bg-gray-700/80 hover:bg-gray-700'
                   }`}
+                  aria-label={isLiked ? 'Unlike' : 'Like'}
                 >
                   <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
                 </button>
               </div>
 
               {/* Overview */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-4">Overview</h2>
-                <p className="text-lg text-gray-300 leading-relaxed">
-                  {movie.overview}
-                </p>
-              </div>
+              {movie.overview && (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-4">Overview</h2>
+                  <p className="text-lg text-gray-300 leading-relaxed">
+                    {movie.overview}
+                  </p>
+                </div>
+              )}
 
               {/* Additional Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
@@ -299,23 +324,38 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
                     <p className="text-white">{formatCurrency(movie.revenue)}</p>
                   </div>
                 )}
+
+                {movie.status && (
+                  <div>
+                    <h3 className="font-semibold text-gray-400 mb-2">Status</h3>
+                    <p className="text-white">{movie.status}</p>
+                  </div>
+                )}
+
+                {movie.original_language && (
+                  <div>
+                    <h3 className="font-semibold text-gray-400 mb-2">Original Language</h3>
+                    <p className="text-white uppercase">{movie.original_language}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Cast Section */}
+          {/* Cast Section - Using direct TMDB URLs */}
           {cast.length > 0 && (
             <div className="mt-12">
               <h2 className="text-3xl font-bold mb-8">Cast</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
                 {cast.map((person) => (
-                  <div key={person.id} className="text-center">
-                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-3 bg-gray-800">
+                  <div key={person.id} className="text-center group">
+                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-3 bg-gray-800 group-hover:scale-105 transition-transform duration-200">
                       <Image
-                        src={buildTmdbImage(person.profile_path, 'w500')}
+                        src={buildTmdbImage(person.profile_path, 'profile')}
                         alt={person.name}
                         fill
                         className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
                       />
                     </div>
                     <h3 className="font-semibold text-sm mb-1 line-clamp-2">{person.name}</h3>
@@ -326,7 +366,7 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
             </div>
           )}
 
-          {/* Similar Movies */}
+          {/* Similar Movies - Using direct TMDB URLs */}
           {movie.similar?.results?.length > 0 && (
             <div className="mt-12">
               <h2 className="text-3xl font-bold mb-8">Similar Movies</h2>
@@ -343,9 +383,18 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
                         alt={similarMovie.title}
                         fill
                         className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
                       />
                     </div>
-                    <h3 className="font-semibold text-sm line-clamp-2">{similarMovie.title}</h3>
+                    <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-red-500 transition-colors">
+                      {similarMovie.title}
+                    </h3>
+                    {similarMovie.vote_average > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                        <span className="text-xs text-gray-400">{similarMovie.vote_average.toFixed(1)}</span>
+                      </div>
+                    )}
                   </Link>
                 ))}
               </div>
@@ -356,23 +405,29 @@ export default function MovieDetailsClient({ movie, genres }: MovieDetailsClient
 
       {/* Trailer Modal */}
       {showTrailer && trailer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-          <div className="relative w-full max-w-6xl aspect-video">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setShowTrailer(false)}
+        >
+          <div 
+            className="relative w-full max-w-6xl aspect-video"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setShowTrailer(false)}
               className="absolute -top-12 right-0 z-10 bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors"
+              aria-label="Close trailer"
             >
               <X className="w-6 h-6" />
             </button>
             
-            <div className="absolute top-4 left-4 z-10 flex gap-2">
-              <button
-                onClick={() => setTrailerMuted(!trailerMuted)}
-                className="bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
-              >
-                {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </button>
-            </div>
+            <button
+              onClick={() => setTrailerMuted(!trailerMuted)}
+              className="absolute top-4 left-4 z-10 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+              aria-label={trailerMuted ? 'Unmute' : 'Mute'}
+            >
+              {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            </button>
 
             <iframe
               src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=${trailerMuted ? 1 : 0}&rel=0`}
