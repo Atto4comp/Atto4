@@ -1,4 +1,4 @@
-/* app/globals.css - FINAL POLISH */
+/* app/globals.css - UPDATED FOR RECTANGULAR UI & MOBILE CARD */
 
 /* ============================================
    MODERN 2025 DESIGN SYSTEM - ATTO4
@@ -10,6 +10,14 @@
   font-weight: 300 700;
   font-display: swap;
   src: local('Inter');
+}
+
+/* Ensure Chillax is available if you are self-hosting, otherwise import it */
+@font-face {
+  font-family: 'Chillax';
+  src: url('/fonts/Chillax-Variable.woff2') format('woff2'); /* Adjust path as needed */
+  font-weight: 200 700;
+  font-display: swap;
 }
 
 @tailwind base;
@@ -45,14 +53,15 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Font Utility */
+.font-chillax {
+  font-family: 'Chillax', sans-serif;
+}
+
 /* ============================================
    MODERN FLOATING CAPSULE NAVBAR - FINAL
    ============================================ */
 
-/* 
-   The wrapper handles positioning.
-   Critically, it must have ZERO background, border, or shadow.
-*/
 .modern-header-wrapper {
   position: fixed;
   top: 0;
@@ -78,10 +87,7 @@ html, body {
   padding-top: 1rem;
 }
 
-/* 
-   The Capsule Island itself. 
-   This is the ONLY element that should have visibility.
-*/
+/* The Capsule Island */
 .glass-capsule {
   pointer-events: auto;
   position: relative;
@@ -90,30 +96,25 @@ html, body {
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   
-  /* Glass Background */
   background: rgba(10, 10, 10, 0.6);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   
-  /* Subtle Border */
   border: 1px solid var(--glass-border);
-  border-radius: 9999px;
+  border-radius: 9999px; /* Keep Navbar Capsule Round */
   
-  /* Depth Shadow - Enhanced for floating effect */
   box-shadow: 
-    0 10px 40px -10px rgba(0, 0, 0, 0.5), /* Drop shadow */
-    0 0 0 1px rgba(255, 255, 255, 0.05), /* Inner ring */
-    inset 0 1px 0 rgba(255, 255, 255, 0.1); /* Top highlight */
+    0 10px 40px -10px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
     
   transition: all 0.4s var(--ease-elastic);
   max-width: 90%;
   width: auto;
   
-  /* ✅ Fixes any sub-pixel rendering artifacts */
   transform: translateZ(0); 
 }
 
-/* Scrolled State - Slightly darker for readability */
 .modern-header-wrapper.scrolled .glass-capsule {
   background: rgba(5, 5, 5, 0.85);
   box-shadow: 
@@ -122,9 +123,10 @@ html, body {
 }
 
 /* ============================================
-   UI COMPONENTS
+   UI COMPONENTS (UPDATED FOR RECTANGULAR LOOK)
    ============================================ */
 
+/* Logo Circle (Remains Round) */
 .logo-circle {
   position: relative;
   width: 40px;
@@ -174,11 +176,10 @@ html, body {
   margin-top: 2px;
 }
 
-/* Nav Pills */
+/* Nav Pills (Inside Navbar - Keep Round) */
 .nav-island {
   display: flex;
   align-items: center;
-  /* Removed background from nav group itself for cleaner look */
   padding: 0 0.5rem;
 }
 
@@ -218,7 +219,7 @@ html, body {
   opacity: 0.8;
 }
 
-/* Action Orbs */
+/* Action Orbs (Keep Round) */
 .action-group {
   display: flex;
   align-items: center;
