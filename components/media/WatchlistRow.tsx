@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { X, Calendar, Star, Play, Check } from 'lucide-react';
+import { Check, Star, Play } from 'lucide-react';
 import { watchlistStorage, WatchlistItem } from '@/lib/storage/watchlist';
 
 const TMDB_IMAGE_SIZES = {
@@ -28,9 +28,7 @@ export default function WatchlistRow() {
       setWatchlist(items);
       setLoading(false);
     };
-
     loadWatchlist();
-
     const handleStorageChange = () => loadWatchlist();
     window.addEventListener('watchlist-updated', handleStorageChange);
     return () => window.removeEventListener('watchlist-updated', handleStorageChange);
@@ -46,16 +44,12 @@ export default function WatchlistRow() {
 
   if (loading) {
     return (
-      <div className="mb-12 relative group">
-        <div className="px-4 md:px-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">My Watchlist</h2>
-          </div>
-          <div className="flex gap-4 overflow-x-auto scrollbar-hide">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[280px] sm:w-[320px] aspect-video bg-gray-900 rounded-xl animate-pulse border border-white/5" />
-            ))}
-          </div>
+      <div className="mb-12 px-4 md:px-12">
+        <div className="h-8 w-48 bg-gray-800 rounded animate-pulse mb-4" />
+        <div className="flex gap-4 overflow-hidden">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="flex-shrink-0 w-[280px] aspect-video bg-gray-900 rounded-xl animate-pulse" />
+          ))}
         </div>
       </div>
     );
@@ -84,11 +78,8 @@ export default function WatchlistRow() {
             return (
               <div key={`${item.media_type}-${item.id}`} className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] group/card">
                 <Link href={`/${item.media_type}/${item.id}`} className="block">
-                  
-                  {/* Horizontal Card Container */}
-                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 border border-white/5 transition-all duration-300 group-hover/card:border-white/20 group-hover/card:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 border border-white/5 transition-all duration-300 group-hover/card:border-white/20 group-hover/card:shadow-lg">
                     
-                    {/* Image */}
                     <Image
                       src={buildImage(item)}
                       alt={title || 'Media'}
@@ -97,26 +88,21 @@ export default function WatchlistRow() {
                       sizes="(max-width: 768px) 280px, 320px"
                     />
 
-                    {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
 
-                    {/* Hover Actions */}
                     <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
-                      
                       <button
                         onClick={(e) => handleRemove(item.id, item.media_type, e)}
                         className="w-10 h-10 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full flex items-center justify-center hover:bg-green-500 hover:border-green-500 hover:scale-110 transition-all shadow-lg"
-                        title="Remove (Watched)"
+                        title="Mark as Watched"
                       >
                         <Check className="w-4 h-4" />
                       </button>
-                      
                       <div className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center shadow-lg">
                         <Play className="w-4 h-4 fill-current ml-0.5" />
                       </div>
                     </div>
 
-                    {/* Top Badges */}
                     <div className="absolute top-3 right-3 flex gap-2">
                       {item.vote_average > 0 && (
                         <div className="bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded-lg flex items-center gap-1">
@@ -126,7 +112,6 @@ export default function WatchlistRow() {
                       )}
                     </div>
 
-                    {/* Content Info */}
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <h3 className="text-white font-bold text-base leading-tight line-clamp-1 font-chillax group-hover/card:text-blue-400 transition-colors">
                         {title}
@@ -142,7 +127,6 @@ export default function WatchlistRow() {
               </div>
             );
           })}
-          
           <div className="w-4 flex-shrink-0" />
         </div>
       </div>
