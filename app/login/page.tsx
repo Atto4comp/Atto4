@@ -1,182 +1,37 @@
-'use client';
+// app/login/page.tsx
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Suspense } from 'react';
+import LoginPageClient from '@/components/pages/LoginPageClient';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
+// ✅ Configure as static page
+export const dynamic = 'force-static';
+export const revalidate = false; // Login page doesn't need revalidation
+
+// ✅ Generate Metadata
+export const metadata = {
+  title: 'Sign In - Access Your Account | Atto4',
+  description: 'Sign in to your Atto4 account to access thousands of movies and TV shows. Stream your favorite content in HD quality.',
+  keywords: ['login', 'sign in', 'account', 'streaming', 'Atto4'],
+  openGraph: {
+    title: 'Sign In | Atto4',
+    description: 'Welcome back to your streaming world',
+    type: 'website',
+    url: 'https://atto4.pro/login',
+  },
+  robots: {
+    index: false, // Don't index login pages
+    follow: true,
+  },
+};
+
+// ✅ Main Login Page (Server Component)
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      setLoading(false);
-      return;
-    }
-
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Login attempt:', { email, password });
-    } catch (err) {
-      setError('Invalid email or password. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5"></div>
-
-      <div className="relative w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-3 group">
-            <div className="glass-card relative w-12 h-12 rounded-xl overflow-hidden p-1 group-hover:scale-105 transition-transform duration-300">
-              <div className="w-full h-full rounded-lg overflow-hidden">
-                <Image src="/logo.png" alt="Atto4 Logo" fill className="object-cover" priority />
-              </div>
-            </div>
-            <span className="font-chillax text-2xl font-bold text-white tracking-wide">Atto4</span>
-          </Link>
-          <p className="text-gray-400 mt-2">Welcome back to your streaming world</p>
-        </div>
-
-        <div className="glass-strong rounded-2xl p-8 shadow-2xl">
-          <h1 className="text-2xl font-bold text-white mb-6 text-center">Sign in to your account</h1>
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg px-4 py-3 mb-6 text-sm flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></div>
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Input */}
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email Address</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 glass-card rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:opacity-50 border-0"
-                  placeholder="Enter your email"
-                />
-              </div>
-            </div>
-
-            {/* Password Input */}
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  className="w-full pl-10 pr-12 py-3 glass-card rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:opacity-50 border-0"
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input type="checkbox" className="rounded border-gray-600 text-blue-600 focus:ring-blue-500 bg-gray-700/50 focus:ring-offset-0" />
-                <span className="ml-2 text-sm text-gray-400">Remember me</span>
-              </label>
-              <Link href="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
-                Forgot password?
-              </Link>
-            </div>
-
-            {/* Updated Sign In Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="relative w-full rounded-xl py-3 overflow-hidden group focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            >
-              {/* glass base */}
-              <div className="absolute inset-0 bg-black/40 border border-white/10 rounded-xl" />
-
-              {/* gradient glow */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600/40 via-purple-600/35 to-blue-600/40 opacity-90 blur-md transform transition-all duration-300 group-hover:scale-105" />
-
-              {/* highlight overlay */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-white/5 to-transparent pointer-events-none" />
-
-              <span className="relative z-10 flex items-center justify-center gap-2 text-white font-semibold">
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    Sign In
-                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
-              </span>
-            </button>
-          </form>
-
-          {/* Sign Up Link */}
-          <div className="mt-8 text-center text-gray-400">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-              Create one now
-            </Link>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-gray-500 text-sm">
-          <p>By signing in, you agree to our</p>
-          <div className="space-x-4 mt-1">
-            <Link href="/terms" className="hover:text-gray-400 transition-colors">Terms of Service</Link>
-            <span>•</span>
-            <Link href="/privacy" className="hover:text-gray-400 transition-colors">Privacy Policy</Link>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
+      <Suspense fallback={<LoadingSpinner />}>
+        <LoginPageClient />
+      </Suspense>
     </div>
   );
 }
