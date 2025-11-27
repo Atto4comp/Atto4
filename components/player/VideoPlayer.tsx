@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Server } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
 
@@ -26,149 +26,111 @@ export default function VideoPlayer({
   onClose,
   showBackButton = true
 }: VideoPlayerProps) {
-  const [embedUrl, setEmbedUrl] = useState<string>('');
+  const [currentSource, setCurrentSource] = useState<string>('');
+  const [sources, setSources] = useState<{ url: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showServers, setShowServers] = useState(false);
 
   const router = useRouter();
 
-  // ✅ Basic content protection (non-aggressive)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // Prevent right-click on video only
-    function preventVideoContext(e: MouseEvent) {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'IFRAME' || target.closest('iframe')) {
-        e.preventDefault();
-      }
-    }
-
-    // Prevent common shortcuts (less aggressive)
-    function preventShortcuts(e: KeyboardEvent) {
-      // Prevent Ctrl+U (view source)
-      if (e.ctrlKey && e.key.toLowerCase() === 'u') {
-        e.preventDefault();
-        return;
-      }
-      // Prevent F12 (dev tools)
-      if (e.key === 'F12') {
-        e.preventDefault();
-        return;
-      }
-    }
-
-    document.addEventListener('contextmenu', preventVideoContext);
-    document.addEventListener('keydown', preventShortcuts);
-
-    return () => {
-      document.removeEventListener('contextmenu', preventVideoContext);
-      document.removeEventListener('keydown', preventShortcuts);
-    };
-  }, []);
-
-  // ✅ Load embed URL
   useEffect(() => {
     setLoading(true);
     setError(null);
 
     try {
-      let result: { embedUrl: string; provider: string } | null = null;
-
+      let result;
       if (mediaType === 'movie') {
         result = getMovieEmbed(mediaId);
-      } else if (mediaType === 'tv') {
+      } else {
         result = getTVEmbed(mediaId, season, episode);
       }
 
-      if (result && result.embedUrl) {
-        setEmbedUrl(result.embedUrl);
+      if (result.allSources && result.allSources.length > 0) {
+        setSources(result.allSources);
+        setCurrentSource(result.allSources[0].url);
         setLoading(false);
       } else {
-        setError('No streaming source available');
+        setError('No sources found');
         setLoading(false);
       }
     } catch (err) {
-      console.error('Failed to load video:', err);
-      setError('Failed to load video player');
+      console.error(err);
+      setError('Failed to load video');
       setLoading(false);
     }
   }, [mediaId, mediaType, season, episode]);
 
   const handleClose = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      router.back();
-    }
+    if (onClose) onClose();
+    else router.back();
   };
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-white border-t-transparent mx-auto mb-4" />
-          <p className="text-white text-lg">Loading player...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
+    </div>
+  );
 
-  // Error state
-  if (error || !embedUrl) {
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-        <div className="text-center max-w-md px-6">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Playback Error</h2>
-          <p className="text-gray-400 mb-6">
-            {error || 'Unable to load video source'}
-          </p>
-          <button
-            onClick={handleClose}
-            className="bg-white hover:bg-gray-200 text-black font-semibold px-8 py-3 rounded-lg transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
+  if (error) return (
+    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+      <div className="text-center text-white">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-2" />
+        <p>{error}</p>
+        <button onClick={handleClose} className="mt-4 bg-white text-black px-6 py-2 rounded font-bold">Back</button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Video player
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Header with Back Button */}
       {showBackButton && (
-        <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/90 via-black/50 to-transparent p-4 md:p-6">
-          <button
-            onClick={handleClose}
-            className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm md:text-base font-medium">Back</span>
+        <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+          <button onClick={handleClose} className="pointer-events-auto flex items-center gap-2 text-white hover:text-gray-300 transition-colors">
+            <ArrowLeft className="w-6 h-6" />
+            <span className="font-bold drop-shadow-md">{title || 'Back'}</span>
           </button>
-          {title && (
-            <h1 className="text-white text-lg md:text-xl font-semibold mt-2 truncate">
-              {title}
-            </h1>
-          )}
+
+          <div className="pointer-events-auto relative">
+            <button 
+              onClick={() => setShowServers(!showServers)}
+              className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-sm font-medium hover:bg-white/20 transition-all"
+            >
+              <Server className="w-4 h-4" />
+              <span>Change Server</span>
+            </button>
+
+            {showServers && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+                {sources.map((src, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setCurrentSource(src.url);
+                      setShowServers(false);
+                    }}
+                    className={`w-full text-left px-4 py-3 text-sm hover:bg-white/10 transition-colors ${
+                      currentSource === src.url ? 'text-green-400 font-bold' : 'text-gray-300'
+                    }`}
+                  >
+                    {src.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Video Iframe */}
-      <div className="flex-1 relative">
-        <iframe
-          src={embedUrl}
-          className="absolute inset-0 w-full h-full"
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="origin"
-          sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
-          title={title || 'Video Player'}
-        />
-      </div>
+      {/* ✅ Clean Iframe without sandbox restrictions */}
+      <iframe
+        key={currentSource} // Force reload on source change
+        src={currentSource}
+        className="w-full h-full border-0"
+        allowFullScreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        referrerPolicy="origin"
+      />
     </div>
   );
 }

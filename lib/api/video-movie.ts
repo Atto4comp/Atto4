@@ -2,33 +2,31 @@
 
 import { getServerLabel } from './video-common';
 
-interface MovieEmbedResult {
+export interface MovieEmbedResult {
   embedUrl: string;
   provider: string;
+  allSources?: { url: string; label: string }[];
 }
 
-function getMovieProviders() {
-  const providers = [
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_1 || "https://vidfast.to/embed/movie/${id}",
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_2 || "",
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_3 || "",
-    process.env.NEXT_PUBLIC_MOVIE_EMBED_4 || "",
-    process.env.NEXT_PUBLIC_MOVIE_API_BASE || "",
-  ].filter(p => p.trim());
-  
-  return providers.length > 0 ? providers : ["https://vidfast.to/embed/movie/${id}"];
-}
+const PROVIDERS = [
+  { url: "https://vidsrc.to/embed/movie/${id}", label: "VidSrc To" },
+  { url: "https://vidsrc.me/embed/movie?tmdb=${id}", label: "VidSrc Me" },
+  { url: "https://vidbinge.com/embed/movie/${id}", label: "VidBinge" },
+  { url: "https://www.2embed.cc/embed/${id}", label: "2Embed" },
+  { url: "https://superembed.stream/embed/movie/${id}", label: "SuperEmbed" }
+];
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
-  const providers = getMovieProviders();
-  const providerUrl = providers[0];
+  const sources = PROVIDERS.map(p => ({
+    url: p.url.replace(/\$\{id\}/g, String(id)),
+    label: p.label
+  }));
 
-  // Direct template replacement
-  const embedUrl = providerUrl.replace(/\$\{id\}/g, String(id));
-
+  // Default to first source
   return {
-    embedUrl,
-    provider: getServerLabel(providerUrl)
+    embedUrl: sources[0].url,
+    provider: sources[0].label,
+    allSources: sources
   };
 }
 
