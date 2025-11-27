@@ -1,201 +1,70 @@
-'use client';
+// app/tvshows/page.tsx
 
-import { useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { tmdbApi } from '@/lib/api/tmdb';
-import MediaGrid from '@/components/media/MediaGrid';
+import TVShowsPageClient from '@/components/pages/TVShowsPageClient';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
-export default function TvShowsPage() {
-  const [tvShows, setTvShows] = useState([]);
-  const [genres, setGenres] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState('');
-  const [sortOrder, setSortOrder] = useState('popular');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [canLoadMore, setCanLoadMore] = useState(true);
+// ✅ STEP 1: Configure Static Generation with ISR
+export const dynamic = 'force-static';  // Force static generation
+export const revalidate = 3600;         // Revalidate every hour
 
-  useEffect(() => {
-    initializePage();
-  }, []);
+// ✅ STEP 2: Generate Metadata
+export const metadata = {
+  title: 'TV Shows - Discover Amazing Series & Documentaries | Atto4',
+  description: 'Browse thousands of TV shows including dramas, comedies, documentaries, and more. Filter by genre, sort by popularity, and discover your next binge-worthy series.',
+  keywords: 'tv shows, series, documentaries, drama, comedy, watch tv online, Atto4',
+  openGraph: {
+    title: 'TV Shows | Atto4',
+    description: 'Discover amazing series and documentaries',
+    type: 'website',
+    url: 'https://atto4.pro/tvshows',
+  },
+};
 
-  useEffect(() => {
-    if (genres.length > 0) {
-      resetAndFetch();
-    }
-  }, [selectedGenre, sortOrder]);
+// ✅ STEP 3: Fetch Initial Data at Build Time
+async function getTVShowsPageData() {
+  try {
+    console.log('📥 Fetching TV shows page data at build time...');
 
-  const initializePage = async () => {
-    setIsLoading(true);
-    try {
-      const genresData = await tmdbApi.getTVGenres();
-      setGenres(genresData || []);
-      
-      const showsData = await tmdbApi.getPopularTVShows(1);
-      setTvShows(showsData?.results || []);
-      setCanLoadMore(showsData?.total_pages > 1);
-    } catch (error) {
-      console.error('Failed to initialize page:', error);
-      setTvShows([]);
-      setGenres([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Fetch genres and initial popular shows in parallel
+    const [genres, popularShows] = await Promise.all([
+      tmdbApi.getTVGenres(),
+      tmdbApi.getPopularTVShows(1),
+    ]);
 
-  const resetAndFetch = async () => {
-    setCurrentPage(1);
-    setIsLoading(true);
-    try {
-      const data = await fetchTVData(1);
-      setTvShows(data?.results || []);
-      setCanLoadMore(data?.total_pages > 1);
-    } catch (error) {
-      console.error('Failed to fetch TV shows:', error);
-      setTvShows([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    console.log(`✅ Fetched ${popularShows.results?.length || 0} shows and ${genres?.length || 0} genres`);
 
-  const fetchTVData = async (page) => {
-    if (selectedGenre) {
-      return await tmdbApi.getTVShowsByGenre(parseInt(selectedGenre), page);
-    }
-    
-    switch (sortOrder) {
-      case 'latest':
-        return await tmdbApi.getLatestTVShows(page);
-      case 'top_rated':
-        return await tmdbApi.getTopRatedTVShows(page);
-      default:
-        return await tmdbApi.getPopularTVShows(page);
-    }
-  };
+    return {
+      genres: genres || [],
+      initialShows: popularShows.results || [],
+      totalPages: popularShows.total_pages || 1,
+    };
+  } catch (error) {
+    console.error('❌ Failed to fetch TV shows page data:', error);
+    return {
+      genres: [],
+      initialShows: [],
+      totalPages: 0,
+    };
+  }
+}
 
-  const loadMoreShows = async () => {
-    if (isLoading || !canLoadMore) return;
-    
-    setIsLoading(true);
-    const nextPage = currentPage + 1;
-    
-    try {
-      const data = await fetchTVData(nextPage);
-      if (data?.results?.length) {
-        setTvShows(prev => [...prev, ...data.results]);
-        setCurrentPage(nextPage);
-        setCanLoadMore(nextPage < data.total_pages);
-      } else {
-        setCanLoadMore(false);
-      }
-    } catch (error) {
-      console.error('Failed to load more shows:', error);
-      setCanLoadMore(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+// ✅ STEP 4: Main TV Shows Page Component (Statically Generated)
+export default async function TVShowsPage() {
+  const data = await getTVShowsPageData();
+
+  console.log('📺 Rendering static TV shows page');
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-7xl mx-auto p-6">
-        
-        {/* Page Header - Smaller Typography */}
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 tracking-tight">
-            TV Shows
-          </h1>
-          <p className="text-gray-400 text-base">
-            Discover amazing series and documentaries
-          </p>
-        </header>
-
-        <div className="mb-8 flex flex-wrap gap-4">
-          <div className="space-y-1">
-            <label className="block text-sm text-gray-300">Filter by Genre</label>
-            <select
-              value={selectedGenre}
-              onChange={(e) => setSelectedGenre(e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[180px] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Genres</option>
-              {genres.map((genre) => (
-                <option key={genre.id} value={genre.id}>
-                  {genre.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-sm text-gray-300">Sort By</label>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[150px] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="popular">Popular</option>
-              <option value="latest">Latest</option>
-              <option value="top_rated">Top Rated</option>
-            </select>
-          </div>
-        </div>
-
-        {tvShows.length > 0 && !isLoading && (
-          <div className="mb-6">
-            <p className="text-gray-400 text-sm">
-              {tvShows.length} shows found
-            </p>
-          </div>
-        )}
-
-        <MediaGrid 
-          items={tvShows} 
-          mediaType="tv" 
-          loading={isLoading && currentPage === 1} 
+      <Suspense fallback={<LoadingSpinner />}>
+        <TVShowsPageClient 
+          initialGenres={data.genres}
+          initialShows={data.initialShows}
+          initialTotalPages={data.totalPages}
         />
-
-        {tvShows.length > 0 && canLoadMore && (
-          <div className="mt-12 text-center">
-            <button
-              onClick={loadMoreShows}
-              disabled={isLoading}
-              className="group relative bg-white text-black font-semibold py-4 px-10 rounded-full transition-all duration-200 hover:bg-gray-100 hover:scale-110 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                  <span>Loading more...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span>Show More</span>
-                  <div className="w-5 h-5 transition-transform group-hover:translate-y-1">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                    </svg>
-                  </div>
-                </div>
-              )}
-            </button>
-          </div>
-        )}
-
-        {!canLoadMore && tvShows.length > 0 && (
-          <div className="mt-12 text-center">
-            <p className="text-gray-500 text-sm">
-              ✨ You've seen all available shows
-            </p>
-          </div>
-        )}
-
-        {!isLoading && tvShows.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">📺</div>
-            <h3 className="text-xl font-semibold mb-2">No TV shows found</h3>
-            <p className="text-gray-400">Try adjusting your filters or check back later</p>
-          </div>
-        )}
-
-      </div>
+      </Suspense>
     </div>
   );
 }
