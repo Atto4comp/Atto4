@@ -71,81 +71,137 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   const currentMovie = media[currentIndex];
   const movieGenres = getMovieGenres(currentMovie.genre_ids || []);
 
-  // Mobile Layout
+  // ==========================================
+  // MODERN 2025 MOBILE LAYOUT (Vertical Card)
+  // ==========================================
   if (isMobile) {
     return (
-      // ✅ FIXED: Removed pt-16, added top-0 and negative margin to pull it up
       <div className="relative w-full min-h-screen bg-black overflow-hidden top-0 -mt-16 sm:mt-0">
+        {/* Ambient Background */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-black to-black" />
+          <Image
+            src={buildTmdbImage(currentMovie.poster_path, 'w780')}
+            alt="Background blur"
+            fill
+            className="object-cover opacity-30 blur-3xl scale-110"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
         </div>
 
-        <div className="relative z-10 flex items-center justify-center min-h-screen p-4 pt-24">
-          <div className="w-full max-w-sm">
-            <div className="relative bg-gradient-to-b from-gray-800/50 to-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-              <div className="relative aspect-[2/3] overflow-hidden">
-                <Image
-                  src={buildTmdbImage(currentMovie.poster_path, TMDB_IMAGE_SIZES.poster)}
-                  alt={currentMovie.title || 'Movie poster'}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="400px"
-                  quality={90}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-                
-                {/* Mobile Metadata & Title */}
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <h1 className="text-2xl font-extrabold text-white mb-2 leading-tight drop-shadow-lg font-chillax">
-                    {currentMovie.title}
-                  </h1>
-                  {movieGenres.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {movieGenres.map((genre, idx) => (
-                        <span key={idx} className="bg-white/20 backdrop-blur-sm text-white text-xs font-medium px-3 py-1 rounded-full border border-white/30">
-                          {genre}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6 pt-24 gap-6">
+          
+          {/* Main Vertical Poster Card */}
+          <div className="relative w-full max-w-[320px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+            <Image
+              src={buildTmdbImage(currentMovie.poster_path, TMDB_IMAGE_SIZES.poster)}
+              alt={currentMovie.title || 'Movie poster'}
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 768px) 100vw, 320px"
+            />
+            
+            {/* Gradient Overlay for Text */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+
+            {/* Navigation Arrows (Overlay on Poster) */}
+            {media.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/20 backdrop-blur-md rounded-full border border-white/10 text-white/70 hover:bg-black/40 active:scale-95 transition-all"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); goToNext(); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/20 backdrop-blur-md rounded-full border border-white/10 text-white/70 hover:bg-black/40 active:scale-95 transition-all"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
+
+            {/* Card Content (Bottom) */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 space-y-3">
+              <h1 className="text-2xl font-bold text-white leading-tight font-chillax drop-shadow-md">
+                {currentMovie.title}
+              </h1>
+              
+              {/* Metadata Row */}
+              <div className="flex items-center gap-2 text-xs font-medium text-gray-300">
+                {currentMovie.release_date && (
+                  <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded border border-white/10">
+                    {new Date(currentMovie.release_date).getFullYear()}
+                  </span>
+                )}
+                <span className="flex items-center gap-1 bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/20 text-yellow-400">
+                  ★ {currentMovie.vote_average?.toFixed(1)}
+                </span>
               </div>
 
-              {/* Mobile Action Buttons */}
-              <div className="p-6 space-y-4">
-                <div className="flex gap-3">
-                  <Link
-                    href={`/watch/movie/${currentMovie.id}`}
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-black font-semibold py-3.5 px-4 rounded-xl transition-all shadow-lg"
-                  >
-                    <Play className="w-5 h-5 fill-current" />
-                    <span>Play</span>
-                  </Link>
-                  <Link
-                    href={`/movie/${currentMovie.id}`}
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-sm text-white font-medium py-3.5 px-4 rounded-xl transition-all border border-white/20"
-                  >
-                    <Info className="w-4 h-4" />
-                    <span>More Info</span>
-                  </Link>
+              {/* Genres */}
+              {movieGenres.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {movieGenres.map((genre, idx) => (
+                    <span key={idx} className="text-[10px] bg-white/5 border border-white/5 px-2 py-0.5 rounded-full text-gray-300">
+                      {genre}
+                    </span>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
           </div>
+
+          {/* Expanding Bar Carousel Indicators */}
+          {media.length > 1 && (
+            <div className="flex items-center justify-center gap-1.5">
+              {media.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    index === currentIndex 
+                      ? 'w-6 bg-white' 
+                      : 'w-1.5 bg-white/20'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Mobile Actions (Below Card) */}
+          <div className="flex gap-3 w-full max-w-[320px]">
+            <Link
+              href={`/watch/movie/${currentMovie.id}`}
+              className="flex-1 flex items-center justify-center gap-2 bg-white text-black font-bold py-3.5 rounded-xl hover:scale-[1.02] active:scale-95 transition-all"
+            >
+              <Play className="w-4 h-4 fill-black" />
+              <span>Watch</span>
+            </Link>
+            <Link
+              href={`/movie/${currentMovie.id}`}
+              className="flex-1 flex items-center justify-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium py-3.5 rounded-xl hover:bg-white/20 active:scale-95 transition-all"
+            >
+              <Info className="w-4 h-4" />
+              <span>Info</span>
+            </Link>
+          </div>
+
         </div>
       </div>
     );
   }
 
-  // Desktop Layout
+  // ==========================================
+  // MODERN DESKTOP LAYOUT (Rectangular UI)
+  // ==========================================
   return (
-    // ✅ FIXED: Added -mt-[4rem] to pull the hero section UP behind the header
-    // The header is 4rem height, so we pull this up by 4rem.
-    // Also ensured z-index is 0 so it sits BEHIND the navbar (z-50).
     <div className="relative w-full h-[100vh] min-h-[800px] overflow-hidden -mt-[6rem] z-0">
       
-      {/* Background Image Layer */}
+      {/* Background Layer */}
       <div className="absolute inset-0">
         {media.map((movie, index) => (
           <div
@@ -166,11 +222,9 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
           </div>
         ))}
         
-        {/* Gradient Overlays - Adjusted for depth */}
+        {/* Gradients */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-gradient-to-t from-black via-black/60 to-transparent" />
-        
-        {/* Top Gradient to darken behind navbar slightly for text readability if needed */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
       </div>
 
@@ -179,14 +233,14 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
         <>
           <button
             onClick={goToPrevious}
-            className="absolute left-8 top-1/2 -translate-y-1/2 z-20 bg-white/5 hover:bg-white/10 backdrop-blur-md text-white p-4 rounded-full transition-all border border-white/5 group"
+            className="absolute left-8 top-1/2 -translate-y-1/2 z-20 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-white p-3 rounded-xl transition-all border border-white/5 group"
             aria-label="Previous"
           >
             <ChevronLeft className="w-8 h-8 opacity-70 group-hover:opacity-100 group-hover:-translate-x-1 transition-all" />
           </button>
           <button
             onClick={goToNext}
-            className="absolute right-8 top-1/2 -translate-y-1/2 z-20 bg-white/5 hover:bg-white/10 backdrop-blur-md text-white p-4 rounded-full transition-all border border-white/5 group"
+            className="absolute right-8 top-1/2 -translate-y-1/2 z-20 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-white p-3 rounded-xl transition-all border border-white/5 group"
             aria-label="Next"
           >
             <ChevronRight className="w-8 h-8 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
@@ -204,18 +258,18 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
               {currentMovie.title}
             </h1>
 
-            {/* Metadata Pills */}
-            <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-200">
+            {/* Metadata Rectangles (No rounded-full) */}
+            <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-gray-200">
               {currentMovie.release_date && (
-                <span className="bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
+                <span className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
                   {new Date(currentMovie.release_date).getFullYear()}
                 </span>
               )}
-              <span className="bg-yellow-500/20 text-yellow-400 px-4 py-1.5 rounded-full border border-yellow-500/20 flex items-center gap-1.5">
+              <span className="bg-yellow-500/10 text-yellow-400 px-3 py-1.5 rounded-lg border border-yellow-500/20 flex items-center gap-1.5">
                 ★ {currentMovie.vote_average?.toFixed(1)}
               </span>
               {movieGenres.map((genre, i) => (
-                <span key={i} className="bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/5">
+                <span key={i} className="bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/5 text-gray-300">
                   {genre}
                 </span>
               ))}
@@ -228,22 +282,21 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
               </p>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-5 pt-4">
+            {/* Rectangular Action Buttons (No excess glow) */}
+            <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 href={`/watch/movie/${currentMovie.id}`}
-                className="group relative flex items-center gap-3 bg-white text-black font-bold px-10 py-4 rounded-full hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)] overflow-hidden"
+                className="flex items-center gap-3 bg-white text-black font-bold px-8 py-4 rounded-xl hover:bg-gray-200 transition-colors shadow-sm"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                <Play className="w-6 h-6 fill-black" />
+                <Play className="w-5 h-5 fill-black" />
                 <span className="text-lg">Watch Now</span>
               </Link>
               
               <Link
                 href={`/movie/${currentMovie.id}`}
-                className="flex items-center gap-3 bg-white/10 backdrop-blur-xl text-white font-semibold px-10 py-4 rounded-full hover:bg-white/20 transition-all border border-white/10 hover:border-white/30"
+                className="flex items-center gap-3 bg-white/5 backdrop-blur-md text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-colors border border-white/10"
               >
-                <Info className="w-6 h-6" />
+                <Info className="w-5 h-5" />
                 <span className="text-lg">More Info</span>
               </Link>
             </div>
@@ -260,7 +313,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
               onClick={() => goToSlide(index)}
               className={`h-1.5 rounded-full transition-all duration-500 ${
                 index === currentIndex 
-                  ? 'w-12 bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]' 
+                  ? 'w-12 bg-white' 
                   : 'w-2 bg-white/20 hover:bg-white/50'
               }`}
               aria-label={`Go to slide ${index + 1}`}
