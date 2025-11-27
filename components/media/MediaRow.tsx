@@ -1,6 +1,8 @@
+// components/media/MediaRow.tsx
+
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Movie, Genre } from '@/lib/api/types';
@@ -24,89 +26,101 @@ export default function MediaRow({
   mediaType,
 }: MediaRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [canLeft, setCanLeft] = useState(false);
-  const [canRight, setCanRight] = useState(true);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
 
-  const scroll = (dir: 'left' | 'right') => {
-    if (!scrollRef.current) return;
-    const amt = scrollRef.current.clientWidth * 0.8;
-    scrollRef.current.scrollBy({
-      left: dir === 'right' ? amt : -amt,
-      behavior: 'smooth',
-    });
+  // Scroll Amount = Card Width (280/320) + Gap (16)
+  const SCROLL_AMOUNT = 336 * 2; 
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const { current } = scrollRef.current;
+      const scrollAmount = direction === 'left' ? -SCROLL_AMOUNT : SCROLL_AMOUNT;
+      
+      current.scrollBy({
+        left: scrollAmount,
+        behavior: 'smooth',
+      });
+    }
   };
 
-  const onScroll = () => {
-    if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanLeft(scrollLeft > 0);
-    setCanRight(scrollLeft < scrollWidth - clientWidth - 10);
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      // Tolerance of 10px for rounding errors
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
   };
+
+  // Initial check
+  useEffect(() => {
+    handleScroll();
+    window.addEventListener('resize', handleScroll);
+    return () => window.removeEventListener('resize', handleScroll);
+  }, [items]);
 
   if (!items?.length) return null;
 
   return (
-    <div className="relative group mb-10">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-white">{title}</h2>
+    <div className="relative mb-12 group/row">
+      
+      {/* Header Section */}
+      <div className="flex items-end justify-between px-4 md:px-12 mb-4">
+        <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">
+          {title}
+        </h2>
         <Link
-          href={`/${mediaType === 'movie' ? 'movies' : 'tvshows'}`}
-          className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors hover:underline"
+          href={`/browse/${category}?type=${mediaType}`}
+          className="text-xs md:text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1 group/link"
         >
-          View More
+          Explore All
+          <ChevronRight className="w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" />
         </Link>
       </div>
 
-      {/* Navigation Buttons */}
-      {canLeft && (
-        <button
-          onClick={() => scroll('left')}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-40 opacity-0 group-hover:opacity-100 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-opacity"
-          aria-label="Scroll left"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-      )}
-      {canRight && (
-        <button
-          onClick={() => scroll('right')}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-40 opacity-0 group-hover:opacity-100 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-opacity"
-          aria-label="Scroll right"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      )}
+      {/* Navigation Arrows (Desktop Only) */}
+      <div className="hidden md:block">
+        {showLeftArrow && (
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-2 top-[55%] -translate-y-1/2 z-20 bg-black/50 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 transition-all hover:bg-white hover:text-black hover:scale-110 shadow-lg"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+        {showRightArrow && (
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-2 top-[55%] -translate-y-1/2 z-20 bg-black/50 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 transition-all hover:bg-white hover:text-black hover:scale-110 shadow-lg"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        )}
+      </div>
 
-      {/* Cards Container */}
+      {/* Scroll Container */}
       <div
         ref={scrollRef}
-        onScroll={onScroll}
-        className="flex space-x-6 overflow-x-auto scrollbar-hide px-4 sm:px-6 lg:px-8 pt-4 pb-8"
+        onScroll={handleScroll}
+        className="flex gap-4 overflow-x-auto scrollbar-hide px-4 md:px-12 pb-4 snap-x snap-mandatory"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {items.map((m, i) => (
-          <div
-            key={`${mediaType}-${m.id}-${i}`}
-            onMouseEnter={() => setHoveredIndex(i)}
-            onMouseLeave={() => setHoveredIndex(null)}
-            className={`flex-shrink-0 transition-all duration-300 transform ${
-              hoveredIndex === i ? 'scale-110 z-10' : 'scale-100 z-0'
-            }`}
-            style={{
-              transformOrigin: 'center center',
-            }}
-          >
+        {items.map((item) => (
+          <div key={item.id} className="snap-start">
             <MediaCard
-              media={m}
+              media={item}
               genres={genres}
-              priority={priority && i < 6}
+              priority={priority}
               mediaType={mediaType}
-              isHovered={hoveredIndex === i}
             />
           </div>
         ))}
+        
+        {/* End Padding Spacer for smooth scrolling */}
+        <div className="w-8 flex-shrink-0" />
       </div>
     </div>
   );
