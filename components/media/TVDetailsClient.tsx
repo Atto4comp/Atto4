@@ -1,599 +1,238 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import {
-  Play,
-  Plus,
-  Heart,
-  Star,
-  Calendar,
-  Tv,
-  ArrowLeft,
-  Volume2,
-  VolumeX,
-  X,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-} from "lucide-react";
-import { MediaDetails, Genre } from "@/lib/api/types";
-import { watchlistStorage, likedStorage } from "@/lib/storage/watchlist";
-
-interface Season {
-  id: number;
-  season_number: number;
-  name: string;
-  overview: string;
-  poster_path: string | null;
-  air_date: string;
-  episode_count: number;
-  episodes?: Episode[];
-}
-
-interface Episode {
-  id: number;
-  episode_number: number;
-  name: string;
-  overview: string;
-  air_date: string;
-  runtime: number;
-  still_path: string | null;
-  vote_average: number;
-}
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Play, Plus, Heart, Star, Share2, ChevronLeft } from 'lucide-react';
+import { MediaDetails, Genre } from '@/lib/api/types';
+import { tmdbApi } from '@/lib/api/tmdb';
+import { watchlistStorage, likedStorage } from '@/lib/storage/watchlist';
+import SeasonSelector from './SeasonSelector';
+import EpisodeRow from './EpisodeRow';
 
 interface TVDetailsClientProps {
   tv: MediaDetails;
   genres: Genre[];
-  seasons?: Season[];
+  seasons: any[];
 }
 
-// ✅ TMDB Image size constants
 const TMDB_IMAGE_SIZES = {
-  backdrop: 'w1280',
-  poster: 'w500',
-  posterLarge: 'w780',
-  profile: 'w185',
-  still: 'w300',
-  original: 'original',
+  backdrop: 'original',
+  poster: 'w780',
 } as const;
 
-export default function TvShowDetailsClient({ tv, genres, seasons = [] }: TVDetailsClientProps) {
-  const [showTrailer, setShowTrailer] = useState(false);
-  const [trailerMuted, setTrailerMuted] = useState(true);
+export default function TvShowDetailsClient({ tv, genres, seasons }: TVDetailsClientProps) {
+  const [isMobile, setIsMobile] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set([1])); // Season 1 expanded by default
+  
+  // State for dynamic season loading
+  const [selectedSeasonNumber, setSelectedSeasonNumber] = useState(1);
+  const [currentEpisodes, setCurrentEpisodes] = useState<any[]>([]);
+  const [loadingEpisodes, setLoadingEpisodes] = useState(false);
 
-  // ✅ Build TMDB image URLs directly (no API key needed)
-  const buildTmdbImage = (
-    path: string | null | undefined,
-    size: keyof typeof TMDB_IMAGE_SIZES | string = "w500"
-  ): string => {
-    if (!path) return "/placeholder-movie.jpg";
-    
-    const imageSize = TMDB_IMAGE_SIZES[size as keyof typeof TMDB_IMAGE_SIZES] || size;
-    return `https://image.tmdb.org/t/p/${imageSize}${path}`;
-  };
-
-  // Sync liked & watchlist state
+  // Detect Mobile
   useEffect(() => {
-    setIsInWatchlist(watchlistStorage.isInWatchlist(tv.id, "tv"));
-    setIsLiked(likedStorage.isLiked(tv.id, "tv"));
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Sync Watchlist/Like
+  useEffect(() => {
+    setIsInWatchlist(watchlistStorage.isInWatchlist(tv.id, 'tv'));
+    setIsLiked(likedStorage.isLiked(tv.id, 'tv'));
   }, [tv.id]);
 
-  // Handle watchlist toggle
+  // Load Initial Episodes (Season 1 or first available)
+  useEffect(() => {
+    const initSeason = seasons.find(s => s.season_number === 1) || seasons[0];
+    if (initSeason) {
+      setSelectedSeasonNumber(initSeason.season_number);
+      setCurrentEpisodes(initSeason.episodes || []);
+    }
+  }, [seasons]);
+
+  // Handle Season Change
+  const handleSeasonChange = async (seasonNum: number) => {
+    setSelectedSeasonNumber(seasonNum);
+    setLoadingEpisodes(true);
+    
+    // Check if we already have the data in props
+    const existing = seasons.find(s => s.season_number === seasonNum);
+    if (existing?.episodes) {
+      setCurrentEpisodes(existing.episodes);
+      setLoadingEpisodes(false);
+      return;
+    }
+
+    // Fetch if missing
+    try {
+      const seasonData = await tmdbApi.getTVSeasonDetails(tv.id, seasonNum);
+      setCurrentEpisodes(seasonData.episodes || []);
+    } catch (err) {
+      console.error('Failed to fetch season', err);
+    } finally {
+      setLoadingEpisodes(false);
+    }
+  };
+
   const toggleWatchlist = () => {
-    const item = {
-      id: tv.id,
-      name: tv.name,
-      poster_path: tv.poster_path,
-      media_type: "tv" as const,
-      vote_average: tv.vote_average || 0,
-      first_air_date: tv.first_air_date,
-    };
-
-    if (isInWatchlist) {
-      watchlistStorage.removeFromWatchlist(tv.id, "tv");
-      setIsInWatchlist(false);
-    } else {
-      watchlistStorage.addToWatchlist(item);
-      setIsInWatchlist(true);
-    }
-
-    window.dispatchEvent(new CustomEvent("watchlist-updated"));
+    if (isInWatchlist) watchlistStorage.removeFromWatchlist(tv.id, 'tv');
+    else watchlistStorage.addToWatchlist({ id: tv.id, name: tv.name, poster_path: tv.poster_path, media_type: 'tv', vote_average: tv.vote_average || 0, first_air_date: tv.first_air_date });
+    setIsInWatchlist(!isInWatchlist);
   };
 
-  // Handle like toggle
   const toggleLike = () => {
-    const item = {
-      id: tv.id,
-      name: tv.name,
-      poster_path: tv.poster_path,
-      media_type: "tv" as const,
-      vote_average: tv.vote_average || 0,
-      first_air_date: tv.first_air_date,
-    };
-
-    if (isLiked) {
-      likedStorage.removeFromLiked(tv.id, "tv");
-      setIsLiked(false);
-    } else {
-      likedStorage.addToLiked(item);
-      setIsLiked(true);
-    }
-
-    window.dispatchEvent(new CustomEvent("liked-updated"));
+    if (isLiked) likedStorage.removeFromLiked(tv.id, 'tv');
+    else likedStorage.addToLiked({ id: tv.id, name: tv.name, poster_path: tv.poster_path, media_type: 'tv', vote_average: tv.vote_average || 0, first_air_date: tv.first_air_date });
+    setIsLiked(!isLiked);
   };
 
-  // Toggle season expansion
-  const toggleSeason = (seasonNumber: number) => {
-    const newExpanded = new Set(expandedSeasons);
-    if (newExpanded.has(seasonNumber)) {
-      newExpanded.delete(seasonNumber);
-    } else {
-      newExpanded.add(seasonNumber);
-    }
-    setExpandedSeasons(newExpanded);
-  };
+  const buildImage = (path: string | null, size: string) => 
+    path ? `https://image.tmdb.org/t/p/${size}${path}` : '/placeholder-movie.jpg';
 
-  // Format episode runtime
-  const formatRuntime = (minutes: number) => {
-    if (!minutes) return 'Unknown';
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    }
-    return `${mins}m`;
-  };
+  const formatYear = (date?: string) => date ? new Date(date).getFullYear() : 'N/A';
 
-  // Format air date
-  const formatAirDate = (dateString: string) => {
-    if (!dateString) return 'TBA';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  // Common Hero Content (Title/Meta)
+  const HeroContent = () => (
+    <>
+      <h1 className={`${isMobile ? 'text-3xl text-center' : 'text-6xl md:text-7xl'} font-extrabold text-white font-chillax leading-tight mb-4 drop-shadow-2xl`}>
+        {tv.name}
+      </h1>
+      
+      <div className={`flex items-center gap-3 text-sm text-gray-300 font-medium mb-6 ${isMobile ? 'justify-center' : ''}`}>
+        <span className="text-white">{formatYear(tv.first_air_date)}</span>
+        <span className="w-1 h-1 bg-gray-600 rounded-full" />
+        <span className="bg-white/10 px-2 py-0.5 rounded text-white text-xs">TV-MA</span>
+        <span className="w-1 h-1 bg-gray-600 rounded-full" />
+        <span>{tv.number_of_seasons} Seasons</span>
+        <span className="w-1 h-1 bg-gray-600 rounded-full" />
+        <span className="flex items-center gap-1 text-yellow-400 font-bold"><Star className="w-3 h-3 fill-current" /> {tv.vote_average.toFixed(1)}</span>
+      </div>
+    </>
+  );
 
-  // Get genres
-  const tvGenres = genres?.filter(
-    (genre) =>
-      tv.genre_ids?.includes(genre.id) ||
-      tv.genres?.some((g) => g.id === genre.id)
-  ) || tv.genres || [];
+  // ========================
+  // MOBILE LAYOUT
+  // ========================
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] pb-20">
+        <div className="fixed top-4 left-4 z-50">
+          <Link href="/" className="p-2 bg-black/50 backdrop-blur-md rounded-full text-white">
+            <ChevronLeft className="w-6 h-6" />
+          </Link>
+        </div>
 
-  // Get trailer
-  const trailer = tv.videos?.results?.find(
-    (video) => video.type === "Trailer" && video.site === "YouTube"
-  ) || tv.videos?.results?.[0];
+        <div className="absolute inset-0 h-[60vh] w-full overflow-hidden">
+          <Image src={buildImage(tv.poster_path, 'w500')} alt="bg" fill className="object-cover opacity-20 blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/60 via-[#0a0a0a]/90 to-[#0a0a0a]" />
+        </div>
 
-  // Get cast
-  const cast = tv.credits?.cast?.slice(0, 12) || [];
+        <div className="relative z-10 flex flex-col items-center px-6 pt-24">
+          {/* Poster */}
+          <div className="relative w-[220px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mb-6">
+            <Image src={buildImage(tv.poster_path, 'w780')} alt={tv.name} fill className="object-cover" priority />
+          </div>
 
-  // Get creator
-  const creator = tv.created_by?.[0] || tv.credits?.crew?.find((p) => p.job === "Creator");
+          <HeroContent />
 
-  // Filter out specials and sort seasons
-  const regularSeasons = seasons
-    .filter(season => season.season_number > 0)
-    .sort((a, b) => a.season_number - b.season_number);
+          {/* Actions */}
+          <div className="flex items-center gap-4 mb-8 w-full justify-center">
+            <Link href={`/watch/tv/${tv.id}?season=1&episode=1`} className="flex-1 max-w-[160px] h-12 bg-white text-black rounded-xl flex items-center justify-center gap-2 font-bold shadow-lg active:scale-95 transition-transform">
+              <Play className="w-5 h-5 fill-black" />
+              <span>Start</span>
+            </Link>
+            <button onClick={toggleWatchlist} className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all active:scale-95 ${isInWatchlist ? 'bg-green-500 border-green-500 text-white' : 'bg-white/10 border-white/10 text-white'}`}>
+              <Plus className={`w-6 h-6 ${isInWatchlist ? 'rotate-45' : ''}`} />
+            </button>
+            <button onClick={toggleLike} className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all active:scale-95 ${isLiked ? 'bg-red-500 border-red-500 text-white' : 'bg-white/10 border-white/10 text-white'}`}>
+              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+            </button>
+            <button className="w-12 h-12 rounded-full flex items-center justify-center bg-white/10 border border-white/10 text-white active:scale-95">
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
 
+          {/* Season Selector */}
+          <div className="w-full flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-white font-chillax">Episodes</h3>
+            <SeasonSelector seasons={seasons} currentSeason={selectedSeasonNumber} onSelect={handleSeasonChange} />
+          </div>
+
+          {/* Horizontal Episode List (With Download Overlay) */}
+          <div className="w-full min-h-[200px]">
+            {loadingEpisodes ? (
+              <div className="flex gap-4 overflow-hidden">
+                {[1,2].map(i => <div key={i} className="w-[280px] aspect-video bg-white/5 rounded-xl animate-pulse" />)}
+              </div>
+            ) : (
+              <EpisodeRow episodes={currentEpisodes} onPlay={(ep) => window.location.href = `/watch/tv/${tv.id}?season=${selectedSeasonNumber}&episode=${ep.episode_number}`} />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ========================
+  // DESKTOP LAYOUT
+  // ========================
   return (
-    <div className="relative min-h-screen text-white">
-      {/* Background with Backdrop - Using direct TMDB URL */}
-      <div className="absolute inset-0">
-        <Image
-          src={buildTmdbImage(tv.backdrop_path, "backdrop")}
-          alt={`${tv.name} backdrop`}
-          fill
-          className="object-cover"
-          priority
-          quality={85}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
+    <div className="relative min-h-screen bg-[#050505] text-white">
+      {/* Hero */}
+      <div className="absolute inset-0 h-[85vh] w-full">
+        <Image src={buildImage(tv.backdrop_path, 'original')} alt="backdrop" fill className="object-cover opacity-60" priority />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
       </div>
 
-      {/* Back Button */}
-      <div className="relative z-10 p-4">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-black/70 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back to Home</span>
+      <div className="absolute top-24 left-8 z-20">
+        <Link href="/" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
+          <ChevronLeft className="w-5 h-5" /> Back to Home
         </Link>
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-            {/* Poster - Using direct TMDB URL */}
-            <div className="lg:col-span-1">
-              <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl max-w-md mx-auto lg:mx-0">
-                <Image
-                  src={buildTmdbImage(tv.poster_path, "posterLarge")}
-                  alt={`${tv.name} poster`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  quality={90}
-                />
-              </div>
-            </div>
+      <div className="relative z-10 pt-[25vh] pl-8 md:pl-16 max-w-4xl">
+        <HeroContent />
+        
+        <p className="text-lg text-gray-200 leading-relaxed mb-8 max-w-2xl drop-shadow-md">
+          {tv.overview}
+        </p>
 
-            {/* TV Show Info */}
-            <div className="lg:col-span-2">
-              {/* Title and Basic Info */}
-              <div className="mb-6">
-                <h1 className="text-4xl lg:text-6xl font-black mb-4 leading-tight">
-                  {tv.name}
-                </h1>
+        <div className="flex items-center gap-4 mb-12">
+          <Link href={`/watch/tv/${tv.id}?season=1&episode=1`} className="h-14 px-8 bg-white text-black rounded-full flex items-center gap-2 font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+            <Play className="w-6 h-6 fill-black" />
+            Start Watching
+          </Link>
+          <button onClick={toggleWatchlist} className={`w-14 h-14 rounded-full flex items-center justify-center border transition-all hover:scale-105 ${isInWatchlist ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}>
+            <Plus className={`w-6 h-6 ${isInWatchlist ? 'rotate-45' : ''}`} />
+          </button>
+          <button onClick={toggleLike} className={`w-14 h-14 rounded-full flex items-center justify-center border transition-all hover:scale-105 ${isLiked ? 'bg-red-500/20 border-red-500 text-red-400' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}>
+            <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
+          </button>
+        </div>
 
-                {tv.tagline && (
-                  <p className="text-xl text-gray-300 italic mb-4">
-                    {tv.tagline}
-                  </p>
-                )}
-
-                {/* Meta Info */}
-                <div className="flex flex-wrap items-center gap-4 mb-6">
-                  {tv.vote_average > 0 && (
-                    <div className="flex items-center gap-1 bg-yellow-500 text-black px-3 py-1 rounded-full font-bold">
-                      <Star className="w-4 h-4 fill-current" />
-                      <span>{tv.vote_average.toFixed(1)}</span>
-                    </div>
-                  )}
-
-                  {tv.first_air_date && (
-                    <div className="flex items-center gap-1 bg-gray-700/70 px-3 py-1 rounded-full">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(tv.first_air_date).getFullYear()}</span>
-                    </div>
-                  )}
-
-                  {tv.number_of_seasons && (
-                    <div className="flex items-center gap-1 bg-gray-700/70 px-3 py-1 rounded-full">
-                      <Tv className="w-4 h-4" />
-                      <span>
-                        {tv.number_of_seasons} Season
-                        {tv.number_of_seasons !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                  )}
-
-                  {tv.status && (
-                    <div className="flex items-center gap-1 bg-gray-700/70 px-3 py-1 rounded-full">
-                      <span>{tv.status}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Genres */}
-                {tvGenres.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {tvGenres.slice(0, 4).map((genre) => (
-                      <span
-                        key={genre.id}
-                        className="bg-blue-600/80 text-blue-100 px-3 py-1 rounded-full text-sm font-medium"
-                      >
-                        {genre.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-4 mb-8">
-                {/* Watch Now Button - Links to first episode */}
-                <Link
-                  href={`/watch/tv/${tv.id}?season=1&episode=1`}
-                  className="flex items-center gap-3 bg-red-600 hover:bg-red-700 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-lg"
-                >
-                  <Play className="w-6 h-6 fill-current" />
-                  Watch Now
-                </Link>
-
-                {trailer && (
-                  <button
-                    onClick={() => setShowTrailer(true)}
-                    className="flex items-center gap-3 bg-gray-700/80 hover:bg-gray-700 px-6 py-4 rounded-full font-semibold transition-all hover:scale-105"
-                  >
-                    <Play className="w-5 h-5" />
-                    Play Trailer
-                  </button>
-                )}
-
-                <button
-                  onClick={toggleWatchlist}
-                  className={`flex items-center gap-3 px-6 py-4 rounded-full font-semibold transition-all hover:scale-105 ${
-                    isInWatchlist
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-gray-700/80 hover:bg-gray-700"
-                  }`}
-                  aria-label={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-                >
-                  <Plus className="w-5 h-5" />
-                  {isInWatchlist ? "In Watchlist" : "Watchlist"}
-                </button>
-
-                <button
-                  onClick={toggleLike}
-                  className={`p-4 rounded-full transition-all hover:scale-105 ${
-                    isLiked
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-gray-700/80 hover:bg-gray-700"
-                  }`}
-                  aria-label={isLiked ? "Unlike" : "Like"}
-                >
-                  <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
-                </button>
-              </div>
-
-              {/* Overview */}
-              {tv.overview && (
-                <div className="mb-8">
-                  <h2 className="text-2xl font-bold mb-4">Overview</h2>
-                  <p className="text-lg text-gray-300 leading-relaxed">
-                    {tv.overview}
-                  </p>
-                </div>
-              )}
-
-              {/* Additional Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                {creator && (
-                  <div>
-                    <h3 className="font-semibold text-gray-400 mb-2">Creator</h3>
-                    <p className="text-white">{creator.name}</p>
-                  </div>
-                )}
-
-                {tv.networks?.[0] && (
-                  <div>
-                    <h3 className="font-semibold text-gray-400 mb-2">Network</h3>
-                    <p className="text-white">{tv.networks[0].name}</p>
-                  </div>
-                )}
-
-                {tv.number_of_episodes && (
-                  <div>
-                    <h3 className="font-semibold text-gray-400 mb-2">Total Episodes</h3>
-                    <p className="text-white">{tv.number_of_episodes}</p>
-                  </div>
-                )}
-
-                {tv.episode_run_time?.[0] && (
-                  <div>
-                    <h3 className="font-semibold text-gray-400 mb-2">Episode Runtime</h3>
-                    <p className="text-white">{tv.episode_run_time[0]} min</p>
-                  </div>
-                )}
-
-                {tv.last_air_date && (
-                  <div>
-                    <h3 className="font-semibold text-gray-400 mb-2">Last Aired</h3>
-                    <p className="text-white">{formatAirDate(tv.last_air_date)}</p>
-                  </div>
-                )}
-
-                {tv.type && (
-                  <div>
-                    <h3 className="font-semibold text-gray-400 mb-2">Type</h3>
-                    <p className="text-white">{tv.type}</p>
-                  </div>
-                )}
-              </div>
-            </div>
+        {/* Desktop Season/Episode Section */}
+        <div className="w-full pb-20">
+          <div className="flex items-center gap-6 mb-6">
+            <h3 className="text-2xl font-bold text-white font-chillax">Episodes</h3>
+            <SeasonSelector seasons={seasons} currentSeason={selectedSeasonNumber} onSelect={handleSeasonChange} />
           </div>
 
-          {/* Seasons & Episodes */}
-          {regularSeasons.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-3xl font-bold mb-8">Seasons & Episodes</h2>
-              <div className="space-y-6">
-                {regularSeasons.map((season) => (
-                  <div key={season.id} className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm">
-                    <button
-                      onClick={() => toggleSeason(season.season_number)}
-                      className="w-full flex items-center justify-between mb-4 hover:text-gray-300 transition-colors"
-                      aria-label={`Toggle ${season.name}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-16 h-24 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
-                          <Image
-                            src={buildTmdbImage(season.poster_path, "w200")}
-                            alt={season.name}
-                            fill
-                            className="object-cover"
-                            sizes="64px"
-                          />
-                        </div>
-                        <div className="text-left">
-                          <h3 className="text-xl font-bold">{season.name}</h3>
-                          <p className="text-gray-400 text-sm">
-                            {season.episode_count} episodes • {formatAirDate(season.air_date)}
-                          </p>
-                        </div>
-                      </div>
-                      {expandedSeasons.has(season.season_number) ? (
-                        <ChevronUp className="w-6 h-6 flex-shrink-0" />
-                      ) : (
-                        <ChevronDown className="w-6 h-6 flex-shrink-0" />
-                      )}
-                    </button>
-
-                    {expandedSeasons.has(season.season_number) && season.episodes && (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {season.episodes.map((episode) => (
-                          <Link
-                            key={episode.id}
-                            href={`/watch/tv/${tv.id}?season=${season.season_number}&episode=${episode.episode_number}`}
-                            className="group bg-gray-800/50 rounded-lg p-4 hover:bg-gray-700/50 transition-colors"
-                          >
-                            <div className="flex gap-4">
-                              <div className="relative w-24 h-14 rounded overflow-hidden bg-gray-700 flex-shrink-0">
-                                <Image
-                                  src={buildTmdbImage(episode.still_path, "still")}
-                                  alt={episode.name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="96px"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Play className="w-6 h-6 text-white fill-current" />
-                                </div>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-gray-400 text-sm font-medium">
-                                    E{episode.episode_number}
-                                  </span>
-                                  {episode.vote_average > 0 && (
-                                    <span className="text-yellow-400 text-sm flex items-center gap-1">
-                                      <Star className="w-3 h-3 fill-current" />
-                                      {episode.vote_average.toFixed(1)}
-                                    </span>
-                                  )}
-                                  {episode.runtime && (
-                                    <span className="text-gray-400 text-sm flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {formatRuntime(episode.runtime)}
-                                    </span>
-                                  )}
-                                </div>
-                                <h4 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-white">
-                                  {episode.name}
-                                </h4>
-                                {episode.overview && (
-                                  <p className="text-gray-400 text-xs line-clamp-2">
-                                    {episode.overview}
-                                  </p>
-                                )}
-                                <p className="text-gray-500 text-xs mt-1">
-                                  {formatAirDate(episode.air_date)}
-                                </p>
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+          <div className="w-full">
+            {loadingEpisodes ? (
+              <div className="flex gap-4 overflow-hidden">
+                {[1,2,3].map(i => <div key={i} className="w-[320px] aspect-video bg-white/5 rounded-xl animate-pulse" />)}
               </div>
-            </div>
-          )}
-
-          {/* Cast Section - Using direct TMDB URLs */}
-          {cast.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-3xl font-bold mb-8">Cast</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                {cast.map((person) => (
-                  <div key={person.id} className="text-center group">
-                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-3 bg-gray-800 group-hover:scale-105 transition-transform duration-200">
-                      <Image
-                        src={buildTmdbImage(person.profile_path, "profile")}
-                        alt={person.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-                      />
-                    </div>
-                    <h3 className="font-semibold text-sm mb-1 line-clamp-2">
-                      {person.name}
-                    </h3>
-                    <p className="text-gray-400 text-xs line-clamp-1">
-                      {person.character}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Similar TV Shows - Using direct TMDB URLs */}
-          {tv.similar?.results?.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-3xl font-bold mb-8">Similar TV Shows</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                {tv.similar.results.slice(0, 12).map((similarShow) => (
-                  <Link 
-                    key={similarShow.id} 
-                    href={`/tv/${similarShow.id}`} 
-                    className="group"
-                  >
-                    <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 bg-gray-800 group-hover:scale-105 transition-transform duration-200">
-                      <Image
-                        src={buildTmdbImage(similarShow.poster_path, "w500")}
-                        alt={similarShow.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-                      />
-                    </div>
-                    <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-red-500 transition-colors">
-                      {similarShow.name}
-                    </h3>
-                    {similarShow.vote_average > 0 && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                        <span className="text-xs text-gray-400">{similarShow.vote_average.toFixed(1)}</span>
-                      </div>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+            ) : (
+              <EpisodeRow episodes={currentEpisodes} onPlay={(ep) => window.location.href = `/watch/tv/${tv.id}?season=${selectedSeasonNumber}&episode=${ep.episode_number}`} />
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Trailer Modal */}
-      {showTrailer && trailer && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          onClick={() => setShowTrailer(false)}
-        >
-          <div
-            className="relative w-full max-w-6xl aspect-video"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowTrailer(false)}
-              className="absolute -top-12 right-0 z-10 bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors"
-              aria-label="Close trailer"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <button
-              onClick={() => setTrailerMuted(!trailerMuted)}
-              className="absolute top-4 left-4 z-10 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
-              aria-label={trailerMuted ? "Unmute" : "Mute"}
-            >
-              {trailerMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-            </button>
-
-            <iframe
-              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=${
-                trailerMuted ? 1 : 0
-              }&rel=0`}
-              title={`${tv.name} Trailer`}
-              className="w-full h-full rounded-lg"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
