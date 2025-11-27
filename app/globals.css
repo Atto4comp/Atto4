@@ -1,4 +1,4 @@
-/* app/globals.css */
+/* app/globals.css - FIXED TRANSPARENCY */
 
 /* ============================================
    MODERN 2025 DESIGN SYSTEM - ATTO4
@@ -60,7 +60,7 @@ html, body {
 }
 
 /* ============================================
-   MODERN FLOATING CAPSULE NAVBAR
+   MODERN FLOATING CAPSULE NAVBAR - FIXED
    ============================================ */
 
 /* Header Wrapper - Positions the floating island */
@@ -75,13 +75,21 @@ html, body {
   padding: 1.5rem 1rem;
   transition: all 0.4s var(--ease-smooth);
   pointer-events: none; /* Let clicks pass through empty space */
+  
+  /* ✅ FIXED: Completely removed background */
+  background: transparent !important; 
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
+/* Scrolled state - Only affects padding, NOT background */
 .modern-header-wrapper.scrolled {
   padding-top: 1rem;
+  /* ✅ Still transparent - background is handled by .glass-capsule */
+  background: transparent !important;
 }
 
-/* The Floating Capsule Island */
+/* The Floating Capsule Island - This holds the actual background */
 .glass-capsule {
   pointer-events: auto; /* Re-enable clicks */
   position: relative;
@@ -89,22 +97,28 @@ html, body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
+  
+  /* Glass Effect */
   background: rgba(10, 10, 10, 0.6);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
+  
   border: 1px solid var(--glass-border);
   border-radius: 9999px; /* Full capsule shape */
+  
   box-shadow: 
     0 0 0 1px rgba(0, 0, 0, 0.2),
     var(--elevation-mid),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    
   transition: all 0.4s var(--ease-elastic);
   max-width: 100%;
   width: auto;
 }
 
+/* Darker background when scrolled */
 .modern-header-wrapper.scrolled .glass-capsule {
-  background: rgba(5, 5, 5, 0.8);
+  background: rgba(5, 5, 5, 0.85);
   box-shadow: 
     0 0 0 1px rgba(0, 0, 0, 0.4),
     var(--elevation-high),
