@@ -228,19 +228,19 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - UPDATED: rounded-full */}
       {media.length > 1 && (
         <>
           <button
             onClick={goToPrevious}
-            className="absolute left-8 top-1/2 -translate-y-1/2 z-20 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-white p-3 rounded-xl transition-all border border-white/5 group"
+            className="absolute left-8 top-1/2 -translate-y-1/2 z-20 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-white p-3 rounded-full transition-all border border-white/5 group"
             aria-label="Previous"
           >
             <ChevronLeft className="w-8 h-8 opacity-70 group-hover:opacity-100 group-hover:-translate-x-1 transition-all" />
           </button>
           <button
             onClick={goToNext}
-            className="absolute right-8 top-1/2 -translate-y-1/2 z-20 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-white p-3 rounded-xl transition-all border border-white/5 group"
+            className="absolute right-8 top-1/2 -translate-y-1/2 z-20 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-white p-3 rounded-full transition-all border border-white/5 group"
             aria-label="Next"
           >
             <ChevronRight className="w-8 h-8 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
