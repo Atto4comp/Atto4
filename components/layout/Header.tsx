@@ -1,10 +1,11 @@
+// components/layout/Header.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, Menu, User, Home, Film, Tv, Grid3X3, X } from 'lucide-react';
+import { Search, Menu, User, Home, Film, Tv, Grid3X3, X, Sparkles } from 'lucide-react';
 import SearchBar from '@/components/common/SearchBar';
 
 const navigationItems = [
@@ -18,209 +19,152 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
+  
   const router = useRouter();
   const pathname = usePathname();
 
+  // Scroll detection for dynamic capsule styling
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 15);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close menus on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsSearchOpen(false);
   }, [pathname]);
 
-  // Prevent background scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-    };
-  }, [isMobileMenuOpen]);
-
   return (
     <>
-      {/* Minimalistic Glass Header */}
-      <header className={`soft-glass-header ${scrolled ? 'scrolled' : ''}`}>
-        <div className="header-container">
+      {/* Floating Header Wrapper */}
+      <header className={`modern-header-wrapper ${scrolled ? 'scrolled' : ''}`}>
+        
+        {/* Glass Capsule Island */}
+        <div className="glass-capsule">
           
-          {/* Refined Logo Section */}
-          <Link href="/" className="logo-section">
-            <div className="logo-wrapper-soft">
-              <div className="logo-icon-soft">
-                <Image 
-                  src="/logo.png" 
-                  alt="Atto4 Logo" 
-                  width={26} 
-                  height={26} 
-                  className="logo-image"
-                />
-              </div>
+          {/* Brand Identity */}
+          <Link href="/" className="flex items-center group">
+            <div className="logo-circle">
+              <Image 
+                src="/logo.png" 
+                alt="Atto4" 
+                width={24} 
+                height={24} 
+                className="object-contain"
+                priority
+              />
             </div>
-            <div className="brand-text">
-              <span className="brand-name-soft font-chillax">Atto4</span>
-              <span className="brand-tagline-soft">Stream. Discover.</span>
+            <div className="logo-text-wrapper">
+              <span className="brand-title font-chillax">Atto4</span>
+              <span className="brand-subtitle">STREAM</span>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="desktop-nav">
+          {/* Navigation Pills (Desktop) */}
+          <nav className="nav-island mx-4">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
                 <Link 
                   key={item.href} 
-                  href={item.href} 
-                  className={`nav-soft-glass ${isActive ? 'active' : ''}`}
+                  href={item.href}
+                  className={`nav-pill ${isActive ? 'active' : ''}`}
                 >
-                  <Icon className="nav-icon" />
-                  <span className="nav-text font-chillax">{item.label}</span>
+                  <Icon className={`nav-icon-sm ${isActive ? 'text-black' : 'text-white'}`} />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Action Buttons */}
-          <div className="action-buttons">
+          {/* Action Orbs */}
+          <div className="action-group">
+            {/* Search Orb */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className={`action-button-soft ${isSearchOpen ? 'active' : ''}`}
-              aria-label="Toggle search"
-              aria-expanded={isSearchOpen}
+              className="action-orb"
+              aria-label="Search"
             >
-              <Search className="action-icon" />
+              {isSearchOpen ? <X size={18} /> : <Search size={18} />}
             </button>
 
+            {/* Login Orb (Primary) */}
             <button
               onClick={() => router.push('/login')}
-              className="action-button-soft"
+              className="action-orb primary hidden sm:flex"
               aria-label="Login"
             >
-              <User className="action-icon" />
+              <User size={18} />
             </button>
 
+            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`action-button-soft mobile-toggle ${isMobileMenuOpen ? 'active' : ''}`}
-              aria-label="Toggle menu"
-              aria-expanded={isMobileMenuOpen}
+              className="action-orb sm:hidden"
+              aria-label="Menu"
             >
-              {isMobileMenuOpen ? (
-                <X className="action-icon" />
-              ) : (
-                <Menu className="action-icon" />
-              )}
+              {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Refined Search Overlay */}
-      <div className={`search-overlay-soft ${isSearchOpen ? 'visible' : ''}`}>
-        <div className="search-container">
-          <div className="search-soft-glass">
+      {/* Modern Search Overlay */}
+      <div 
+        className={`search-curtain ${isSearchOpen ? 'open' : ''}`}
+        onClick={() => setIsSearchOpen(false)}
+      />
+      
+      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>
+        {isSearchOpen && (
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-2 shadow-2xl">
             <SearchBar onClose={() => setIsSearchOpen(false)} />
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Compact Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div 
-          className="mobile-menu-overlay-soft" 
-          role="dialog" 
-          aria-modal="true"
-          aria-labelledby="mobile-menu-title"
-        >
-          {/* Refined Backdrop */}
-          <div 
-            className="mobile-backdrop-soft" 
+      {/* Mobile Bottom Sheet Menu */}
+      <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div className="flex justify-between items-center mb-6 px-2">
+          <span className="text-white font-chillax text-lg">Menu</span>
+          <button 
             onClick={() => setIsMobileMenuOpen(false)}
-            aria-label="Close menu"
-          />
-          
-          {/* Compact Dropdown Panel */}
-          <div className="mobile-dropdown-rectangular">
-            
-            {/* Compact Header */}
-            <div className="mobile-header-soft">
-              <div className="mobile-brand-soft">
-                <div className="mobile-logo-soft">
-                  <Image 
-                    src="/logo.png" 
-                    alt="Atto4" 
-                    width={20} 
-                    height={20}
-                    className="object-contain"
-                  />
-                </div>
-                <div className="mobile-brand-text">
-                  <h2 id="mobile-menu-title" className="font-chillax">Navigation</h2>
-                  <p>Choose your destination</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="mobile-close-soft"
-                aria-label="Close menu"
-              >
-                <X className="close-icon" />
-              </button>
-            </div>
-
-            {/* Compact Navigation Buttons */}
-            <div className="mobile-nav-rectangular">
-              {navigationItems.map((item, index) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`mobile-nav-item-rectangular ${isActive ? 'active' : ''}`}
-                    style={{ animationDelay: `${index * 80}ms` }}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    <Icon className="nav-item-icon-rectangular" />
-                    <span className="nav-item-text-rectangular font-chillax">{item.label}</span>
-                    {isActive && <div className="active-indicator-rectangular"></div>}
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Compact Footer */}
-            <div className="mobile-actions-rectangular">
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  router.push('/login');
-                }}
-                className="action-login-rectangular"
-              >
-                <User className="w-4 h-4" />
-                Sign In
-              </button>
-            </div>
-          </div>
+            className="p-2 bg-white/10 rounded-full"
+          >
+            <X size={16} />
+          </button>
         </div>
-      )}
+
+        <div className="mobile-grid">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link 
+                key={item.href}
+                href={item.href}
+                className={`mobile-item ${isActive ? 'active' : ''}`}
+              >
+                <Icon className="mobile-icon" />
+                <span className="mobile-label">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-6">
+          <button 
+            onClick={() => router.push('/login')}
+            className="w-full py-4 bg-white text-black rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+          >
+            <User size={20} />
+            Sign In
+          </button>
+        </div>
+      </div>
     </>
   );
 }
