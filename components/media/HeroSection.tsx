@@ -11,6 +11,13 @@ interface HeroSectionProps {
   genres?: { id: number; name: string }[];
 }
 
+// ✅ TMDB Image size constants for optimization
+const TMDB_IMAGE_SIZES = {
+  backdrop: 'original',
+  backdropMobile: 'w1280',
+  poster: 'w780',
+} as const;
+
 export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -24,6 +31,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // ✅ Build TMDB image URLs directly (no API key needed)
   const buildTmdbImage = (path: string | null, size: string = 'original'): string => {
     if (!path) return '/placeholder-movie.jpg';
     return `https://image.tmdb.org/t/p/${size}${path}`;
@@ -35,7 +43,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
     return genreIds
       .map((id) => genres.find((g) => g.id === id)?.name)
       .filter(Boolean)
-      .slice(0, 3); // Max 3 genres
+      .slice(0, 3);
   };
 
   // Auto-slide
@@ -66,44 +74,37 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   const currentMovie = media[currentIndex];
   const movieGenres = getMovieGenres(currentMovie.genre_ids || []);
 
-  // Enhanced Mobile Layout (Card Style)
+  // Mobile Layout
   if (isMobile) {
     return (
-      // reserve header space: calc(100vh - 64px) and add padding-top of header height
       <div className="relative w-full min-h-[calc(100vh-64px)] bg-black overflow-hidden pt-16">
-        {/* Subtle Background */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-black to-black" />
         </div>
 
-        {/* Main Card Container */}
         <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-64px)] p-4">
           <div className="w-full max-w-sm">
-            {/* Movie Card */}
             <div className="relative bg-gradient-to-b from-gray-800/50 to-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-              {/* Poster Section */}
               <div className="relative aspect-[2/3] overflow-hidden">
                 <Image
-                  src={buildTmdbImage(currentMovie.poster_path, 'w780')}
+                  src={buildTmdbImage(currentMovie.poster_path, TMDB_IMAGE_SIZES.poster)}
                   alt={currentMovie.title || 'Movie poster'}
                   fill
                   className="object-cover"
                   priority
                   sizes="400px"
+                  quality={90}
                 />
 
-                {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
 
-                {/* Rating Badge */}
-                {currentMovie.vote_average && (
+                {currentMovie.vote_average && currentMovie.vote_average > 0 && (
                   <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm text-white text-sm font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/20">
                     <span className="text-yellow-400">★</span>
                     <span>{currentMovie.vote_average.toFixed(1)}</span>
                   </div>
                 )}
 
-                {/* Navigation Arrows (On Poster) */}
                 {media.length > 1 && (
                   <>
                     <button
@@ -123,20 +124,17 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
                   </>
                 )}
 
-                {/* Title Overlay on Poster */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-2 leading-tight drop-shadow-lg">
                     {currentMovie.title}
                   </h1>
 
-                  {/* Year */}
                   {currentMovie.release_date && (
                     <p className="text-gray-200 text-sm font-medium mb-3">
                       {new Date(currentMovie.release_date).getFullYear()}
                     </p>
                   )}
 
-                  {/* Genres */}
                   {movieGenres.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {movieGenres.map((genre, idx) => (
@@ -152,16 +150,13 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
                 </div>
               </div>
 
-              {/* Bottom Actions Section */}
               <div className="p-6 space-y-4">
-                {/* Overview */}
                 {currentMovie.overview && (
                   <p className="text-gray-300 text-sm leading-relaxed line-clamp-2">
                     {currentMovie.overview}
                   </p>
                 )}
 
-                {/* Action Buttons */}
                 <div className="flex gap-3">
                   <Link
                     href={`/watch/movie/${currentMovie.id}`}
@@ -181,7 +176,6 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
               </div>
             </div>
 
-            {/* Dots Indicator */}
             {media.length > 1 && (
               <div className="flex items-center justify-center gap-2 mt-6">
                 {media.map((_, index) => (
@@ -207,7 +201,6 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   // Desktop Layout
   return (
     <div className="relative w-full h-[85vh] min-h-[700px] max-h-[900px] overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0">
         {media.map((movie, index) => (
           <div
@@ -217,7 +210,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
             }`}
           >
             <Image
-              src={buildTmdbImage(movie.backdrop_path, 'original')}
+              src={buildTmdbImage(movie.backdrop_path, TMDB_IMAGE_SIZES.backdrop)}
               alt={movie.title || 'Movie backdrop'}
               fill
               className="object-cover"
@@ -231,7 +224,6 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/90 to-transparent" />
       </div>
 
-      {/* Desktop Navigation Arrows */}
       {media.length > 1 && (
         <>
           <button
@@ -251,21 +243,19 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
         </>
       )}
 
-      {/* Desktop Content */}
       <div className="relative z-10 h-full flex items-end">
         <div className="max-w-3xl px-10 pb-32">
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-tight mb-6 drop-shadow-lg">
             {currentMovie.title}
           </h1>
 
-          {/* Meta */}
           <div className="flex items-center gap-3 text-sm mb-5">
             {currentMovie.release_date && (
               <span className="bg-gray-800/70 px-3 py-1 rounded-full text-xs">
                 {new Date(currentMovie.release_date).getFullYear()}
               </span>
             )}
-            {currentMovie.vote_average && (
+            {currentMovie.vote_average && currentMovie.vote_average > 0 && (
               <div className="flex items-center gap-1 bg-neutral-900/90 text-white px-3 py-1 rounded-full text-xs font-bold">
                 <span>⭐</span>
                 <span>{currentMovie.vote_average.toFixed(1)}</span>
@@ -273,14 +263,12 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
             )}
           </div>
 
-          {/* Overview */}
           {currentMovie.overview && (
             <p className="text-gray-200 text-base leading-relaxed line-clamp-3 max-w-xl mb-7 drop-shadow-md">
               {currentMovie.overview}
             </p>
           )}
 
-          {/* Desktop Buttons */}
           <div className="flex gap-4">
             <Link
               href={`/watch/movie/${currentMovie.id}`}
@@ -300,7 +288,6 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
         </div>
       </div>
 
-      {/* Desktop Dots */}
       {media.length > 1 && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
           <div className="flex items-center gap-2">

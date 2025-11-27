@@ -1,171 +1,153 @@
+// components/players/MoviePlayer.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, AlertCircle, Settings } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 
 interface MoviePlayerProps {
   mediaId: number | string;
-  title?: string;
+  title: string;
   onClose?: () => void;
-  backButton?: 'auto' | 'show' | 'hide';
+  guardMs?: number;
+  showControls?: boolean;
 }
 
-export default function MoviePlayer({ 
-  mediaId, 
-  title, 
-  onClose, 
-  backButton = 'hide' 
+export default function MoviePlayer({
+  mediaId,
+  title,
+  onClose,
+  guardMs = 6000,
+  showControls = true,
 }: MoviePlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showBackBtn, setShowBackBtn] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
-  const router = useRouter();
-
-  const handleClose = useCallback(() => onClose?.() || router.back(), [onClose, router]);
-
-  const detectEmbedHasBack = (url?: string) => {
-    if (!url) return false;
-    const lower = url.toLowerCase();
-    const tokens = [
-      'close', 'closebutton', 'close_btn', 'back', 'backbutton', 
-      'back_btn', 'return', 'exit', 'dismiss', 'overlay-close', 
-      'hasback', 'show_back', 'player-close'
-    ];
-    return tokens.some(t => lower.includes(t));
-  };
-
+  // ✅ Load movie embed
   useEffect(() => {
-    let mounted = true;
+    setLoading(true);
+    setError(null);
 
-    const loadMovieEmbed = async () => {
-      setLoading(true);
-      setError('');
+    try {
+      const result = getMovieEmbed(mediaId);
+      
+      if (result && result.embedUrl) {
+        setEmbedUrl(result.embedUrl);
+        console.log(`🎬 Movie player loaded: ${title} from ${result.provider}`);
+        setLoading(false);
+      } else {
+        setError('No streaming source available for this movie');
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('Failed to load movie:', err);
+      setError('Failed to load movie player');
+      setLoading(false);
+    }
+  }, [mediaId, title]);
 
-      try {
-        // Call the embed API synchronously (it's not actually async)
-        const result = getMovieEmbed(mediaId);
-        if (!mounted) return;
+  // ✅ Basic content protection
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
-        const url = result?.embedUrl ?? '';
-        
-        if (!url) {
-          setError('No embed URL available for this movie');
-          return;
-        }
-
-        setEmbedUrl(url);
-
-        // Determine back button visibility
-        if (backButton === 'show') {
-          setShowBackBtn(true);
-        } else if (backButton === 'hide') {
-          setShowBackBtn(false);
-        } else {
-          const hasBack = detectEmbedHasBack(url);
-          setShowBackBtn(!hasBack);
-        }
-
-        console.log(`🎬 Movie embed URL: ${url}`);
-      } catch (err) {
-        console.error('Failed to load movie embed:', err);
-        if (!mounted) return;
-        setError(err instanceof Error ? err.message : 'Failed to load movie');
-      } finally {
-        if (mounted) setLoading(false);
+    const preventContext = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IFRAME') {
+        e.preventDefault();
       }
     };
 
-    loadMovieEmbed();
-
-    return () => { mounted = false; };
-  }, [mediaId, backButton]);
-
-  // Listen for postMessage from iframe
-  useEffect(() => {
-    const handler = (e: MessageEvent) => {
-      try {
-        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-        if (data?.type === 'embed-back-button' && typeof data.hasBackButton === 'boolean') {
-          setShowBackBtn(!data.hasBackButton);
-        }
-      } catch {
-        // Ignore malformed messages
+    const preventShortcuts = (e: KeyboardEvent) => {
+      if ((e.ctrlKey && e.key.toLowerCase() === 'u') || e.key === 'F12') {
+        e.preventDefault();
       }
     };
 
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
+    document.addEventListener('contextmenu', preventContext);
+    document.addEventListener('keydown', preventShortcuts);
+
+    return () => {
+      document.removeEventListener('contextmenu', preventContext);
+      document.removeEventListener('keydown', preventShortcuts);
+    };
   }, []);
 
+  // Loading state
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-        <div className="text-white text-lg">Loading movie player...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-        <div className="text-white text-center max-w-md px-4">
-          <h2 className="text-2xl mb-4">Error Loading Movie</h2>
-          <p className="mb-6 text-gray-300">{error}</p>
-          <button 
-            onClick={handleClose} 
-            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-          >
-            Go Back
-          </button>
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-white border-t-transparent mx-auto mb-4" />
+          <p className="text-white text-lg">Loading {title}...</p>
         </div>
       </div>
     );
   }
 
-  if (!embedUrl) {
+  // Error state
+  if (error || !embedUrl) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-        <div className="text-white text-center max-w-md px-4">
-          <h2 className="text-2xl mb-4">No Stream Available</h2>
-          <p className="mb-6 text-gray-300">This movie is not available for streaming.</p>
-          <button 
-            onClick={handleClose} 
-            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black">
-      <iframe
-        src={embedUrl}
-        className="w-full h-full"
-        allowFullScreen
-        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-        style={{ border: 'none' }}
-        title={title || 'Movie Player'}
-      />
-
-      {showBackBtn && (
-        <div className="absolute top-4 left-4 z-30">
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="text-center max-w-md px-6">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Unable to Play</h2>
+          <p className="text-gray-400 mb-2">{error || 'Video source not available'}</p>
+          <p className="text-sm text-gray-500 mb-6">Try again later or contact support</p>
           <button
-            onClick={handleClose}
-            className="p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors backdrop-blur-sm"
-            aria-label="Close video and go back"
-            title="Close"
+            onClick={onClose}
+            className="bg-white hover:bg-gray-200 text-black font-semibold px-8 py-3 rounded-lg transition-colors"
           >
-            <ArrowLeft className="w-6 h-6" />
+            Go Back
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Movie player
+  return (
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+      {/* Header Controls */}
+      {showControls && (
+        <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/90 via-black/60 to-transparent p-4 md:p-6">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors group"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm md:text-base font-medium">Back</span>
+            </button>
+
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="p-2 text-white hover:text-gray-300 transition-colors"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
+
+          <h1 className="text-white text-lg md:text-2xl font-bold mt-4 truncate drop-shadow-lg">
+            {title}
+          </h1>
         </div>
       )}
+
+      {/* Video Iframe */}
+      <div className="flex-1 relative">
+        <iframe
+          src={embedUrl}
+          className="absolute inset-0 w-full h-full"
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="origin"
+          sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+          title={`Watch ${title}`}
+        />
+      </div>
     </div>
   );
 }

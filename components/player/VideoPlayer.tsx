@@ -1,8 +1,9 @@
+// components/players/VideoPlayer.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
 
@@ -11,9 +12,9 @@ interface VideoPlayerProps {
   mediaType: 'movie' | 'tv';
   season?: number;
   episode?: number;
-  title?: string; // kept for compatibility but not rendered
+  title?: string;
   onClose?: () => void;
-  showBackButton?: boolean; // manual control (default: true)
+  showBackButton?: boolean;
 }
 
 export default function VideoPlayer({
@@ -21,174 +22,153 @@ export default function VideoPlayer({
   mediaType,
   season = 1,
   episode = 1,
-  title, // accepted but not used in UI
+  title,
   onClose,
-  showBackButton = false // Default to showing back button
+  showBackButton = true
 }: VideoPlayerProps) {
   const [embedUrl, setEmbedUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
 
-  // DevTools protection
+  // ✅ Basic content protection (non-aggressive)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    function reportDevtoolsAndRedirect() {
-      try {
-        fetch('/api/report-devtools', { method: 'POST', credentials: 'include' }).catch(() => {});
-      } catch (e) {}
-      try {
-        router.replace('/menu');
-      } catch (e) {
-        try {
-          document.documentElement.innerHTML =
-            '<h1 style="color:white;background-color:black;height:100vh;display:flex;align-items:center;justify-content:center;margin:0">Session blocked</h1>';
-        } catch {}
+    // Prevent right-click on video only
+    function preventVideoContext(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IFRAME' || target.closest('iframe')) {
+        e.preventDefault();
       }
     }
 
-    function preventClipboardActions(e: Event) { e.preventDefault(); }
-    function preventContextMenu(e: Event) { e.preventDefault(); }
-
-    document.addEventListener('cut', preventClipboardActions);
-    document.addEventListener('copy', preventClipboardActions);
-    document.addEventListener('paste', preventClipboardActions);
-    document.addEventListener('contextmenu', preventContextMenu);
-
-    function onKeyDown(e: KeyboardEvent) {
+    // Prevent common shortcuts (less aggressive)
+    function preventShortcuts(e: KeyboardEvent) {
+      // Prevent Ctrl+U (view source)
       if (e.ctrlKey && e.key.toLowerCase() === 'u') {
         e.preventDefault();
-        e.stopPropagation();
         return;
       }
-      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
+      // Prevent F12 (dev tools)
       if (e.key === 'F12') {
         e.preventDefault();
-        e.stopPropagation();
         return;
       }
     }
-    document.addEventListener('keydown', onKeyDown);
 
-    let intervalId: number | undefined;
-    const threshold = 160;
-    let consoleDetected = false;
-
-    const detector = new Image();
-    Object.defineProperty(detector, 'id', {
-      get() {
-        consoleDetected = true;
-        return '';
-      },
-    });
-
-    intervalId = window.setInterval(() => {
-      const widthDiff = window.outerWidth - window.innerWidth;
-      const heightDiff = window.outerHeight - window.innerHeight;
-      const viewportDetected = widthDiff > threshold || heightDiff > threshold;
-
-      consoleDetected = false;
-      // intentionally triggers the getter
-      // eslint-disable-next-line no-console
-      console.log(detector);
-
-      const detected = viewportDetected || consoleDetected;
-
-      if (detected) {
-        if (intervalId !== undefined) {
-          clearInterval(intervalId);
-          intervalId = undefined;
-        }
-        try {
-          document.removeEventListener('cut', preventClipboardActions);
-          document.removeEventListener('copy', preventClipboardActions);
-          document.removeEventListener('paste', preventClipboardActions);
-          document.removeEventListener('contextmenu', preventContextMenu);
-          document.removeEventListener('keydown', onKeyDown);
-        } catch (e) {}
-        reportDevtoolsAndRedirect();
-      }
-    }, 350);
+    document.addEventListener('contextmenu', preventVideoContext);
+    document.addEventListener('keydown', preventShortcuts);
 
     return () => {
-      try {
-        if (intervalId !== undefined) clearInterval(intervalId);
-        document.removeEventListener('cut', preventClipboardActions);
-        document.removeEventListener('copy', preventClipboardActions);
-        document.removeEventListener('paste', preventClipboardActions);
-        document.removeEventListener('contextmenu', preventContextMenu);
-        document.removeEventListener('keydown', onKeyDown);
-      } catch (e) {}
+      document.removeEventListener('contextmenu', preventVideoContext);
+      document.removeEventListener('keydown', preventShortcuts);
     };
-  }, [router]);
+  }, []);
 
+  // ✅ Load embed URL
   useEffect(() => {
-    // Resolve embed result (supports sync return or Promise)
     setLoading(true);
-    let isMounted = true;
+    setError(null);
 
     try {
-      const result = mediaType === 'movie'
-        ? getMovieEmbed(mediaId)
-        : getTVEmbed(mediaId, season, episode);
+      let result: { embedUrl: string; provider: string } | null = null;
 
-      Promise.resolve(result)
-        .then((res: any) => {
-          if (!isMounted) return;
-          const url = res?.embedUrl ?? '';
-          setEmbedUrl(url);
-          const displayInfo = mediaType === 'tv' ? `S${season}E${episode}` : 'Movie';
-          console.log(`${mediaType} embed: ${displayInfo} - ${url}`);
-        })
-        .catch((err) => {
-          console.error('Failed to get embed result', err);
-          if (!isMounted) return;
-          setEmbedUrl('');
-        })
-        .finally(() => {
-          if (isMounted) setLoading(false);
-        });
-    } catch (err) {
-      console.error('Error while resolving embed', err);
-      if (isMounted) {
-        setEmbedUrl('');
+      if (mediaType === 'movie') {
+        result = getMovieEmbed(mediaId);
+      } else if (mediaType === 'tv') {
+        result = getTVEmbed(mediaId, season, episode);
+      }
+
+      if (result && result.embedUrl) {
+        setEmbedUrl(result.embedUrl);
+        setLoading(false);
+      } else {
+        setError('No streaming source available');
         setLoading(false);
       }
+    } catch (err) {
+      console.error('Failed to load video:', err);
+      setError('Failed to load video player');
+      setLoading(false);
     }
-
-    return () => { isMounted = false; };
   }, [mediaId, mediaType, season, episode]);
 
-  const handleClose = () => onClose ? onClose() : router.back();
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      router.back();
+    }
+  };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black">
-      <iframe
-        src={embedUrl}
-        className="w-full h-full"
-        allowFullScreen
-        allow="autoplay; encrypted-media; picture-in-picture"
-        style={{ border: 'none' }}
-      />
+  // Loading state
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-white border-t-transparent mx-auto mb-4" />
+          <p className="text-white text-lg">Loading player...</p>
+        </div>
+      </div>
+    );
+  }
 
-      {/* Only render back button (no title) */}
-      {showBackButton && (
-        <div className="absolute top-4 left-4 z-30">
+  // Error state
+  if (error || !embedUrl) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="text-center max-w-md px-6">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Playback Error</h2>
+          <p className="text-gray-400 mb-6">
+            {error || 'Unable to load video source'}
+          </p>
           <button
             onClick={handleClose}
-            className="p-2 rounded-full bg-black/60 text-white hover:bg-black/80"
-            aria-label="Close video and go back"
-            title="Close"
+            className="bg-white hover:bg-gray-200 text-black font-semibold px-8 py-3 rounded-lg transition-colors"
           >
-            <ArrowLeft className="w-6 h-6" />
+            Go Back
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Video player
+  return (
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+      {/* Header with Back Button */}
+      {showBackButton && (
+        <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/90 via-black/50 to-transparent p-4 md:p-6">
+          <button
+            onClick={handleClose}
+            className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm md:text-base font-medium">Back</span>
+          </button>
+          {title && (
+            <h1 className="text-white text-lg md:text-xl font-semibold mt-2 truncate">
+              {title}
+            </h1>
+          )}
+        </div>
       )}
+
+      {/* Video Iframe */}
+      <div className="flex-1 relative">
+        <iframe
+          src={embedUrl}
+          className="absolute inset-0 w-full h-full"
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="origin"
+          sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+          title={title || 'Video Player'}
+        />
+      </div>
     </div>
   );
 }

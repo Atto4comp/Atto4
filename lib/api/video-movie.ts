@@ -1,3 +1,5 @@
+// lib/api/video-movie.ts
+
 import { getServerLabel } from './video-common';
 
 interface MovieEmbedResult {
@@ -17,12 +19,11 @@ function getMovieProviders() {
   return providers.length > 0 ? providers : ["https://vidfast.to/embed/movie/${id}"];
 }
 
-// ✅ FAST: Direct URL building - no validation overhead
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
   const providers = getMovieProviders();
   const providerUrl = providers[0];
 
-  // Direct template replacement - instant
+  // Direct template replacement
   const embedUrl = providerUrl.replace(/\$\{id\}/g, String(id));
 
   return {

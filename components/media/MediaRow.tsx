@@ -52,7 +52,7 @@ export default function MediaRow({
       <div className="flex justify-between items-center mb-6 px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold text-white">{title}</h2>
         <Link
-          href={`/browse/${category}?type=${mediaType}`}
+          href={`/${mediaType === 'movie' ? 'movies' : 'tvshows'}`}
           className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors hover:underline"
         >
           View More
@@ -64,6 +64,7 @@ export default function MediaRow({
         <button
           onClick={() => scroll('left')}
           className="absolute left-2 top-1/2 -translate-y-1/2 z-40 opacity-0 group-hover:opacity-100 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-opacity"
+          aria-label="Scroll left"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -72,6 +73,7 @@ export default function MediaRow({
         <button
           onClick={() => scroll('right')}
           className="absolute right-2 top-1/2 -translate-y-1/2 z-40 opacity-0 group-hover:opacity-100 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-opacity"
+          aria-label="Scroll right"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
@@ -109,4 +111,3 @@ export default function MediaRow({
     </div>
   );
 }
-

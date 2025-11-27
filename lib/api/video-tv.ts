@@ -1,3 +1,5 @@
+// lib/api/video-tv.ts
+
 import { getServerLabel } from './video-common';
 
 interface TVEmbedResult {
@@ -17,16 +19,20 @@ function getTVProviders() {
   return providers.length > 0 ? providers : ["https://vidfast.to/embed/tv/${id}/${season}/${episode}"];
 }
 
-// ✅ FAST: Direct URL building - no validation overhead
-export function getTVEmbed(id: string | number): TVEmbedResult {
+// ✅ FIXED: Added missing season and episode parameters
+export function getTVEmbed(
+  id: string | number, 
+  season: number = 1, 
+  episode: number = 1
+): TVEmbedResult {
   const providers = getTVProviders();
   const providerUrl = providers[0];
 
   // Direct template replacement - instant
   const embedUrl = providerUrl
     .replace(/\$\{id\}/g, String(id))
-    .replace(/\$\{season\}/g, '1')
-    .replace(/\$\{episode\}/g, '1');
+    .replace(/\$\{season\}/g, String(season))
+    .replace(/\$\{episode\}/g, String(episode));
 
   return {
     embedUrl,

@@ -12,22 +12,33 @@ interface MediaCardProps {
   genres: Genre[];
   priority?: boolean;
   mediaType: 'movie' | 'tv';
+  isHovered?: boolean;
 }
+
+// ✅ TMDB Image size constants
+const TMDB_IMAGE_SIZES = {
+  poster: 'w500',
+  posterLarge: 'w780',
+} as const;
 
 export default function MediaCard({
   media,
   genres,
   priority = false,
   mediaType,
+  isHovered,
 }: MediaCardProps) {
   const [hover, setHover] = useState(false);
   const [inWatch, setInWatch] = useState(false);
   const [liked, setLiked] = useState(false);
 
-  const img = (p: string | null, size = 'w500') =>
-    p ? `https://image.tmdb.org/t/p/${size}${p}` : '/placeholder-movie.jpg';
+  // ✅ Build TMDB image URLs directly (no API key needed)
+  const buildTmdbImage = (path: string | null, size: string = 'w500'): string => {
+    if (!path) return '/placeholder-movie.jpg';
+    return `https://image.tmdb.org/t/p/${size}${path}`;
+  };
 
-  // sync buttons
+  // Sync buttons
   useEffect(() => {
     setInWatch(watchlistStorage.isInWatchlist(media.id, mediaType));
     setLiked(likedStorage.isLiked(media.id, mediaType));
@@ -93,12 +104,12 @@ export default function MediaCard({
     >
       <Link href={`/${mediaType}/${media.id}`}>
         {/* Poster */}
-        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300 ">
+        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg transition-all duration-300">
           <Image
-            src={img(media.poster_path)}
+            src={buildTmdbImage(media.poster_path, TMDB_IMAGE_SIZES.poster)}
             alt={title || 'Poster'}
             fill
-            sizes="200px"
+            sizes="192px"
             priority={priority}
             className="object-cover"
           />
@@ -106,18 +117,19 @@ export default function MediaCard({
           {/* Rating */}
           {media.vote_average > 0 && (
             <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
-              <Star className="w-3 h-3 fill-yellow-400" />
+              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
               {media.vote_average.toFixed(1)}
             </div>
           )}
 
-          {/* Hover toolbar - UPDATED PLAY BUTTON */}
+          {/* Hover toolbar */}
           {hover && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex flex-col justify-end p-4 transition-all duration-300"
+            <div 
+              className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex flex-col justify-end p-4 transition-all duration-300"
               onClick={(e) => e.stopPropagation()}
-              >
+            >
               <div className="flex gap-2">
-                {/* ▶ Play - Now navigates to /watch route */}
+                {/* Play - navigates to /watch route */}
                 <Link
                   href={`/watch/${mediaType}/${media.id}`}
                   className="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform"
@@ -127,7 +139,7 @@ export default function MediaCard({
                   <Play className="w-4 h-4 fill-current" />
                 </Link>
 
-                {/* ➕ Watchlist */}
+                {/* Watchlist */}
                 <button
                   onClick={toggleWatch}
                   title={inWatch ? 'Remove from Watchlist' : 'Add to Watchlist'}
@@ -138,7 +150,7 @@ export default function MediaCard({
                   <Plus className="w-4 h-4" />
                 </button>
 
-                {/* ❤ Like */}
+                {/* Like */}
                 <button
                   onClick={toggleLike}
                   title={liked ? 'Unlike' : 'Like'}
@@ -149,7 +161,7 @@ export default function MediaCard({
                   <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
                 </button>
 
-                {/* ℹ Info */}
+                {/* Info */}
                 <Link
                   href={`/${mediaType}/${media.id}`}
                   title="More Info"
@@ -172,5 +184,3 @@ export default function MediaCard({
     </div>
   );
 }
-
-
