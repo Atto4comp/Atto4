@@ -9,11 +9,9 @@ export interface TVEmbedResult {
 }
 
 const PROVIDERS = [
-  { url: "https://vidsrc.to/embed/tv/${id}/${season}/${episode}", label: "VidSrc To" },
-  { url: "https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}", label: "VidSrc Me" },
-  { url: "https://vidbinge.com/embed/tv/${id}/${season}/${episode}", label: "VidBinge" },
-  { url: "https://www.2embed.cc/embed/${id}&s=${season}&e=${episode}", label: "2Embed" },
-  { url: "https://superembed.stream/embed/tv/${id}/${season}/${episode}", label: "SuperEmbed" }
+  { url: "https://iframe.pstream.mov/embed/tmdb-tv-${id}/${season}/${episode}?logo=false&tips=false&theme=default&allinone=true&backlink=${backlink}", label: "Atto4" },
+  { url: "https://vidfast.to/embed/tv/${id}/${season}/${episode}", label: "Vidfast" },
+  { url: "https://player.vidplus.to/embed/tv/${id}/${season}/${episode}?autoplay=true&autonext=true&nextbutton=true&poster=true&title=true&watchparty=false&chromecast=true&episodelist=true&servericon=true&setting=true&pip=true&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&logourl=https%3A%2F%2Fi.ibb.co%2F67wTJd9R%2Fpngimg-com-netflix-PNG11.png&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5", label: "VidPlus" }
 ];
 
 export function getTVEmbed(id: string | number, season: number = 1, episode: number = 1): TVEmbedResult {
