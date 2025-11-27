@@ -1,143 +1,121 @@
 // app/watch/[mediatype]/[id]/page.tsx
-'use client';
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import MoviePlayer from '@/components/players/MoviePlayer';
-import TvPlayer from '@/components/players/TvPlayer';
+import { notFound } from 'next/navigation';
 import { tmdbApi } from '@/lib/api/tmdb';
+import WatchPageClient from '@/components/pages/WatchPageClient';
 
-export default function WatchPage() {
-  const params = useParams();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [mediaData, setMediaData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+interface WatchPageProps {
+  params: Promise<{ mediatype: string; id: string }>;
+  searchParams: Promise<{ season?: string; episode?: string }>;
+}
 
-  const mediaType = params?.mediatype as 'movie' | 'tv';
-  const id = parseInt(params?.id as string, 10);
+// ✅ This page uses dynamic params, so it's dynamically rendered
+export const dynamic = 'force-dynamic'; // Required for searchParams
+export const revalidate = 0; // Don't cache watch pages
 
-  // Get season and episode from query params for TV shows (default to 1)
-  const season = parseInt(searchParams.get('season') || '1', 10);
-  const episode = parseInt(searchParams.get('episode') || '1', 10);
+// ✅ Generate Metadata
+export async function generateMetadata({ params, searchParams }: WatchPageProps) {
+  const { mediatype, id } = await params;
+  const { season, episode } = await searchParams;
+  
+  const mediaId = parseInt(id, 10);
+  
+  try {
+    let data = null;
+    if (mediatype === 'movie') {
+      data = await tmdbApi.getMovieDetails(mediaId);
+    } else if (mediatype === 'tv') {
+      data = await tmdbApi.getTVShowDetails(mediaId);
+    }
 
-  useEffect(() => {
-    // Hide body scroll for fullscreen experience
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    if (!data) {
+      return {
+        title: 'Watch | Atto4',
+        description: 'Stream movies and TV shows online',
+      };
+    }
 
-    return () => {
-      document.body.style.overflow = prevOverflow || 'auto';
+    const title = data.title ?? data.name ?? '';
+    const seasonEp = mediatype === 'tv' && season && episode 
+      ? ` - S${season}E${episode}` 
+      : '';
+
+    return {
+      title: `Watch ${title}${seasonEp} | Atto4`,
+      description: data.overview || `Watch ${title} online now`,
+      openGraph: {
+        title: `Watch ${title}`,
+        description: data.overview,
+        type: 'video.other',
+        url: `https://atto4.pro/watch/${mediatype}/${id}`,
+      },
     };
-  }, []);
+  } catch (error) {
+    return {
+      title: 'Watch | Atto4',
+      description: 'Stream movies and TV shows online',
+    };
+  }
+}
 
-  useEffect(() => {
-    let cancelled = false;
+// ✅ Fetch Media Data on Server
+async function getMediaData(mediatype: string, id: number) {
+  try {
+    console.log(`📥 Fetching watch page data for ${mediatype} ${id}`);
 
-    async function loadMediaData() {
-      setLoading(true);
-      try {
-        let data = null;
-        if (mediaType === 'movie') {
-          data = await tmdbApi.getMovieDetails(id);
-        } else if (mediaType === 'tv') {
-          data = await tmdbApi.getTVShowDetails(id);
-        }
-
-        if (!cancelled) setMediaData(data);
-      } catch (error) {
-        console.error('Failed to load media:', error);
-        if (!cancelled) setMediaData(null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+    let data = null;
+    if (mediatype === 'movie') {
+      data = await tmdbApi.getMovieDetails(id);
+    } else if (mediatype === 'tv') {
+      data = await tmdbApi.getTVShowDetails(id);
     }
 
-    if (id && (mediaType === 'movie' || mediaType === 'tv')) {
-      loadMediaData();
-    } else {
-      setLoading(false);
+    if (!data) {
+      console.error(`❌ Media not found: ${mediatype} ${id}`);
+      return null;
     }
 
-    return () => { cancelled = true; };
-  }, [id, mediaType]);
+    console.log(`✅ Fetched: ${data.title ?? data.name}`);
+    return data;
+  } catch (error) {
+    console.error(`❌ Failed to fetch media data:`, error);
+    return null;
+  }
+}
 
-  const handleClose = () => {
-    router.back();
-  };
-
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
+// ✅ Main Watch Page Component
+export default async function WatchPage({ params, searchParams }: WatchPageProps) {
+  const { mediatype, id } = await params;
+  const { season, episode } = await searchParams;
+  
+  const mediaId = parseInt(id, 10);
+  
+  // Validate mediatype
+  if (mediatype !== 'movie' && mediatype !== 'tv') {
+    notFound();
   }
 
-  if (!mediaData && (mediaType === 'movie' || mediaType === 'tv')) {
-    return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center text-white">
-        <div className="text-center">
-          <h1 className="text-xl font-semibold mb-4">Media not found</h1>
-          <button
-            onClick={handleClose}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
+  // Fetch media data
+  const mediaData = await getMediaData(mediatype, mediaId);
+  
+  if (!mediaData) {
+    notFound();
   }
 
-  // Determine a display title (movie.title or tv.name)
-  const title = mediaData?.title ?? mediaData?.name ?? '';
+  // Parse season and episode for TV shows
+  const seasonNum = mediatype === 'tv' ? parseInt(season || '1', 10) : undefined;
+  const episodeNum = mediatype === 'tv' ? parseInt(episode || '1', 10) : undefined;
 
-  // Render correct player
-  if (mediaType === 'movie') {
-    return (
-      <MoviePlayer
-        mediaId={id}
-        title={title}
-        onClose={handleClose}
-        // optional tuning:
-        guardMs={6000}
-        showControls={true}
-      />
-    );
-  }
+  const title = mediaData.title ?? mediaData.name ?? '';
 
-  if (mediaType === 'tv') {
-    return (
-      <TvPlayer
-        mediaId={id}
-        season={season}
-        episode={episode}
-        title={title}
-        onClose={handleClose}
-        // optional tuning values — tweak as desired:
-        guardMs={5000}
-        autoNextMs={25 * 60 * 1000} // auto-advance after ~25 minutes (optional)
-        showControls={true}
-      />
-    );
-  }
-
-  // Fallback for unknown mediatype
   return (
-    <div className="fixed inset-0 bg-black flex items-center justify-center text-white">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold mb-4">Unsupported media type</h1>
-        <button
-          onClick={handleClose}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
-        >
-          Go Back
-        </button>
-      </div>
-    </div>
+    <WatchPageClient
+      mediaType={mediatype}
+      mediaId={mediaId}
+      season={seasonNum}
+      episode={episodeNum}
+      title={title}
+      mediaData={mediaData}
+    />
   );
 }
