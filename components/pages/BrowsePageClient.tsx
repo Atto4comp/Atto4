@@ -1,11 +1,10 @@
-// components/pages/BrowsePageClient.tsx
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Filter, Grid, List, Loader2, Eye } from 'lucide-react';
+import { ArrowLeft, Filter, ChevronDown } from 'lucide-react';
 import { tmdbApi } from '@/lib/api/tmdb';
-import MediaGrid from '@/components/media/MediaGrid'; // Using the robust grid we built
+import MediaGrid from '@/components/media/MediaGrid';
 
 interface BrowsePageClientProps {
   category: string;
@@ -23,39 +22,31 @@ export default function BrowsePageClient({
   initialTotalPages,
 }: BrowsePageClientProps) {
   const router = useRouter();
-
   const [mediaType, setMediaType] = useState<'movie' | 'tv'>(defaultMediaType);
   const [genreId, setGenreId] = useState<number | undefined>(undefined);
+  const [genres, setGenres] = useState(initialGenres);
   const [items, setItems] = useState(initialItems);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalPages > 1);
   const [sortBy, setSortBy] = useState('popularity');
+  
   const observer = useRef<IntersectionObserver | null>(null);
 
-  // Helper to deduplicate items
+  // Helper to get display title
+  const getCategoryTitle = (cat: string) => {
+    return cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  // Deduplicate items
   const removeDuplicates = (itemsArray: any[]) => {
     const seen = new Set();
     return itemsArray.filter(item => {
-      const key = `${item.media_type || mediaType}-${item.id}`;
+      const key = `${item.id}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
-  };
-
-  const getCategoryTitle = (cat: string, type: string) => {
-    const titles: Record<string, string> = {
-      'trending': type === 'movie' ? 'Trending Movies' : 'Trending TV Shows',
-      'popular': type === 'movie' ? 'Popular Movies' : 'Popular TV Shows',
-      'top-rated': type === 'movie' ? 'Top Rated Movies' : 'Top Rated TV Shows',
-      'upcoming': 'Upcoming Movies',
-      'now-playing': 'Now Playing Movies',
-      'on-the-air': 'On The Air TV Shows',
-      'airing-today': 'Airing Today TV Shows',
-      'latest': type === 'movie' ? 'Latest Movie Releases' : 'Latest TV Show Releases'
-    };
-    return titles[cat] || cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   const fetchData = useCallback(async (pageNum: number, reset = false) => {
@@ -63,7 +54,7 @@ export default function BrowsePageClient({
     setLoading(true);
     try {
       let data;
-      // Reusing logic from your snippet but ensuring consistent types
+      // Simplified fetch logic logic re-implementing server side logic slightly
       if (mediaType === 'tv') {
         if (category === 'popular') data = await tmdbApi.getTVByCategory('popular', pageNum);
         else if (category === 'top-rated') data = await tmdbApi.getTVByCategory('top-rated', pageNum);
@@ -81,12 +72,9 @@ export default function BrowsePageClient({
       }
 
       if (data?.results) {
-        // Add media_type property if missing for safe key generation
-        const results = data.results
-          .filter((item: any) => item.poster_path) // Filter out items without posters
-          .map((item: any) => ({ ...item, media_type: mediaType }));
-
-        // Apply client-side sort if needed (API usually handles popularity)
+        const results = data.results.map((item: any) => ({ ...item, media_type: mediaType }));
+        
+        // Client-side sort
         if (sortBy === 'rating') {
           results.sort((a: any, b: any) => (b.vote_average || 0) - (a.vote_average || 0));
         } else if (sortBy === 'release_date') {
@@ -97,22 +85,19 @@ export default function BrowsePageClient({
           });
         }
 
-        if (reset) {
-          setItems(results);
-        } else {
-          setItems(prev => removeDuplicates([...prev, ...results]));
-        }
+        if (reset) setItems(results);
+        else setItems(prev => removeDuplicates([...prev, ...results]));
+        
         setHasMore(pageNum < (data.total_pages || 1) && results.length > 0);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
-      setHasMore(false);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   }, [category, mediaType, sortBy, genreId, loading]);
 
-  // Reset on filter change
+  // Watch for filter changes
   useEffect(() => {
     if (mediaType !== defaultMediaType || genreId || sortBy !== 'popularity') {
       setItems([]);
@@ -122,7 +107,16 @@ export default function BrowsePageClient({
     }
   }, [mediaType, sortBy, genreId, defaultMediaType, fetchData]);
 
-  // Infinite Scroll Observer
+  // Update genres on media toggle
+  useEffect(() => {
+    const loadGenres = async () => {
+      const g = mediaType === 'movie' ? await tmdbApi.getMovieGenres() : await tmdbApi.getTVGenres();
+      setGenres(g);
+    };
+    if (mediaType !== defaultMediaType) loadGenres();
+  }, [mediaType, defaultMediaType]);
+
+  // Infinite Scroll
   const lastItemRef = useCallback((node: HTMLDivElement | null) => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
@@ -136,7 +130,89 @@ export default function BrowsePageClient({
   }, [loading, hasMore, page, fetchData]);
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20 px-4 md:px-8 pb-20">
-      <div className="max-w-[1800px] mx-auto">
+    <div className="min-h-screen bg-black pb-20 pt-24 relative">
+      {/* Ambient Background */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
+      </div>
+
+      <div className="max-w-[1800px] mx-auto px-4 md:px-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <button 
+              onClick={() => router.back()} 
+              className="flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-4"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
+            <h1 className="text-4xl md:text-6xl font-bold font-chillax text-white">
+              {getCategoryTitle(category)}
+            </h1>
+            <p className="text-white/60 mt-2 text-lg">
+              Discover the {mediaType === 'movie' ? 'movies' : 'TV shows'} everyone is watching.
+            </p>
+          </div>
+
+          {/* Glassmorphism Filters */}
+          <div className="flex flex-wrap gap-3">
+            {/* Media Type Select */}
+            <div className="relative">
+              <select
+                value={mediaType}
+                onChange={(e) => setMediaType(e.target.value as 'movie' | 'tv')}
+                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-4 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20"
+              >
+                <option value="movie" className="bg-black text-gray-300">Movies</option>
+                <option value="tv" className="bg-black text-gray-300">TV Shows</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+            </div>
+
+            {/* Genre Select */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+              <select
+                value={genreId || ''}
+                onChange={(e) => setGenreId(e.target.value ? Number(e.target.value) : undefined)}
+                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-10 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20 min-w-[160px]"
+              >
+                <option value="" className="bg-black text-gray-300">All Genres</option>
+                {genres.map(g => (
+                  <option key={g.id} value={g.id} className="bg-black text-gray-300">{g.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+            </div>
+
+            {/* Sort Select */}
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-4 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20"
+              >
+                <option value="popularity" className="bg-black text-gray-300">Most Popular</option>
+                <option value="rating" className="bg-black text-gray-300">Highest Rated</option>
+                <option value="release_date" className="bg-black text-gray-300">Newest</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+        {/* Media Grid */}
+        <MediaGrid items={items} mediaType={mediaType} loading={loading && items.length === 0} />
+
+        {/* Infinite Scroll Trigger */}
+        <div ref={lastItemRef} className="h-20 flex items-center justify-center mt-8">
+          {loading && items.length > 0 && (
+            <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
