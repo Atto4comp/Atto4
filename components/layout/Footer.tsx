@@ -1,78 +1,73 @@
 // components/layout/Footer.tsx
 'use client';
 
-import { Bold } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="w-full bg-black border-t border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <footer className="w-full bg-black border-t border-white/5 pt-16 pb-8 relative overflow-hidden">
+      
+      {/* Ambient Glow (Subtle) */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-blue-900/5 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="max-w-[1800px] mx-auto px-6 sm:px-8 relative z-10">
         
-        {/* Mobile Layout */}
-        <div className="flex flex-col space-y-4 sm:hidden">
-          {/* Branding with Logo - Mobile */}
-          <div className="flex items-center justify-center gap-3">
-            <Image
-              src="/logo.png"
-              alt="Atto4 Logo"
-              width={32}
-              height={32}
-              className="object-contain"
-            />
-            <div className="text-center">
-              <p className="logo-name font-chillax">Atto4</p>
-              <p className="text-gray-400 text-xs">Stream. Discover.</p>
-            </div>
+        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-10">
+          
+          {/* Branding Section */}
+          <div className="flex flex-col items-center md:items-start gap-4">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative w-10 h-10 transition-transform duration-300 group-hover:scale-110">
+                <Image
+                  src="/logo.png"
+                  alt="Atto4 Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-chillax font-bold text-2xl text-white tracking-tight group-hover:text-blue-400 transition-colors">
+                  Atto4
+                </span>
+              </div>
+            </Link>
+            <p className="text-gray-500 text-sm max-w-xs text-center md:text-left">
+              Your premium destination for streaming movies and TV shows. 
+              Discover, watch, and enjoy in HD.
+            </p>
           </div>
 
-          {/* Disclaimer - Mobile */}
-          <div className="text-center px-2">
-            <p className="text-gray-400 text-xs leading-relaxed">
-              <span className="font-medium text-gray-300">Disclaimer:</span> Atto4 does not host any files. All content 
-              is provided by third-party providers. We are not responsible for 
-              content accuracy or legality from external sources.
+          {/* Disclaimer Section (Minimal) */}
+          <div className="max-w-lg text-center md:text-right space-y-2">
+            <h3 className="text-white font-semibold text-sm uppercase tracking-wider opacity-80">
+              Legal Disclaimer
+            </h3>
+            <p className="text-gray-500 text-xs leading-relaxed">
+              Atto4 does not host any files on its servers. All content is provided by non-affiliated third parties. 
+              We do not accept responsibility for content hosted on third-party websites and do not involve ourselves in downloading or uploading videos.
             </p>
           </div>
         </div>
 
-        {/* Desktop Layout */}
-        <div className="hidden sm:flex sm:items-center sm:justify-between gap-8">
-          {/* Left: Branding with Logo - Desktop */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <Image
-              src="/logo.png"
-              alt="Atto4 Logo"
-              width={40}
-              height={40}
-              className="object-contain"
-            />
-            <div>
-             <p className="logo-name font-chillax">Atto4</p>
-              <p className="text-gray-500 text-sm">Stream. Discover.</p>
-            </div>
-          </div>
+        {/* Separator */}
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-8" />
 
-          {/* Right: Disclaimer - Desktop */}
-          <div className="flex-1 text-right max-w-4xl">
-            <p className="text-gray-400 text-sm leading-relaxed">
-              <span className="font-medium text-gray-300">Disclaimer:</span> Atto4 does not host any files on its servers. All content 
-              is provided by third-party providers.
-            </p>
-            <p className="text-gray-400 text-sm leading-relaxed">
-                 Atto4 is not responsible for the 
-              accuracy, compliance, copyright, legality, or decency of content 
-              provided by such third-party sites.
-            </p>
-          </div>
-        </div>
-
-        {/* Bottom Copyright - Both Mobile & Desktop */}
-        <div className="mt-6 pt-4 border-t border-gray-800 text-center">
-          <p className="text-gray-500 text-xs">
-            Built with <span className="text-red-500">♥</span> for entertainment enthusiasts worldwide
+        {/* Bottom Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
+          <p>
+            &copy; {currentYear} Atto4. All rights reserved.
           </p>
+          
+          <div className="flex items-center gap-1">
+            <span>Built with</span>
+            <span className="text-red-500 animate-pulse">♥</span>
+            <span>for entertainment</span>
+          </div>
         </div>
+
       </div>
     </footer>
   );
