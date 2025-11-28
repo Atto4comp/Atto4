@@ -27,7 +27,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
   const [isMobile, setIsMobile] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
-  
+
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState(1);
   const [currentEpisodes, setCurrentEpisodes] = useState<any[]>([]);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
@@ -85,7 +85,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
-  const buildImage = (path: string | null, size: string) => 
+  const buildImage = (path: string | null, size: string) =>
     path ? `https://image.tmdb.org/t/p/${size}${path}` : '/placeholder-movie.jpg';
 
   const formatYear = (date?: string) => date ? new Date(date).getFullYear() : 'N/A';
@@ -102,18 +102,18 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
           </Link>
         </div>
 
-        <div className="absolute inset-0 h-[70vh] w-full overflow-hidden">
+        <div className="fixed inset-0 -z-10">
           <Image src={buildImage(tv.poster_path, 'w500')} alt="bg" fill className="object-cover opacity-20 blur-3xl scale-110" priority />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-black" />
         </div>
 
-        <div className="relative z-10 flex flex-col items-center px-6 pt-24">
+        <div className="relative z-10 flex flex-col items-center px-6 pt-20">
           <div className="relative w-[200px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mb-6">
             <Image src={buildImage(tv.poster_path, 'w780')} alt={tv.name} fill className="object-cover" priority />
           </div>
 
           <h1 className="text-3xl font-bold text-white text-center font-chillax mb-3 leading-tight">{tv.name}</h1>
-          
+
           <div className="flex items-center justify-center flex-wrap gap-3 text-xs text-gray-300 font-medium mb-8">
             <span>{formatYear(tv.first_air_date)}</span>
             <span className="w-1 h-1 bg-gray-600 rounded-full" />
@@ -160,31 +160,30 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
   // DESKTOP LAYOUT
   // ========================
   return (
-    <div className="relative min-h-screen bg-black text-white pt-20">
-      {/* Ambient Background */}
-      <div className="fixed inset-0 h-screen w-full">
-        <Image 
-          src={buildImage(tv.backdrop_path, 'original')} 
-          alt="backdrop" 
-          fill 
-          className="object-cover opacity-30 blur-sm" 
-          priority 
+    <div className="relative min-h-screen bg-black text-white">
+      {/* Background behind everything */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src={buildImage(tv.backdrop_path, 'original')}
+          alt="backdrop"
+          fill
+          className="object-cover opacity-30 blur-sm"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-black/50" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
       </div>
 
-      <div className="relative z-10 w-full max-w-[1600px] mx-auto px-8 md:px-16 pt-8 flex gap-12 items-start min-h-screen">
-        
+      <div className="relative z-10 w-full max-w-[1600px] mx-auto px-8 md:px-16 pt-16 md:pt-24 flex gap-12 items-start min-h-screen pb-20">
         {/* Vertical Card */}
-        <div className="hidden md:block w-[320px] lg:w-[380px] flex-shrink-0 sticky top-24">
+        <div className="hidden md:block w-[320px] lg:w-[380px] flex-shrink-0 sticky top-28">
           <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.7)] border border-white/10 group">
-            <Image 
-              src={buildImage(tv.poster_path, 'w780')} 
-              alt={tv.name} 
-              fill 
-              className="object-cover transition-transform duration-700 group-hover:scale-105" 
-              priority 
+            <Image
+              src={buildImage(tv.poster_path, 'w780')}
+              alt={tv.name}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              priority
             />
             <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
