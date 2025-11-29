@@ -9,9 +9,9 @@ export interface MovieEmbedResult {
 }
 
 const PROVIDERS = [
-  { url: "https://player.vidplus.to/embed/movie/${id}?autoplay=true&poster=true&title=true&watchparty=false&chromecast=true&servericon=true&setting=true&pip=true&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5", label: "Vidly" },
-  { url: "https://vidfast.to/embed/movie/${id}", label: "Vidme" },
-  { url: "https://iframe.pstream.mov/embed/tmdb-movie-${id}?logo=false&tips=false&theme=default&allinone=true&backlink=${backlink}", label: "Atto4" }
+  { url: "https://fmovies4u.com/embed/tmdb-movie-${id}?theme=16A085&hideServer=true&autoPlay=true&sub=en&nextButton=true&autoNext=true", label: "Vidly" },
+  { url: "https://bidsrc.pro/embed/movie/${id}?autoplay=true", label: "vidzy" },
+  { url: "https://vidfast.to/embed/movie/${id}", label: "Vidme" }
 ];
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
