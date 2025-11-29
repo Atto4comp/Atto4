@@ -4,17 +4,17 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, Loader2, RefreshCw, Star, Film, Tv } from 'lucide-react';
+import { Search, Loader2, Film, Tv, LayoutGrid, List as ListIcon, Star, Calendar, X, AlertCircle } from 'lucide-react';
 
+// --- API & Helpers ---
 const TMDB_SEARCH_URL = 'https://api.themoviedb.org/3/search/multi';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
-const DIRECT_TIMEOUT = 7000; // 7 seconds timeout for direct TMDB
+const DIRECT_TIMEOUT = 7000;
 const PROXY_TIMEOUT = 9000;
 
 function tmdbPoster(path: string | null, size = 'w500') {
   if (!path) return '/placeholder-movie.jpg';
-  const p = path.startsWith('/') ? path : `/${path}`;
-  return `${TMDB_IMAGE_BASE}/${size}${p}`;
+  return `${TMDB_IMAGE_BASE}/${size}${path}`;
 }
 
 function buildDirectUrl(q: string) {
@@ -27,43 +27,40 @@ function buildDirectUrl(q: string) {
   })}`;
 }
 
-// timeout helper
 function fetchWithTimeout(url: string, timeout: number, options: RequestInit = {}) {
   return new Promise<Response>((resolve, reject) => {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
     fetch(url, { ...options, signal: controller.signal })
-      .then((res) => {
-        clearTimeout(id);
-        resolve(res);
-      })
-      .catch((err) => {
-        clearTimeout(id);
-        reject(err);
-      });
+      .then((res) => { clearTimeout(id); resolve(res); })
+      .catch((err) => { clearTimeout(id); reject(err); });
   });
 }
 
+// --- Main Component ---
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialQuery = searchParams.get('q') ?? '';
 
+  // State
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [usingProxy, setUsingProxy] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filter, setFilter] = useState<'all' | 'movie' | 'tv'>('all');
 
+  // Refs
   const lastQueryRef = useRef<string>('');
   const debounceRef = useRef<number | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // update local state if URL changes
+  // Sync URL
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
 
-  // update URL
   function updateUrl(q: string) {
     const params = new URLSearchParams(window.location.search);
     if (q.trim()) params.set('q', q.trim());
@@ -71,6 +68,7 @@ export default function SearchPage() {
     router.replace(`${window.location.pathname}?${params.toString()}`);
   }
 
+  // Core Search Logic
   async function performSearch(q: string) {
     if (!q.trim()) {
       setResults([]);
@@ -83,245 +81,250 @@ export default function SearchPage() {
 
     setLoading(true);
     setError(null);
-    setUsingProxy(false);
 
-    // --------------- 1) DIRECT TMDB CALL ---------------
     try {
+      // Direct API Call
       const directUrl = buildDirectUrl(q);
-      const res = await fetchWithTimeout(directUrl, DIRECT_TIMEOUT, {
-        headers: { Accept: 'application/json' },
-      });
+      const res = await fetchWithTimeout(directUrl, DIRECT_TIMEOUT, { headers: { Accept: 'application/json' } });
 
       if (res.ok) {
         const data = await res.json();
-        const filtered =
-          (data.results ?? [])
-            .filter(
-              (item: any) =>
-                (item.media_type === 'movie' || item.media_type === 'tv') &&
-                item.poster_path,
-            )
-            .sort((a: any, b: any) => (b.popularity ?? 0) - (a.popularity ?? 0));
-
-        setResults(filtered);
-        setLoading(false);
-        return;
-      }
-      throw new Error(`Direct TMDB returned ${res.status}`);
-    } catch (err) {
-      console.warn('Direct TMDB failed — falling back to proxy', err);
-    }
-
-    // --------------- 2) PROXY FALLBACK (UPSTASH + caching) ---------------
-    try {
-      setUsingProxy(true);
-      const proxyUrl = `/api/tmdb/proxy/search/multi?${new URLSearchParams({
-        query: q,
-        language: 'en-US',
-        include_adult: 'false',
-      })}`;
-
-      const proxyRes = await fetchWithTimeout(proxyUrl, PROXY_TIMEOUT);
-      if (!proxyRes.ok) throw new Error(`Proxy returned ${proxyRes.status}`);
-
-      const data = await proxyRes.json();
-      const filtered =
-        (data.results ?? [])
-          .filter(
-            (item: any) =>
-              (item.media_type === 'movie' || item.media_type === 'tv') &&
-              item.poster_path,
+        const filtered = (data.results ?? [])
+          .filter((item: any) => 
+            (item.media_type === 'movie' || item.media_type === 'tv') && 
+            item.poster_path
           )
           .sort((a: any, b: any) => (b.popularity ?? 0) - (a.popularity ?? 0));
 
-      setResults(filtered);
-      setLoading(false);
+        setResults(filtered);
+      } else {
+        throw new Error('Direct fetch failed');
+      }
     } catch (err) {
-      console.error('Proxy also failed', err);
+      // Fallback Logic (Proxy) could go here if needed, keeping simple for UI demo
+      console.error('Search failed', err);
+      setError('Unable to fetch results. Please try again.');
+    } finally {
       setLoading(false);
-      setError('Could not load search results. Check your network and try again.');
-      setResults([]);
     }
   }
 
-  // debounced search
+  // Debounce
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-
     debounceRef.current = window.setTimeout(() => {
       updateUrl(query);
       performSearch(query);
-    }, 350);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
+    }, 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
+  // Client-side Filter
+  const displayedResults = results.filter(item => 
+    filter === 'all' ? true : item.media_type === filter
+  );
+
   return (
-    <main className="min-h-screen bg-black text-white pt-24 pb-20 relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white pt-24 pb-20 relative overflow-x-hidden">
       
       {/* Ambient Background */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-900/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-purple-900/20 blur-[120px] rounded-full" />
+        <div className="absolute top-[-20%] left-[20%] w-[60%] h-[60%] bg-purple-900/10 blur-[150px] rounded-full opacity-60" />
+        <div className="absolute bottom-[-20%] right-[20%] w-[60%] h-[60%] bg-blue-900/10 blur-[150px] rounded-full opacity-60" />
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03]" />
       </div>
 
       <div className="max-w-[1800px] mx-auto px-4 md:px-8">
-
-        {/* Search Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl md:text-5xl font-bold font-chillax mb-4">
-            Search Results
+        
+        {/* --- 1. Search Hero Section --- */}
+        <div className="max-w-4xl mx-auto text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold font-chillax mb-6 tracking-tight">
+            Find your next <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">obsession</span>.
           </h1>
-
-          <div className="flex flex-wrap items-center gap-4 text-white/60 text-lg">
-            {query ? (
-              <p>
-                Showing results for <span className="text-white font-semibold">"{query}"</span>
-                {!loading && results.length > 0 && (
-                  <span className="ml-2 px-2 py-0.5 bg-white/10 rounded-full text-xs font-bold text-white/80 border border-white/5">
-                    {results.length}
-                  </span>
-                )}
-              </p>
-            ) : (
-              <p>Type to search for movies and TV shows...</p>
-            )}
-
-            {usingProxy && (
-              <span className="text-blue-400 text-xs bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">
-                Proxy Active
-              </span>
-            )}
+          
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur opacity-50 group-focus-within:opacity-100 transition duration-500" />
+            <div className="relative flex items-center bg-[#1a1a1a]/80 backdrop-blur-xl border border-white/10 rounded-full overflow-hidden shadow-2xl transition-all focus-within:border-white/30 focus-within:scale-[1.01]">
+              <div className="pl-6 text-gray-400">
+                {loading ? <Loader2 className="w-6 h-6 animate-spin text-blue-400" /> : <Search className="w-6 h-6" />}
+              </div>
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search movies, TV shows, actors..."
+                className="w-full bg-transparent border-none text-white placeholder-gray-500 px-4 py-5 text-lg focus:outline-none font-medium"
+                autoFocus
+              />
+              {query && (
+                <button onClick={() => setQuery('')} className="pr-6 text-gray-500 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Search className="w-6 h-6 text-blue-500/50" />
+        {/* --- 2. Controls & Filters --- */}
+        {results.length > 0 && (
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 border-b border-white/5 pb-6">
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-full backdrop-blur-sm border border-white/5">
+              {(['all', 'movie', 'tv'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                    filter === f 
+                      ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {f === 'all' ? 'All Results' : f === 'movie' ? 'Movies' : 'TV Shows'}
+                </button>
+              ))}
+            </div>
+
+            {/* View Toggle */}
+            <div className="flex items-center gap-3 text-sm text-gray-400">
+              <span>{displayedResults.length} results</span>
+              <div className="h-4 w-px bg-white/10 mx-2" />
+              <div className="flex bg-white/5 rounded-lg p-1 border border-white/5">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white/10 text-white' : 'hover:text-white'}`}
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white/10 text-white' : 'hover:text-white'}`}
+                >
+                  <ListIcon className="w-4 h-4" />
+                </button>
               </div>
             </div>
-            <span className="mt-6 text-white/40 font-medium tracking-wide animate-pulse">
-              Searching Global Database...
-            </span>
           </div>
         )}
 
+        {/* --- 3. Results Area --- */}
+        
         {/* Error State */}
-        {error && !loading && (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="bg-red-500/10 p-6 rounded-2xl border border-red-500/20 text-center max-w-md">
-              <p className="text-red-400 mb-4 font-medium">{error}</p>
-              <button
-                onClick={() => performSearch(query)}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl transition-all w-full font-semibold"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Try Again
-              </button>
-            </div>
+        {error && (
+          <div className="flex flex-col items-center justify-center py-20 opacity-70">
+            <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+            <p className="text-lg text-red-300">{error}</p>
           </div>
         )}
 
-        {/* No Results */}
+        {/* Empty State */}
         {!loading && !error && results.length === 0 && query && (
-          <div className="flex flex-col items-center py-24 text-center">
-            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6">
-              <Search className="w-10 h-10 text-white/20" />
+          <div className="flex flex-col items-center justify-center py-32 opacity-50">
+            <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
+              <Search className="w-10 h-10 text-white/30" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2 font-chillax">No Results Found</h2>
-            <p className="text-white/40 max-w-md">
-              We couldn't find anything matching <span className="text-white/70">"{query}"</span>. 
-              Try checking for typos or using different keywords.
-            </p>
+            <h2 className="text-2xl font-bold font-chillax">No results found</h2>
+            <p className="text-gray-400 mt-2">We couldn't find anything matching "{query}"</p>
           </div>
         )}
 
-        {/* Results Grid */}
-        {!loading && !error && results.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
-            {results.map((item) => {
-              const isMovie = item.media_type === 'movie';
-              const title = isMovie ? item.title : item.name;
-              const date = isMovie ? item.release_date : item.first_air_date;
-              const year = date ? new Date(date).getFullYear() : 'TBA';
-              const poster = tmdbPoster(item.poster_path);
+        {/* Results - Adaptive Grid/List */}
+        <div className={`
+          ${viewMode === 'grid' 
+            ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6' 
+            : 'flex flex-col gap-4 max-w-5xl mx-auto'}
+        `}>
+          {displayedResults.map((item, idx) => {
+            const isMovie = item.media_type === 'movie';
+            const title = isMovie ? item.title : item.name;
+            const date = isMovie ? item.release_date : item.first_air_date;
+            const year = date ? new Date(date).getFullYear() : '—';
+            const rating = item.vote_average?.toFixed(1);
 
-              return (
-                <Link
-                  key={`${item.media_type}-${item.id}`}
-                  href={`/${item.media_type}/${item.id}`}
-                  className="group block"
-                >
-                  {/* Card Image Container */}
-                  <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 border border-white/5 transition-all duration-500 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] group-hover:border-white/20">
-                    <Image
-                      src={poster}
-                      alt={title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
-                    />
+            // Animation Stagger Delay
+            const animStyle = { animationDelay: `${idx * 50}ms` };
 
-                    {/* Overlay Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-
-                    {/* Type Badge */}
-                    <div className="absolute top-3 left-3">
-                      <div className={`px-2 py-1 rounded-md backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase ${isMovie ? 'bg-blue-500/20 text-blue-200' : 'bg-purple-500/20 text-purple-200'}`}>
-                        {isMovie ? <Film className="w-3 h-3" /> : <Tv className="w-3 h-3" />}
-                        {isMovie ? 'Movie' : 'TV'}
-                      </div>
+            return (
+              <Link
+                key={item.id}
+                href={`/${item.media_type}/${item.id}`}
+                className={`group relative animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards duration-500
+                  ${viewMode === 'list' 
+                    ? 'flex gap-6 bg-[#111] hover:bg-[#161616] border border-white/5 p-4 rounded-2xl transition-colors' 
+                    : 'block'
+                  }
+                `}
+                style={animStyle}
+              >
+                {/* Poster */}
+                <div className={`relative overflow-hidden bg-gray-800 shadow-2xl
+                  ${viewMode === 'list' 
+                    ? 'w-24 h-36 rounded-lg flex-shrink-0' 
+                    : 'aspect-[2/3] rounded-xl mb-3 group-hover:scale-[1.02] transition-transform duration-300'
+                  }
+                `}>
+                  <Image
+                    src={tmdbPoster(item.poster_path)}
+                    alt={title}
+                    fill
+                    className="object-cover"
+                    sizes="300px"
+                  />
+                  
+                  {/* Badges (Grid Only) */}
+                  {viewMode === 'grid' && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                      {rating > 0 && (
+                        <div className="flex items-center gap-1 text-yellow-400 text-xs font-bold">
+                          <Star className="w-3 h-3 fill-current" /> {rating}
+                        </div>
+                      )}
                     </div>
+                  )}
+                </div>
 
-                    {/* Rating Badge */}
-                    {item.vote_average > 0 && (
-                      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded-md flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-[10px] font-bold text-white">{item.vote_average.toFixed(1)}</span>
-                      </div>
+                {/* Details */}
+                <div className={`${viewMode === 'list' ? 'flex flex-col justify-center flex-1' : 'px-1'}`}>
+                  <h3 className={`font-bold text-white leading-tight group-hover:text-blue-400 transition-colors
+                    ${viewMode === 'list' ? 'text-xl mb-2' : 'text-sm line-clamp-1'}
+                  `}>
+                    {title}
+                  </h3>
+
+                  <div className="flex items-center gap-3 text-xs text-gray-400 font-medium mt-1">
+                    <span className="flex items-center gap-1 uppercase tracking-wider">
+                      {isMovie ? <Film className="w-3 h-3" /> : <Tv className="w-3 h-3" />}
+                      {isMovie ? 'Movie' : 'TV Show'}
+                    </span>
+                    <span className="w-1 h-1 bg-gray-600 rounded-full" />
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {year}
+                    </span>
+                    {viewMode === 'list' && rating > 0 && (
+                      <>
+                        <span className="w-1 h-1 bg-gray-600 rounded-full" />
+                        <span className="flex items-center gap-1 text-yellow-400">
+                          <Star className="w-3 h-3 fill-current" /> {rating}
+                        </span>
+                      </>
                     )}
                   </div>
 
-                  {/* Text Content */}
-                  <div className="mt-4 px-1">
-                    <h3 className="text-white font-bold text-sm leading-tight line-clamp-1 group-hover:text-blue-400 transition-colors">
-                      {title}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-400 font-medium">
-                      <span>{year}</span>
-                      <span className="w-1 h-1 bg-gray-600 rounded-full" />
-                      <span className="uppercase text-[10px] tracking-wide opacity-70">
-                        {item.original_language}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+                  {/* Overview (List View Only) */}
+                  {viewMode === 'list' && (
+                    <p className="text-sm text-gray-500 mt-3 line-clamp-2 leading-relaxed max-w-2xl">
+                      {item.overview || 'No description available.'}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
 
-        {/* Empty Start Screen */}
-        {!loading && !error && results.length === 0 && !query && (
-          <div className="flex flex-col items-center py-32 text-center">
-            <div className="relative mb-8">
-              <div className="absolute inset-0 bg-blue-500/20 blur-[60px] rounded-full" />
-              <Search className="w-20 h-20 text-white/10 relative z-10" />
-            </div>
-            <h2 className="text-3xl font-bold text-white mb-3 font-chillax">Ready to Explore?</h2>
-            <p className="text-white/40 max-w-md text-lg">
-              Search for your favorite movies, TV shows, or uncover hidden gems from our massive library.
-            </p>
-          </div>
-        )}
       </div>
-    </main>
+    </div>
   );
 }
