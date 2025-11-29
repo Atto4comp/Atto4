@@ -1,46 +1,25 @@
-'use client'; // ✅ FIX: This creates a Client Component boundary
-
-import { useState, useEffect } from 'react';
+'use client';
 
 export default function LoadingSpinner() {
-  const [progress, setProgress] = useState(0);
-
-  // Simulate a "pixel fill" loading effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => (prev >= 100 ? 0 : prev + 5));
-    }, 100); // Fast updates for retro feel
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] w-full">
       
-      {/* Pixel Progress Container */}
-      <div className="relative w-64 h-2 bg-white/5 border border-white/10 overflow-hidden">
+      {/* Loading Orb */}
+      <div className="relative w-16 h-16">
+        {/* 1. Frosted Glass Background Ring */}
+        <div className="absolute inset-0 rounded-full border-4 border-white/10 backdrop-blur-sm" />
         
-        {/* Pixel Blocks Animation */}
-        <div 
-          className="h-full bg-white transition-all duration-100 ease-steps"
-          style={{ width: `${progress}%` }}
-        />
+        {/* 2. Glowing Gradient Arc (The Actual Spinner) */}
+        <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-purple-500 border-b-transparent border-l-transparent animate-spin" />
         
-        {/* Glitch/Scanline Overlay (Optional Polish) */}
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none" />
+        {/* 3. Inner Pulse (Heartbeat) */}
+        <div className="absolute inset-4 rounded-full bg-white/5 animate-pulse" />
       </div>
 
-      {/* Text Animation */}
-      <div className="mt-4 text-xs font-bold text-white/80 font-mono tracking-[0.2em] uppercase animate-pulse">
-        Loading...
+      {/* Text */}
+      <div className="mt-6 text-sm font-medium text-white/50 font-chillax tracking-widest uppercase animate-pulse">
+        Loading
       </div>
-
-      {/* Custom CSS for "Stepped" pixel movement */}
-      <style jsx>{`
-        .ease-steps {
-          transition-timing-function: steps(10, end);
-        }
-      `}</style>
     </div>
   );
 }
