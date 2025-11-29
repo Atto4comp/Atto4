@@ -10,7 +10,7 @@ export interface MovieEmbedResult {
 
 const PROVIDERS = [
   { url: "https://fmovies4u.com/embed/tmdb-movie-${id}?theme=16A085&hideServer=true&autoPlay=true&sub=en&nextButton=true&autoNext=true&title=false", label: "Vidly" },
-  { url: "https://bidsrc.pro/embed/movie/${id}", label: "vidzy" },
+  { url: "https://bidsrc.pro/movie/${id}?autoplay=true", label: "vidzy" },
   { url: "https://vidfast.to/embed/movie/${id}", label: "Vidme" }
 ];
 
