@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, Loader2, RefreshCw } from 'lucide-react';
+import { Search, Loader2, RefreshCw, Star, Film, Tv } from 'lucide-react';
 
 const TMDB_SEARCH_URL = 'https://api.themoviedb.org/3/search/multi';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
@@ -159,99 +159,148 @@ export default function SearchPage() {
   }, [query]);
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <main className="min-h-screen bg-black text-white pt-24 pb-20 relative overflow-hidden">
+      
+      {/* Ambient Background */}
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-900/20 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-purple-900/20 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03]" />
+      </div>
 
-        {/* header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold mb-2">Search Results</h1>
+      <div className="max-w-[1800px] mx-auto px-4 md:px-8">
 
-          <div className="flex gap-3 items-center text-gray-400">
-            <p>
-              Results for "{query}"{' '}
-              {!loading && results.length > 0 && `(${results.length})`}
-            </p>
+        {/* Search Header */}
+        <div className="mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold font-chillax mb-4">
+            Search Results
+          </h1>
+
+          <div className="flex flex-wrap items-center gap-4 text-white/60 text-lg">
+            {query ? (
+              <p>
+                Showing results for <span className="text-white font-semibold">"{query}"</span>
+                {!loading && results.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 bg-white/10 rounded-full text-xs font-bold text-white/80 border border-white/5">
+                    {results.length}
+                  </span>
+                )}
+              </p>
+            ) : (
+              <p>Type to search for movies and TV shows...</p>
+            )}
 
             {usingProxy && (
-              <span className="text-blue-400 text-sm">Proxy fallback active</span>
+              <span className="text-blue-400 text-xs bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20">
+                Proxy Active
+              </span>
             )}
           </div>
         </div>
 
-        {/* loading */}
+        {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-            <span className="ml-3 text-gray-400">Searching…</span>
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Search className="w-6 h-6 text-blue-500/50" />
+              </div>
+            </div>
+            <span className="mt-6 text-white/40 font-medium tracking-wide animate-pulse">
+              Searching Global Database...
+            </span>
           </div>
         )}
 
-        {/* error */}
+        {/* Error State */}
         {error && !loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <p className="text-red-400 mb-3">{error}</p>
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="bg-red-500/10 p-6 rounded-2xl border border-red-500/20 text-center max-w-md">
+              <p className="text-red-400 mb-4 font-medium">{error}</p>
               <button
                 onClick={() => performSearch(query)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-900/60 hover:bg-gray-900/80 rounded"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl transition-all w-full font-semibold"
               >
                 <RefreshCw className="w-4 h-4" />
-                Retry
+                Try Again
               </button>
             </div>
           </div>
         )}
 
-        {/* no results */}
+        {/* No Results */}
         {!loading && !error && results.length === 0 && query && (
-          <div className="flex flex-col items-center py-12">
-            <Search className="w-16 h-16 text-gray-600 mb-4" />
-            <h2 className="text-xl font-medium text-white mb-2">No Results Found</h2>
-            <p className="text-gray-400 text-center max-w-md">
-              No results for “{query}”. Try a different keyword.
+          <div className="flex flex-col items-center py-24 text-center">
+            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6">
+              <Search className="w-10 h-10 text-white/20" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2 font-chillax">No Results Found</h2>
+            <p className="text-white/40 max-w-md">
+              We couldn't find anything matching <span className="text-white/70">"{query}"</span>. 
+              Try checking for typos or using different keywords.
             </p>
           </div>
         )}
 
-        {/* grid */}
+        {/* Results Grid */}
         {!loading && !error && results.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
             {results.map((item) => {
               const isMovie = item.media_type === 'movie';
               const title = isMovie ? item.title : item.name;
               const date = isMovie ? item.release_date : item.first_air_date;
-              const year = date ? new Date(date).getFullYear() : '—';
-
+              const year = date ? new Date(date).getFullYear() : 'TBA';
               const poster = tmdbPoster(item.poster_path);
 
               return (
                 <Link
                   key={`${item.media_type}-${item.id}`}
                   href={`/${item.media_type}/${item.id}`}
-                  className="group"
+                  className="group block"
                 >
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 group-hover:scale-105 transition">
+                  {/* Card Image Container */}
+                  <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 border border-white/5 transition-all duration-500 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] group-hover:border-white/20">
                     <Image
                       src={poster}
                       alt={title}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
                     />
 
-                    <div className="absolute top-2 left-2 bg-black/70 px-2 py-1 rounded text-xs">
-                      {isMovie ? 'Movie' : 'TV'}
+                    {/* Overlay Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+
+                    {/* Type Badge */}
+                    <div className="absolute top-3 left-3">
+                      <div className={`px-2 py-1 rounded-md backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase ${isMovie ? 'bg-blue-500/20 text-blue-200' : 'bg-purple-500/20 text-purple-200'}`}>
+                        {isMovie ? <Film className="w-3 h-3" /> : <Tv className="w-3 h-3" />}
+                        {isMovie ? 'Movie' : 'TV'}
+                      </div>
                     </div>
 
+                    {/* Rating Badge */}
                     {item.vote_average > 0 && (
-                      <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded text-xs">
-                        ⭐ {item.vote_average.toFixed(1)}
+                      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded-md flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-[10px] font-bold text-white">{item.vote_average.toFixed(1)}</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="mt-3">
-                    <h3 className="text-sm font-medium line-clamp-2">{title}</h3>
-                    <p className="text-gray-400 text-xs">{year}</p>
+                  {/* Text Content */}
+                  <div className="mt-4 px-1">
+                    <h3 className="text-white font-bold text-sm leading-tight line-clamp-1 group-hover:text-blue-400 transition-colors">
+                      {title}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-400 font-medium">
+                      <span>{year}</span>
+                      <span className="w-1 h-1 bg-gray-600 rounded-full" />
+                      <span className="uppercase text-[10px] tracking-wide opacity-70">
+                        {item.original_language}
+                      </span>
+                    </div>
                   </div>
                 </Link>
               );
@@ -259,13 +308,16 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* empty screen */}
+        {/* Empty Start Screen */}
         {!loading && !error && results.length === 0 && !query && (
-          <div className="flex flex-col items-center py-20">
-            <Search className="w-16 h-16 text-gray-600 mb-4" />
-            <h2 className="text-xl font-medium text-white">Start searching</h2>
-            <p className="text-gray-400 text-center max-w-md">
-              Use the search bar to find movies & TV shows.
+          <div className="flex flex-col items-center py-32 text-center">
+            <div className="relative mb-8">
+              <div className="absolute inset-0 bg-blue-500/20 blur-[60px] rounded-full" />
+              <Search className="w-20 h-20 text-white/10 relative z-10" />
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-3 font-chillax">Ready to Explore?</h2>
+            <p className="text-white/40 max-w-md text-lg">
+              Search for your favorite movies, TV shows, or uncover hidden gems from our massive library.
             </p>
           </div>
         )}
