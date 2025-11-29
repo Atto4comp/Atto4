@@ -23,6 +23,7 @@ export default function MediaRow({
   category = 'popular',
   mediaType,
 }: MediaRowProps) {
+
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const rowRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,7 +31,6 @@ export default function MediaRow({
   const [showRightArrow, setShowRightArrow] = useState(false);
   const [arrowVertical, setArrowVertical] = useState('50%');
 
-  // Calculate scroll amount dynamically
   const getScrollAmount = () => {
     if (!scrollRef.current) return 340 * 2;
     const width = scrollRef.current.clientWidth;
@@ -50,38 +50,40 @@ export default function MediaRow({
     if (!rowRef.current) return;
 
     const row = rowRef.current;
-    const computedHeight = row.offsetHeight;
-    const center = Math.max(160, computedHeight / 2); // keeps arrows vertically centered no matter layout
-
+    const center = Math.max(150, row.offsetHeight / 2);
     setArrowVertical(`${center}px`);
   };
 
   useEffect(() => {
     handleScroll();
     updateArrowPosition();
-
     window.addEventListener('resize', updateArrowPosition);
 
     return () => window.removeEventListener('resize', updateArrowPosition);
   }, [items]);
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = (dir: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
     const amount = getScrollAmount();
-    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+
+    el.scrollBy({
+      left: dir === 'left' ? -amount : amount,
+      behavior: 'smooth',
+    });
   };
 
   if (!items?.length) return null;
 
   return (
-    <div className="relative mb-12 group/row" ref={rowRef}>
-      
+    <div className="relative mb-14 group/row" ref={rowRef}>
+
       {/* HEADER */}
-      <div className="flex items-end justify-between section-padding mb-4">
+      <div className="flex items-end justify-between px-6 md:px-8 mb-4">
         <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">
           {title}
         </h2>
+
         <Link
           href={`/browse/${category}?type=${mediaType}`}
           className="text-xs md:text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1"
@@ -91,17 +93,14 @@ export default function MediaRow({
         </Link>
       </div>
 
-      {/* ARROWS — Now inside row container and aligned */}
+      {/* ARROWS */}
       <div className="hidden md:block">
         {showLeftArrow && (
           <button
             onClick={() => scroll('left')}
             aria-label="Scroll left"
-            className="absolute z-20 left-8 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-90 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
-            style={{
-              top: arrowVertical,
-              transform: 'translateY(-50%)'
-            }}
+            className="absolute z-20 left-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-90 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+            style={{ top: arrowVertical, transform: 'translateY(-50%)' }}
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -111,23 +110,19 @@ export default function MediaRow({
           <button
             onClick={() => scroll('right')}
             aria-label="Scroll right"
-            className="absolute z-20 right-8 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-90 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
-            style={{
-              top: arrowVertical,
-              transform: 'translateY(-50%)'
-            }}
+            className="absolute z-20 right-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-90 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+            style={{ top: arrowVertical, transform: 'translateY(-50%)' }}
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         )}
       </div>
 
-      {/* SCROLL CONTAINER */}
+      {/* SCROLL AREA */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex gap-4 overflow-x-auto scrollbar-hide section-padding pb-4 snap-x snap-mandatory"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 px-6 md:px-8 snap-x snap-mandatory"
       >
         {items.map((item) => (
           <div key={item.id} className="snap-start">
@@ -139,9 +134,7 @@ export default function MediaRow({
             />
           </div>
         ))}
-
-        {/* Spacer for smooth scroll ending */}
-        <div className="w-16 flex-shrink-0" />
+        <div className="w-8 flex-shrink-0" />
       </div>
     </div>
   );
