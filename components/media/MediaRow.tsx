@@ -48,8 +48,8 @@ export default function MediaRow({
 
   const updateArrowPosition = () => {
     if (!rowRef.current) return;
-
     const row = rowRef.current;
+    // Center arrows vertically relative to the row height
     const center = Math.max(150, row.offsetHeight / 2);
     setArrowVertical(`${center}px`);
   };
@@ -58,7 +58,6 @@ export default function MediaRow({
     handleScroll();
     updateArrowPosition();
     window.addEventListener('resize', updateArrowPosition);
-
     return () => window.removeEventListener('resize', updateArrowPosition);
   }, [items]);
 
@@ -99,7 +98,7 @@ export default function MediaRow({
           <button
             onClick={() => scroll('left')}
             aria-label="Scroll left"
-            className="absolute z-20 left-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-90 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+            className="absolute z-20 left-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
             style={{ top: arrowVertical, transform: 'translateY(-50%)' }}
           >
             <ChevronLeft className="w-5 h-5" />
@@ -110,7 +109,7 @@ export default function MediaRow({
           <button
             onClick={() => scroll('right')}
             aria-label="Scroll right"
-            className="absolute z-20 right-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-90 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+            className="absolute z-20 right-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
             style={{ top: arrowVertical, transform: 'translateY(-50%)' }}
           >
             <ChevronRight className="w-5 h-5" />
@@ -118,11 +117,11 @@ export default function MediaRow({
         )}
       </div>
 
-      {/* SCROLL AREA */}
+      {/* SCROLL AREA - Hiding Scrollbars Forcefully */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 px-6 md:px-8 snap-x snap-mandatory"
+        className="flex gap-4 overflow-x-auto pb-4 px-6 md:px-8 snap-x snap-mandatory hide-scrollbar"
       >
         {items.map((item) => (
           <div key={item.id} className="snap-start">
@@ -136,6 +135,17 @@ export default function MediaRow({
         ))}
         <div className="w-8 flex-shrink-0" />
       </div>
+
+      {/* Inline Style to guarantee scrollbar hiding */}
+      <style jsx>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
