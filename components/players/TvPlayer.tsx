@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import VideoPlayer from '@/components/player/VideoPlayer';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -23,7 +22,6 @@ export default function TvPlayer({
 }: TvPlayerProps) {
   const [currentSeason, setCurrentSeason] = useState(season);
   const [currentEpisode, setCurrentEpisode] = useState(episode);
-  const router = useRouter();
 
   const handleEpisodeChange = (s: number, e: number) => {
     setCurrentSeason(s);
@@ -40,6 +38,8 @@ export default function TvPlayer({
   return (
     <div className="relative w-full h-full">
       <VideoPlayer
+        // KEY IS IMPORTANT: Forces full reset when episode changes
+        key={`${mediaId}-s${currentSeason}-e${currentEpisode}`} 
         mediaId={mediaId}
         mediaType="tv"
         season={currentSeason}
@@ -58,7 +58,7 @@ export default function TvPlayer({
           <ChevronLeft className="w-6 h-6" />
         </button>
         
-        <span className="text-sm font-bold text-white font-chillax">
+        <span className="text-sm font-bold text-white font-chillax min-w-[80px] text-center">
           S{currentSeason} : E{currentEpisode}
         </span>
 
