@@ -1,104 +1,151 @@
-// components/media/MediaRowClient.tsx
-
-
 'use client';
 
-
-import React, { useRef, useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Movie, TVShow } from '@/lib/api/types';
+import { Movie, Genre } from '@/lib/api/types';
 import MediaCard from './MediaCard';
 
-
-type Media = Movie | TVShow;
-type RowKind = 'movie' | 'tv';
-
-
-interface Props {
-  title?: string;
-  media: Media[];
-  mediaType?: RowKind;
-  limit?: number;
+interface MediaRowProps {
+  title: string;
+  items: Movie[];
+  genres: Genre[];
+  priority?: boolean;
+  category?: string;
+  mediaType: 'movie' | 'tv';
 }
 
+export default function MediaRow({
+  title,
+  items,
+  genres,
+  priority = false,
+  category = 'popular',
+  mediaType,
+}: MediaRowProps) {
 
-export default function MediaRowClient({ 
-  title = 'Featured', 
-  media = [], 
-  mediaType = 'movie', 
-  limit = 12 
-}: Props) {
-  const visible = media.slice(0, limit);
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
   const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+  const [arrowVertical, setArrowVertical] = useState('50%');
 
-
-  const scroll = (dir: 'left' | 'right') => {
-    if (!scrollerRef.current) return;
-    const el = scrollerRef.current;
-    const offset = el.clientWidth * 0.8;
-    el.scrollBy({ left: dir === 'left' ? -offset : offset, behavior: 'smooth' });
+  const getScrollAmount = () => {
+    if (!scrollRef.current) return 340 * 2;
+    const width = scrollRef.current.clientWidth;
+    return Math.max(340, Math.round(width * 0.8));
   };
-
 
   const handleScroll = () => {
-    if (!scrollerRef.current) return;
-    const el = scrollerRef.current;
-    setShowLeftArrow(el.scrollLeft > 0);
-    setShowRightArrow(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+    const el = scrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+
+    setShowLeftArrow(scrollLeft > 5);
+    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
   };
 
+  const updateArrowPosition = () => {
+    if (!rowRef.current) return;
+    const row = rowRef.current;
+    // Center arrows vertically relative to the row height
+    const center = Math.max(150, row.offsetHeight / 2);
+    setArrowVertical(`${center}px`);
+  };
 
   useEffect(() => {
     handleScroll();
-  }, []);
+    updateArrowPosition();
+    window.addEventListener('resize', updateArrowPosition);
+    return () => window.removeEventListener('resize', updateArrowPosition);
+  }, [items]);
 
+  const scroll = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = getScrollAmount();
 
-  if (!visible.length) return null;
+    el.scrollBy({
+      left: dir === 'left' ? -amount : amount,
+      behavior: 'smooth',
+    });
+  };
 
+  if (!items?.length) return null;
 
   return (
-    <section className="relative mb-12 group/row">
-      <div className="flex items-center justify-between px-4 md:px-12 mb-4">
-        <h3 className="text-xl md:text-2xl font-bold font-chillax text-white">{title}</h3>
-        
-        {/* Desktop Manual Controls */}
-        <div className="hidden md:flex gap-2">
-          <button 
-            onClick={() => scroll('left')}
-            disabled={!showLeftArrow}
-            className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button 
-            onClick={() => scroll('right')}
-            disabled={!showRightArrow}
-            className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="relative mb-14 group/row" ref={rowRef}>
+
+      {/* HEADER */}
+      <div className="flex items-end justify-between px-6 md:px-8 mb-4">
+        <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">
+          {title}
+        </h2>
+
+        <Link
+          href={`/browse/${category}?type=${mediaType}`}
+          className="text-xs md:text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+        >
+          Explore All
+          <ChevronRight className="w-3 h-3" />
+        </Link>
       </div>
 
+      {/* ARROWS */}
+      <div className="hidden md:block">
+        {showLeftArrow && (
+          <button
+            onClick={() => scroll('left')}
+            aria-label="Scroll left"
+            className="absolute z-20 left-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+            style={{ top: arrowVertical, transform: 'translateY(-50%)' }}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
 
+        {showRightArrow && (
+          <button
+            onClick={() => scroll('right')}
+            aria-label="Scroll right"
+            className="absolute z-20 right-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+            style={{ top: arrowVertical, transform: 'translateY(-50%)' }}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      {/* SCROLL AREA - Hiding Scrollbars Forcefully */}
       <div
-        ref={scrollerRef}
+        ref={scrollRef}
         onScroll={handleScroll}
-        className="flex gap-4 overflow-x-auto py-2 px-4 md:px-12 scrollbar-hide snap-x snap-mandatory"
+        className="flex gap-4 overflow-x-auto pb-4 px-6 md:px-8 snap-x snap-mandatory hide-scrollbar"
       >
-        {visible.map((m) => (
-          <div key={(m as any).id} className="snap-start">
-            <MediaCard 
-              media={m as Movie} 
-              genres={[]} 
-              mediaType={mediaType || 'movie'} 
+        {items.map((item) => (
+          <div key={item.id} className="snap-start">
+            <MediaCard
+              media={item}
+              genres={genres}
+              priority={priority}
+              mediaType={mediaType}
             />
           </div>
         ))}
         <div className="w-8 flex-shrink-0" />
       </div>
-    </section>
+
+      {/* Inline Style to guarantee scrollbar hiding */}
+      <style jsx>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+    </div>
   );
 }
