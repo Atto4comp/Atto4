@@ -1,9 +1,9 @@
-// components/players/VideoPlayer.tsx
+// components/player/VideoPlayer.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, AlertCircle, Server } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Server, RefreshCw } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
 
@@ -26,17 +26,21 @@ export default function VideoPlayer({
   onClose,
   showBackButton = true
 }: VideoPlayerProps) {
-  const [currentSource, setCurrentSource] = useState<string>('');
+  // State now tracks the INDEX of the source, not just the URL
+  const [currentSourceIndex, setCurrentSourceIndex] = useState<number>(0);
   const [sources, setSources] = useState<{ url: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showServers, setShowServers] = useState(false);
+  const [isAutoSwitching, setIsAutoSwitching] = useState(false);
 
   const router = useRouter();
 
+  // Load Sources
   useEffect(() => {
     setLoading(true);
     setError(null);
+    setCurrentSourceIndex(0); // Reset to first server on new media load
 
     try {
       let result;
@@ -48,15 +52,14 @@ export default function VideoPlayer({
 
       if (result.allSources && result.allSources.length > 0) {
         setSources(result.allSources);
-        setCurrentSource(result.allSources[0].url);
         setLoading(false);
       } else {
-        setError('No sources found');
+        setError('No sources available for this title.');
         setLoading(false);
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to load video');
+      setError('Failed to load video sources.');
       setLoading(false);
     }
   }, [mediaId, mediaType, season, episode]);
@@ -66,6 +69,23 @@ export default function VideoPlayer({
     else router.back();
   };
 
+  // AUTOMATED SWITCHING LOGIC
+  // Tries the next server in the list. If we run out, it loops or stops.
+  const handleSourceError = useCallback(() => {
+    if (sources.length <= 1) return; // No other sources to try
+
+    setIsAutoSwitching(true);
+    
+    // Small delay to show UI feedback that we are switching
+    setTimeout(() => {
+      setCurrentSourceIndex((prev) => {
+        const nextIndex = (prev + 1) % sources.length;
+        return nextIndex;
+      });
+      setIsAutoSwitching(false);
+    }, 1000);
+  }, [sources.length]);
+
   if (loading) return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
@@ -74,63 +94,108 @@ export default function VideoPlayer({
 
   if (error) return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-      <div className="text-center text-white">
-        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-2" />
-        <p>{error}</p>
-        <button onClick={handleClose} className="mt-4 bg-white text-black px-6 py-2 rounded font-bold">Back</button>
+      <div className="text-center text-white bg-white/10 p-8 rounded-xl backdrop-blur-md border border-white/10">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <p className="text-lg font-medium mb-6">{error}</p>
+        <button 
+          onClick={handleClose} 
+          className="bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-gray-200 transition-colors"
+        >
+          Close Player
+        </button>
       </div>
     </div>
   );
 
+  // Get current source safely
+  const currentUrl = sources[currentSourceIndex]?.url;
+  const currentLabel = sources[currentSourceIndex]?.label;
+
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {showBackButton && (
-        <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-          <button onClick={handleClose} className="pointer-events-auto flex items-center gap-2 text-white hover:text-gray-300 transition-colors">
-            <ArrowLeft className="w-6 h-6" />
-            <span className="font-bold drop-shadow-md">{title || 'Back'}</span>
+        <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent pointer-events-none transition-opacity hover:opacity-100">
+          <button onClick={handleClose} className="pointer-events-auto flex items-center gap-3 text-white/80 hover:text-white transition-colors group">
+            <div className="p-2 rounded-full bg-white/10 group-hover:bg-white/20 backdrop-blur-md transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </div>
+            <span className="font-medium text-sm md:text-base drop-shadow-md max-w-[200px] md:max-w-md truncate">
+              {title || 'Back'}
+            </span>
           </button>
 
-          <div className="pointer-events-auto relative">
-            <button 
-              onClick={() => setShowServers(!showServers)}
-              className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-sm font-medium hover:bg-white/20 transition-all"
+          <div className="pointer-events-auto relative flex gap-3">
+            {/* AUTO-FIX BUTTON: Visible helper for users */}
+            <button
+              onClick={handleSourceError}
+              className="flex items-center gap-2 bg-red-500/20 text-red-200 hover:bg-red-500/30 backdrop-blur-md px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-red-500/20 transition-all"
             >
-              <Server className="w-4 h-4" />
-              <span>Change Server</span>
+              <RefreshCw className={`w-3 h-3 md:w-4 md:h-4 ${isAutoSwitching ? 'animate-spin' : ''}`} />
+              <span className="hidden md:inline">Auto Fix</span>
             </button>
 
-            {showServers && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl">
-                {sources.map((src, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setCurrentSource(src.url);
-                      setShowServers(false);
-                    }}
-                    className={`w-full text-left px-4 py-3 text-sm hover:bg-white/10 transition-colors ${
-                      currentSource === src.url ? 'text-green-400 font-bold' : 'text-gray-300'
-                    }`}
-                  >
-                    {src.label}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* SERVER SELECTOR */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowServers(!showServers)}
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-xs md:text-sm font-medium hover:bg-white/20 border border-white/10 transition-all text-white"
+              >
+                <Server className="w-3 h-3 md:w-4 md:h-4" />
+                <span>{currentLabel || 'Server'}</span>
+              </button>
+
+              {showServers && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-30">
+                  <div className="p-2 max-h-[60vh] overflow-y-auto">
+                    {sources.map((src, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setCurrentSourceIndex(idx);
+                          setShowServers(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-sm rounded-lg transition-all ${
+                          currentSourceIndex === idx 
+                            ? 'bg-white text-black font-bold shadow-lg' 
+                            : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{src.label}</span>
+                          {currentSourceIndex === idx && <div className="w-2 h-2 rounded-full bg-green-500" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* ✅ Clean Iframe without sandbox restrictions */}
-      <iframe
-        key={currentSource} // Force reload on source change
-        src={currentSource}
-        className="w-full h-full border-0"
-        allowFullScreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        referrerPolicy="origin"
-      />
+      {/* SWITCHING OVERLAY */}
+      {isAutoSwitching && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 text-white animate-pulse">
+            <RefreshCw className="w-10 h-10 animate-spin text-blue-500" />
+            <p className="font-medium">Switching to {sources[(currentSourceIndex + 1) % sources.length]?.label || 'next server'}...</p>
+          </div>
+        </div>
+      )}
+
+      {/* VIDEO IFRAME */}
+      {currentUrl && (
+        <iframe
+          key={currentUrl} // Force reload on URL change
+          src={currentUrl}
+          className="w-full h-full border-0 bg-black"
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          referrerPolicy="origin"
+          onError={handleSourceError} // Try to catch network errors (Note: 404s inside iframe won't trigger this)
+        />
+      )}
     </div>
   );
 }
