@@ -1,18 +1,12 @@
-// components/media/MediaRowClient.tsx
-
-
 'use client';
-
 
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Movie, TVShow } from '@/lib/api/types';
 import MediaCard from './MediaCard';
 
-
 type Media = Movie | TVShow;
 type RowKind = 'movie' | 'tv';
-
 
 interface Props {
   title?: string;
@@ -20,7 +14,6 @@ interface Props {
   mediaType?: RowKind;
   limit?: number;
 }
-
 
 export default function MediaRowClient({ 
   title = 'Featured', 
@@ -33,14 +26,12 @@ export default function MediaRowClient({
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
-
   const scroll = (dir: 'left' | 'right') => {
     if (!scrollerRef.current) return;
     const el = scrollerRef.current;
     const offset = el.clientWidth * 0.8;
     el.scrollBy({ left: dir === 'left' ? -offset : offset, behavior: 'smooth' });
   };
-
 
   const handleScroll = () => {
     if (!scrollerRef.current) return;
@@ -49,19 +40,21 @@ export default function MediaRowClient({
     setShowRightArrow(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
   };
 
-
   useEffect(() => {
     handleScroll();
+    window.addEventListener('resize', handleScroll);
+    return () => window.removeEventListener('resize', handleScroll);
   }, []);
-
 
   if (!visible.length) return null;
 
-
   return (
-    <section className="relative mb-12 group/row">
-      <div className="flex items-center justify-between px-4 md:px-12 mb-4">
-        <h3 className="text-xl md:text-2xl font-bold font-chillax text-white">{title}</h3>
+    <section className="relative mb-16 group/row">
+      {/* Header - Consistent Padding */}
+      <div className="flex items-center justify-between px-4 md:px-12 mb-5">
+        <h3 className="text-2xl md:text-3xl font-bold font-chillax text-white tracking-wide drop-shadow-md">
+          {title}
+        </h3>
         
         {/* Desktop Manual Controls */}
         <div className="hidden md:flex gap-2">
@@ -82,14 +75,13 @@ export default function MediaRowClient({
         </div>
       </div>
 
-
       <div
         ref={scrollerRef}
         onScroll={handleScroll}
-        className="flex gap-4 overflow-x-auto py-2 px-4 md:px-12 scrollbar-hide snap-x snap-mandatory"
+        className="flex gap-5 overflow-x-auto px-4 md:px-12 pb-8 scrollbar-hide snap-x snap-mandatory"
       >
         {visible.map((m) => (
-          <div key={(m as any).id} className="snap-start">
+          <div key={(m as any).id} className="snap-start flex-shrink-0">
             <MediaCard 
               media={m as Movie} 
               genres={[]} 

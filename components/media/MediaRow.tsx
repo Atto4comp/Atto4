@@ -23,93 +23,101 @@ export default function MediaRow({
   category = 'popular',
   mediaType,
 }: MediaRowProps) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
 
-  // scroll by ~2 cards (responsive)
-  const getScrollAmount = () => {
-    const base = 336; // card + gap
-    if (!scrollRef.current) return base * 2;
-    const width = scrollRef.current.clientWidth;
-    return Math.max(base, Math.round(width * 0.8));
+  const SCROLL_AMOUNT = 800; // Scroll roughly one screen width
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const { current } = scrollRef.current;
+      const scrollAmount = direction === 'left' ? -SCROLL_AMOUNT : SCROLL_AMOUNT;
+      
+      current.scrollBy({
+        left: scrollAmount,
+        behavior: 'smooth',
+      });
+    }
   };
 
   const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const { scrollLeft, scrollWidth, clientWidth } = el;
-    setShowLeftArrow(scrollLeft > 5);
-    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      // 10px tolerance
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
   };
 
   useEffect(() => {
-    // Initial visibility check (wait for layout)
-    const t = setTimeout(handleScroll, 50);
+    handleScroll();
     window.addEventListener('resize', handleScroll);
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener('resize', handleScroll);
-    };
+    return () => window.removeEventListener('resize', handleScroll);
   }, [items]);
-
-  const scroll = (direction: 'left' | 'right') => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const amount = getScrollAmount();
-    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
-  };
 
   if (!items?.length) return null;
 
   return (
-    <div className="relative mb-12 group/row">
-      {/* Header */}
-      <div className="flex items-end justify-between section-padding mb-4">
-        <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">
+    <div className="relative mb-16 group/row">
+      
+      {/* Header - Aligned with container padding */}
+      {/* Added explicit padding-left matching the scroll container to fix alignment */}
+      <div className="flex items-end justify-between px-4 md:px-12 mb-5">
+        <h2 className="text-2xl md:text-3xl font-bold text-white font-chillax tracking-wide drop-shadow-md">
           {title}
         </h2>
-
+        
         <Link
           href={`/browse/${category}?type=${mediaType}`}
-          className="text-xs md:text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+          className="text-xs md:text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1 group/link"
         >
           Explore All
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" />
         </Link>
       </div>
 
-      {/* Desktop arrows (positioned slightly outside the scroller) */}
-      <div className="hidden md:block">
-        {showLeftArrow && (
+      {/* Navigation Arrows (Desktop Only) */}
+      {/* Moved arrows INSIDE the relative container but absolute positioned to overlay the ends correctly */}
+      <div className="hidden md:block pointer-events-none absolute inset-0 px-4 md:px-12">
+        <div className="relative h-full w-full">
+          {/* Left Arrow */}
           <button
             onClick={() => scroll('left')}
+            className={`absolute -left-5 top-[55%] -translate-y-1/2 z-30 bg-black/80 backdrop-blur-md border border-white/10 text-white p-3 rounded-full transition-all shadow-lg pointer-events-auto ${
+              showLeftArrow 
+                ? 'opacity-0 group-hover/row:opacity-100 hover:scale-110 hover:bg-white hover:text-black' 
+                : 'opacity-0 pointer-events-none'
+            }`}
             aria-label="Scroll left"
-            className="absolute -left-6 top-1/2 z-30 -translate-y-1/2 bg-black/40 backdrop-blur-md border border-white/10 text-white p-2 rounded-full opacity-90 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
-        )}
-        {showRightArrow && (
+
+          {/* Right Arrow */}
           <button
             onClick={() => scroll('right')}
+            className={`absolute -right-5 top-[55%] -translate-y-1/2 z-30 bg-black/80 backdrop-blur-md border border-white/10 text-white p-3 rounded-full transition-all shadow-lg pointer-events-auto ${
+              showRightArrow 
+                ? 'opacity-0 group-hover/row:opacity-100 hover:scale-110 hover:bg-white hover:text-black' 
+                : 'opacity-0 pointer-events-none'
+            }`}
             aria-label="Scroll right"
-            className="absolute -right-6 top-1/2 z-30 -translate-y-1/2 bg-black/40 backdrop-blur-md border border-white/10 text-white p-2 rounded-full opacity-90 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-6 h-6" />
           </button>
-        )}
+        </div>
       </div>
 
-      {/* Scroller */}
+      {/* Scroll Container */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex gap-4 overflow-x-auto scrollbar-hide section-padding pb-4 snap-x snap-mandatory"
+        className="flex gap-5 overflow-x-auto scrollbar-hide px-4 md:px-12 pb-8 snap-x snap-mandatory"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {items.map((item) => (
-          <div key={item.id} className="snap-start">
+          <div key={item.id} className="snap-start flex-shrink-0">
             <MediaCard
               media={item}
               genres={genres}
@@ -118,8 +126,8 @@ export default function MediaRow({
             />
           </div>
         ))}
-
-        {/* End spacer */}
+        
+        {/* End Padding Spacer */}
         <div className="w-8 flex-shrink-0" />
       </div>
     </div>
