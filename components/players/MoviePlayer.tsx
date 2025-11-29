@@ -12,6 +12,7 @@ interface MoviePlayerProps {
 export default function MoviePlayer({ mediaId, title, onClose }: MoviePlayerProps) {
   return (
     <VideoPlayer
+      key={mediaId} // Resets player if movie ID changes
       mediaId={mediaId}
       mediaType="movie"
       title={title}
