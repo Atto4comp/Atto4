@@ -9,8 +9,8 @@ export interface TVEmbedResult {
 }
 
 const PROVIDERS = [
-  { url: "https://fmovies4u.com/embed/tmdb-tv-${id}/${season}/${episode}", label: "Vidly" },
-  { url: "https://vidfast.to/embed/tv/${id}/${season}/${episode}", label: "Vidzy" },
+  { url: "https://fmovies4u.com/embed/tmdb-tv-${id}/${season}/${episode}?theme=16A085&hideServer=true&autoPlay=true&sub=en&nextButton=true&autoNext=true", label: "Vidly" },
+  { url: "https://bidsrc.pro/embed/tv/${id}/${season}/${episode}?autoplay=true", label: "Vidzy" },
   { url: "https://vidfast.to/embed/tv/${id}/${season}/${episode}", label: "Vidme" }
   
 ];
