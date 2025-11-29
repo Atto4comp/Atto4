@@ -1,5 +1,3 @@
-// components/media/MediaRowClient.tsx
-
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
@@ -44,28 +42,41 @@ export default function MediaRowClient({
 
   useEffect(() => {
     handleScroll();
+    window.addEventListener('resize', handleScroll);
+    return () => window.removeEventListener('resize', handleScroll);
   }, []);
 
   if (!visible.length) return null;
 
   return (
-    <section className="relative mb-12 group/row">
-      <div className="flex items-center justify-between px-4 md:px-12 mb-4">
-        <h3 className="text-xl md:text-2xl font-bold font-chillax text-white">{title}</h3>
+    <section className="relative mb-16 group/row">
+      {/* Header - Aligned with container padding */}
+      <div className="flex items-center justify-between px-4 md:px-12 mb-5">
+        <h3 className="text-2xl md:text-3xl font-bold font-chillax text-white tracking-wide drop-shadow-md">
+          {title}
+        </h3>
         
         {/* Desktop Manual Controls */}
         <div className="hidden md:flex gap-2">
           <button 
             onClick={() => scroll('left')}
             disabled={!showLeftArrow}
-            className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className={`p-2 rounded-full border border-white/10 transition-all ${
+              showLeftArrow 
+                ? 'hover:bg-white hover:text-black cursor-pointer' 
+                : 'opacity-30 cursor-default'
+            }`}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button 
             onClick={() => scroll('right')}
             disabled={!showRightArrow}
-            className="p-2 rounded-full border border-white/10 hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className={`p-2 rounded-full border border-white/10 transition-all ${
+              showRightArrow 
+                ? 'hover:bg-white hover:text-black cursor-pointer' 
+                : 'opacity-30 cursor-default'
+            }`}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -75,10 +86,10 @@ export default function MediaRowClient({
       <div
         ref={scrollerRef}
         onScroll={handleScroll}
-        className="flex gap-4 overflow-x-auto py-2 px-4 md:px-12 scrollbar-hide snap-x snap-mandatory"
+        className="flex gap-5 overflow-x-auto px-4 md:px-12 pb-8 scrollbar-hide snap-x snap-mandatory"
       >
         {visible.map((m) => (
-          <div key={(m as any).id} className="snap-start">
+          <div key={(m as any).id} className="snap-start flex-shrink-0">
             <MediaCard 
               media={m as Movie} 
               genres={[]} 
