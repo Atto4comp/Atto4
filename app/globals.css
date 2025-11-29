@@ -260,6 +260,18 @@ html, body {
   transform: scale(1.05);
 }
 
+.section-padding {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+@media (max-width: 768px) {
+  .section-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+
 /* Mobile Menu & Search */
 .search-curtain, .mobile-backdrop-soft {
   position: fixed;
