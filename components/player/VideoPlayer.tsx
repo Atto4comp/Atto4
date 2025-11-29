@@ -1,4 +1,3 @@
-// components/player/VideoPlayer.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -26,7 +25,7 @@ export default function VideoPlayer({
   onClose,
   showBackButton = true
 }: VideoPlayerProps) {
-  // State now tracks the INDEX of the source, not just the URL
+  // State tracks INDEX of the source, not just URL
   const [currentSourceIndex, setCurrentSourceIndex] = useState<number>(0);
   const [sources, setSources] = useState<{ url: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,26 +41,30 @@ export default function VideoPlayer({
     setError(null);
     setCurrentSourceIndex(0); // Reset to first server on new media load
 
-    try {
-      let result;
-      if (mediaType === 'movie') {
-        result = getMovieEmbed(mediaId);
-      } else {
-        result = getTVEmbed(mediaId, season, episode);
-      }
+    const loadSources = async () => {
+      try {
+        let result;
+        if (mediaType === 'movie') {
+          result = await getMovieEmbed(mediaId);
+        } else {
+          result = await getTVEmbed(mediaId, season, episode);
+        }
 
-      if (result.allSources && result.allSources.length > 0) {
-        setSources(result.allSources);
-        setLoading(false);
-      } else {
-        setError('No sources available for this title.');
+        if (result.allSources && result.allSources.length > 0) {
+          setSources(result.allSources);
+          setLoading(false);
+        } else {
+          setError('No sources available for this title.');
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load video sources.');
         setLoading(false);
       }
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load video sources.');
-      setLoading(false);
-    }
+    };
+
+    loadSources();
   }, [mediaId, mediaType, season, episode]);
 
   const handleClose = () => {
@@ -70,7 +73,6 @@ export default function VideoPlayer({
   };
 
   // AUTOMATED SWITCHING LOGIC
-  // Tries the next server in the list. If we run out, it loops or stops.
   const handleSourceError = useCallback(() => {
     if (sources.length <= 1) return; // No other sources to try
 
@@ -83,7 +85,7 @@ export default function VideoPlayer({
         return nextIndex;
       });
       setIsAutoSwitching(false);
-    }, 1000);
+    }, 1500);
   }, [sources.length]);
 
   if (loading) return (
@@ -125,13 +127,14 @@ export default function VideoPlayer({
           </button>
 
           <div className="pointer-events-auto relative flex gap-3">
-            {/* AUTO-FIX BUTTON: Visible helper for users */}
+            {/* AUTO-FIX BUTTON */}
             <button
               onClick={handleSourceError}
-              className="flex items-center gap-2 bg-red-500/20 text-red-200 hover:bg-red-500/30 backdrop-blur-md px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-red-500/20 transition-all"
+              disabled={isAutoSwitching}
+              className="flex items-center gap-2 bg-red-500/20 text-red-200 hover:bg-red-500/30 backdrop-blur-md px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-red-500/20 transition-all disabled:opacity-50"
             >
               <RefreshCw className={`w-3 h-3 md:w-4 md:h-4 ${isAutoSwitching ? 'animate-spin' : ''}`} />
-              <span className="hidden md:inline">Auto Fix</span>
+              <span className="hidden md:inline">{isAutoSwitching ? 'Switching...' : 'Auto Fix'}</span>
             </button>
 
             {/* SERVER SELECTOR */}
@@ -146,7 +149,7 @@ export default function VideoPlayer({
 
               {showServers && (
                 <div className="absolute right-0 top-full mt-2 w-56 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-30">
-                  <div className="p-2 max-h-[60vh] overflow-y-auto">
+                  <div className="p-2 max-h-[60vh] overflow-y-auto scrollbar-hide">
                     {sources.map((src, idx) => (
                       <button
                         key={idx}
@@ -176,10 +179,11 @@ export default function VideoPlayer({
 
       {/* SWITCHING OVERLAY */}
       {isAutoSwitching && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/90 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4 text-white animate-pulse">
             <RefreshCw className="w-10 h-10 animate-spin text-blue-500" />
-            <p className="font-medium">Switching to {sources[(currentSourceIndex + 1) % sources.length]?.label || 'next server'}...</p>
+            <p className="font-medium text-lg">Trying next server...</p>
+            <p className="text-sm text-gray-400">Attempting to load video from {sources[(currentSourceIndex + 1) % sources.length]?.label}</p>
           </div>
         </div>
       )}
@@ -193,7 +197,9 @@ export default function VideoPlayer({
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           referrerPolicy="origin"
-          onError={handleSourceError} // Try to catch network errors (Note: 404s inside iframe won't trigger this)
+          // 🛡️ SECURITY: Blocks redirects/popups while allowing video playback
+          sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
+          onError={handleSourceError} 
         />
       )}
     </div>
