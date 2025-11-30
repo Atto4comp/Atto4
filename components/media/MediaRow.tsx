@@ -1,5 +1,3 @@
-// components/media/MediaRow.tsx
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -112,25 +110,26 @@ export default function MediaRow({
       {/* 🖥️ DESKTOP ARROWS (Floating Overlay) */}
       <div className="hidden md:block pointer-events-none absolute inset-0 z-20">
         <div className="relative w-full h-full">
-          {/* Left Arrow */}
+          
+          {/* Left Arrow - Reduced Size (p-2) */}
           {showLeftArrow && (
             <button
               onClick={() => scroll('left')}
               aria-label="Scroll left"
-              className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+              className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-2 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
           )}
 
-          {/* Right Arrow */}
+          {/* Right Arrow - Reduced Size (p-2) */}
           {showRightArrow && (
             <button
               onClick={() => scroll('right')}
               aria-label="Scroll right"
-              className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+              className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-2 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           )}
         </div>
@@ -152,11 +151,10 @@ export default function MediaRow({
             />
           </div>
         ))}
-        {/* Spacer */}
+        {/* Spacer to prevent cut-off */}
         <div className="w-4 md:w-8 flex-shrink-0" />
       </div>
 
-      {/* Styles */}
       <style jsx>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
