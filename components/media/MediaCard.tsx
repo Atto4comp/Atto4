@@ -96,9 +96,9 @@ export default function MediaCard({
   const year = date ? new Date(date).getFullYear() : null;
 
   return (
-    // ⬇️ RESIZED: Reduced width for a more compact look
+    // ⬇️ CHANGED: Added ml-4 to shift cards right and create spacing
     <div
-      className="relative group cursor-pointer w-[240px] sm:w-[280px] flex-shrink-0"
+      className="relative group cursor-pointer w-[240px] sm:w-[280px] flex-shrink-0 ml-4"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -117,10 +117,10 @@ export default function MediaCard({
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-          {/* Gradient Overlay - Always visible at bottom for readability */}
+          {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
 
-          {/* Rating Badge - Top Right */}
+          {/* Rating Badge */}
           {media.vote_average > 0 && (
             <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md border border-white/10 px-1.5 py-0.5 rounded-md flex items-center gap-1">
               <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
@@ -162,7 +162,7 @@ export default function MediaCard({
             </button>
           </div>
 
-          {/* Content Info (Always visible at bottom) */}
+          {/* Content Info */}
           <div className="absolute bottom-0 left-0 right-0 p-3">
             <h3 className="text-white font-bold text-sm md:text-base leading-tight line-clamp-1 font-chillax group-hover:text-blue-400 transition-colors">
               {title}
