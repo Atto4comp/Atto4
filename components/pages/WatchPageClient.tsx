@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import MoviePlayer from '@/components/players/MoviePlayer';
 import TvPlayer from '@/components/players/TvPlayer';
 // Uncomment if you want to protect the entire page, not just the player
-// import { useDevToolsProtection } from '@/hooks/useDevToolsProtection'; 
+import { useDevToolsProtection } from '@/lib/hooks/useDevToolsProtection'; 
 
 interface WatchPageClientProps {
   mediaType: 'movie' | 'tv';
@@ -27,7 +27,7 @@ export default function WatchPageClient({
   const router = useRouter();
 
   // 🛡️ OPTIONAL: Protect the entire Watch Page from inspection
-  // useDevToolsProtection();
+  useDevToolsProtection();
 
   const handleClose = () => {
     router.back();
