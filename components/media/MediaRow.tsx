@@ -1,3 +1,5 @@
+// components/media/MediaRow.tsx
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -69,33 +71,9 @@ export default function MediaRow({
 
       {/* HEADER ROW */}
       <div className="flex items-center justify-between px-4 md:px-8 mb-3 md:mb-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg md:text-2xl font-bold text-white font-chillax tracking-wide">
-            {title}
-          </h2>
-
-          {/* 📱 MOBILE ARROWS (Inline next to title) */}
-          <div className="flex md:hidden items-center gap-2">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!showLeftArrow}
-              className={`p-1.5 rounded-full border border-white/10 bg-white/5 ${
-                !showLeftArrow ? 'opacity-30 cursor-not-allowed' : 'active:bg-white/20'
-              }`}
-            >
-              <ChevronLeft className="w-4 h-4 text-white" />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!showRightArrow}
-              className={`p-1.5 rounded-full border border-white/10 bg-white/5 ${
-                !showRightArrow ? 'opacity-30 cursor-not-allowed' : 'active:bg-white/20'
-              }`}
-            >
-              <ChevronRight className="w-4 h-4 text-white" />
-            </button>
-          </div>
-        </div>
+        <h2 className="text-lg md:text-2xl font-bold text-white font-chillax tracking-wide">
+          {title}
+        </h2>
 
         <Link
           href={`/browse/${category}?type=${mediaType}`}
@@ -107,11 +85,11 @@ export default function MediaRow({
         </Link>
       </div>
 
-      {/* 🖥️ DESKTOP ARROWS (Floating Overlay) */}
+      {/* 🖥️ DESKTOP ARROWS (Floating Overlay - HIDDEN ON MOBILE) */}
       <div className="hidden md:block pointer-events-none absolute inset-0 z-20">
         <div className="relative w-full h-full">
           
-          {/* Left Arrow - Reduced Size (p-2) */}
+          {/* Left Arrow */}
           {showLeftArrow && (
             <button
               onClick={() => scroll('left')}
@@ -122,7 +100,7 @@ export default function MediaRow({
             </button>
           )}
 
-          {/* Right Arrow - Reduced Size (p-2) */}
+          {/* Right Arrow */}
           {showRightArrow && (
             <button
               onClick={() => scroll('right')}
@@ -151,7 +129,7 @@ export default function MediaRow({
             />
           </div>
         ))}
-        {/* Spacer to prevent cut-off */}
+        {/* Spacer */}
         <div className="w-4 md:w-8 flex-shrink-0" />
       </div>
 
