@@ -1,5 +1,3 @@
-// components/media/MediaCard.tsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,26 +20,92 @@ const TMDB_IMAGE_SIZES = {
   poster: 'w500',
 } as const;
 
-
 export default function MediaCard({
   media,
   genres,
   priority = false,
   mediaType,
 }: MediaCardProps) {
-  // ... state & logic remain same ...
+  const [hover, setHover] = useState(false);
+  const [inWatch, setInWatch] = useState(false);
+  const [liked, setLiked] = useState(false);
+
+  // ✅ Prefer backdrop (landscape) image for horizontal cards
+  const buildImage = (backdrop: string | null, poster: string | null) => {
+    if (backdrop) return `https://image.tmdb.org/t/p/${TMDB_IMAGE_SIZES.backdrop}${backdrop}`;
+    if (poster) return `https://image.tmdb.org/t/p/${TMDB_IMAGE_SIZES.poster}${poster}`;
+    return '/placeholder-movie.jpg';
+  };
+
+  // Sync buttons
+  useEffect(() => {
+    setInWatch(watchlistStorage.isInWatchlist(media.id, mediaType));
+    setLiked(likedStorage.isLiked(media.id, mediaType));
+  }, [media.id, mediaType]);
+
+  const toggleWatch = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const item = {
+      id: media.id,
+      title: mediaType === 'movie' ? media.title : media.name,
+      name: mediaType === 'tv' ? media.name : undefined,
+      poster_path: media.poster_path,
+      media_type: mediaType,
+      vote_average: media.vote_average ?? 0,
+      release_date: mediaType === 'movie' ? media.release_date : undefined,
+      first_air_date: mediaType === 'tv' ? media.first_air_date : undefined,
+    };
+
+    if (inWatch) {
+      watchlistStorage.removeFromWatchlist(media.id, mediaType);
+    } else {
+      watchlistStorage.addToWatchlist(item);
+    }
+    setInWatch(!inWatch);
+    window.dispatchEvent(new CustomEvent('watchlist-updated'));
+  };
+
+  const toggleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const item = {
+      id: media.id,
+      title: mediaType === 'movie' ? media.title : media.name,
+      name: mediaType === 'tv' ? media.name : undefined,
+      poster_path: media.poster_path,
+      media_type: mediaType,
+      vote_average: media.vote_average ?? 0,
+      release_date: mediaType === 'movie' ? media.release_date : undefined,
+      first_air_date: mediaType === 'tv' ? media.first_air_date : undefined,
+    };
+
+    if (liked) {
+      likedStorage.removeFromLiked(media.id, mediaType);
+    } else {
+      likedStorage.addToLiked(item);
+    }
+    setLiked(!liked);
+    window.dispatchEvent(new CustomEvent('liked-updated'));
+  };
+
+  const title = mediaType === 'movie' ? media.title : media.name;
+  const date = mediaType === 'movie' ? media.release_date : media.first_air_date;
+  const year = date ? new Date(date).getFullYear() : null;
 
   return (
-    // ⬇️ CHANGED: Increased margin to ml-3 (12px) for better spacing
+    // ⬇️ UPDATED: margin-left set to ml-3 (12px) for balanced spacing
     <div
       className="relative group cursor-pointer w-[240px] sm:w-[280px] flex-shrink-0 ml-3"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {/* ... rest of the component remains exactly the same ... */}
       <Link href={`/${mediaType}/${media.id}`}>
+        
+        {/* Card Container - Horizontal Aspect Ratio (16:9) */}
         <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 border border-white/5 transition-all duration-300 group-hover:border-white/20 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
           
+          {/* Image */}
           <Image
             src={buildImage(media.backdrop_path, media.poster_path)}
             alt={title || 'Media'}
@@ -51,8 +115,10 @@ export default function MediaCard({
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
+          {/* Gradient Overlay - Always visible at bottom for readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
 
+          {/* Rating Badge - Top Right */}
           {media.vote_average > 0 && (
             <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md border border-white/10 px-1.5 py-0.5 rounded-md flex items-center gap-1">
               <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
@@ -60,9 +126,11 @@ export default function MediaCard({
             </div>
           )}
 
+          {/* Hover Actions Overlay */}
           <div className={`absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-300 ${hover ? 'opacity-100' : 'opacity-0'}`}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
             
+            {/* Play Button */}
             <Link
               href={`/watch/${mediaType}/${media.id}`}
               className="relative z-10 w-9 h-9 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
@@ -71,6 +139,7 @@ export default function MediaCard({
               <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
             </Link>
 
+            {/* Watchlist Button */}
             <button
               onClick={toggleWatch}
               className={`relative z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all border ${
@@ -80,6 +149,7 @@ export default function MediaCard({
               <Plus className={`w-4 h-4 transition-transform ${inWatch ? 'rotate-45' : ''}`} />
             </button>
 
+            {/* Like Button */}
             <button
               onClick={toggleLike}
               className={`relative z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all border ${
@@ -90,6 +160,7 @@ export default function MediaCard({
             </button>
           </div>
 
+          {/* Content Info (Always visible at bottom) */}
           <div className="absolute bottom-0 left-0 right-0 p-3">
             <h3 className="text-white font-bold text-sm md:text-base leading-tight line-clamp-1 font-chillax group-hover:text-blue-400 transition-colors">
               {title}
@@ -105,4 +176,3 @@ export default function MediaCard({
     </div>
   );
 }
-
