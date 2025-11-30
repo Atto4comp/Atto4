@@ -1,4 +1,4 @@
-// components/media/MediaRow.tsx (and/or MediaRowClient.tsx)
+// components/media/MediaRow.tsx
 
 'use client';
 
@@ -31,10 +31,6 @@ export default function MediaRow({
 
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
-  
-  // ✅ FIXED: Hardcoded a better vertical position relative to the container
-  // Instead of dynamic calc which can be buggy, we'll use a % that works better visually
-  // top-1/2 of the scroll container usually works best.
 
   const getScrollAmount = () => {
     if (!scrollRef.current) return 300;
@@ -47,7 +43,7 @@ export default function MediaRow({
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
 
-    setShowLeftArrow(scrollLeft > 10); // slightly higher threshold prevents flicker
+    setShowLeftArrow(scrollLeft > 10);
     setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
   };
 
@@ -71,53 +67,72 @@ export default function MediaRow({
   if (!items?.length) return null;
 
   return (
-    <div className="relative mb-12 group/row" ref={rowRef}>
+    <div className="relative mb-10 md:mb-14 group/row" ref={rowRef}>
 
-      {/* HEADER */}
-      <div className="flex items-end justify-between px-4 md:px-8 mb-3 md:mb-4">
-        <h2 className="text-lg md:text-2xl font-bold text-white font-chillax tracking-wide">
-          {title}
-        </h2>
+      {/* HEADER ROW */}
+      <div className="flex items-center justify-between px-4 md:px-8 mb-3 md:mb-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg md:text-2xl font-bold text-white font-chillax tracking-wide">
+            {title}
+          </h2>
+
+          {/* 📱 MOBILE ARROWS (Inline next to title) */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!showLeftArrow}
+              className={`p-1.5 rounded-full border border-white/10 bg-white/5 ${
+                !showLeftArrow ? 'opacity-30 cursor-not-allowed' : 'active:bg-white/20'
+              }`}
+            >
+              <ChevronLeft className="w-4 h-4 text-white" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!showRightArrow}
+              className={`p-1.5 rounded-full border border-white/10 bg-white/5 ${
+                !showRightArrow ? 'opacity-30 cursor-not-allowed' : 'active:bg-white/20'
+              }`}
+            >
+              <ChevronRight className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        </div>
 
         <Link
           href={`/browse/${category}?type=${mediaType}`}
           className="text-xs md:text-sm font-medium text-gray-400 hover:text-white transition-colors flex items-center gap-1"
         >
-          Explore All
+          <span className="hidden sm:inline">Explore All</span>
+          <span className="sm:hidden">All</span>
           <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
 
-      {/* ARROWS - NOW VISIBLE ON MOBILE & BETTER POSITIONED */}
-      {/* Using absolute positioning relative to the ROW, pushing them up into the card area */}
-      <div className="absolute top-[60%] md:top-[55%] left-0 right-0 w-full -translate-y-1/2 z-20 pointer-events-none px-2 md:px-4">
-        <div className="flex justify-between w-full">
-          
+      {/* 🖥️ DESKTOP ARROWS (Floating Overlay) */}
+      <div className="hidden md:block pointer-events-none absolute inset-0 z-20">
+        <div className="relative w-full h-full">
           {/* Left Arrow */}
-          <div className="pointer-events-auto">
-            {showLeftArrow && (
-              <button
-                onClick={() => scroll('left')}
-                aria-label="Scroll left"
-                className="bg-black/60 backdrop-blur-md border border-white/10 text-white p-2 md:p-3 rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg md:opacity-0 md:group-hover/row:opacity-100"
-              >
-                <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
-              </button>
-            )}
-          </div>
+          {showLeftArrow && (
+            <button
+              onClick={() => scroll('left')}
+              aria-label="Scroll left"
+              className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
 
           {/* Right Arrow */}
-          <div className="pointer-events-auto">
-            {showRightArrow && (
-              <button
-                onClick={() => scroll('right')}
-                aria-label="Scroll right"
-                className="bg-black/60 backdrop-blur-md border border-white/10 text-white p-2 md:p-3 rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg md:opacity-0 md:group-hover/row:opacity-100"
-              >
-                <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
-              </button>
-            )}
-          </div>
+          {showRightArrow && (
+            <button
+              onClick={() => scroll('right')}
+              aria-label="Scroll right"
+              className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -137,11 +152,11 @@ export default function MediaRow({
             />
           </div>
         ))}
-        {/* Spacer at the end to ensure last item isn't cut off */}
+        {/* Spacer */}
         <div className="w-4 md:w-8 flex-shrink-0" />
       </div>
 
-      {/* Inline Style to guarantee scrollbar hiding */}
+      {/* Styles */}
       <style jsx>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
