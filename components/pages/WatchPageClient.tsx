@@ -7,79 +7,58 @@ import MoviePlayer from '@/components/players/MoviePlayer';
 import TvPlayer from '@/components/players/TvPlayer';
 
 interface WatchPageClientProps {
-  mediaType: 'movie' | 'tv';
+  mediaType: 'movie' | 'tv'; // Changed from string to specific union
   mediaId: number;
   season?: number;
   episode?: number;
   title: string;
-  mediaData: any;
+  mediaData: any; // Keeping flexible for now, but better typed as Movie | TVShow
 }
 
 export default function WatchPageClient({
   mediaType,
   mediaId,
-  season = 1,
-  episode = 1,
+  season,
+  episode,
   title,
   mediaData,
 }: WatchPageClientProps) {
   const router = useRouter();
 
-  useEffect(() => {
-    // Hide body scroll for fullscreen experience
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = prevOverflow || 'auto';
-    };
-  }, []);
+  // Optional: You could move the DevTools protection here if you want
+  // to protect the entire page, not just the player iframe.
+  // useDevToolsProtection(); 
 
   const handleClose = () => {
     router.back();
   };
 
-  // Render movie player
+  // Render the correct player wrapper
   if (mediaType === 'movie') {
     return (
-      <MoviePlayer
-        mediaId={mediaId}
-        title={title}
-        onClose={handleClose}
-        guardMs={6000}
-        showControls={true}
-      />
+      <div className="w-screen h-screen bg-black overflow-hidden">
+        <MoviePlayer 
+          mediaId={mediaId} 
+          title={title} 
+          onClose={handleClose} 
+        />
+      </div>
     );
   }
 
-  // Render TV player
   if (mediaType === 'tv') {
     return (
-      <TvPlayer
-        mediaId={mediaId}
-        season={season}
-        episode={episode}
-        title={title}
-        onClose={handleClose}
-        guardMs={5000}
-        autoNextMs={25 * 60 * 1000} // auto-advance after ~25 minutes
-        showControls={true}
-      />
+      <div className="w-screen h-screen bg-black overflow-hidden">
+        <TvPlayer
+          mediaId={mediaId}
+          season={season || 1}
+          episode={episode || 1}
+          title={title}
+          onClose={handleClose}
+        />
+      </div>
     );
   }
 
-  // Fallback (shouldn't reach here)
-  return (
-    <div className="fixed inset-0 bg-black flex items-center justify-center text-white">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold mb-4">Unsupported media type</h1>
-        <button
-          onClick={handleClose}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
-        >
-          Go Back
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 }
