@@ -96,9 +96,9 @@ export default function MediaCard({
   const year = date ? new Date(date).getFullYear() : null;
 
   return (
-    // ⬇️ CHANGED: Added ml-4 to shift cards right and create spacing
+    // ⬇️ CHANGED: Reduced margin from ml-4 to ml-2 for tighter spacing
     <div
-      className="relative group cursor-pointer w-[240px] sm:w-[280px] flex-shrink-0 ml-4"
+      className="relative group cursor-pointer w-[240px] sm:w-[280px] flex-shrink-0 ml-2"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
