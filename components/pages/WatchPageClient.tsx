@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MoviePlayer from '@/components/players/MoviePlayer';
 import TvPlayer from '@/components/players/TvPlayer';
-// Uncomment if you want to protect the entire page, not just the player
-import { useDevToolsProtection } from '@/lib/hooks/useDevToolsProtection'; 
 
 interface WatchPageClientProps {
   mediaType: 'movie' | 'tv';
@@ -13,27 +10,23 @@ interface WatchPageClientProps {
   season?: number;
   episode?: number;
   title: string;
-  mediaData: any; // Can be typed more strictly if you share types (Movie | TVShow)
+  mediaData: any;
 }
 
 export default function WatchPageClient({
   mediaType,
   mediaId,
-  season,
+  season, // These come from the URL searchParams (Server Side)
   episode,
   title,
   mediaData,
 }: WatchPageClientProps) {
   const router = useRouter();
 
-  // 🛡️ OPTIONAL: Protect the entire Watch Page from inspection
-  useDevToolsProtection();
-
   const handleClose = () => {
     router.back();
   };
 
-  // Render the correct player wrapper
   return (
     <div className="w-screen h-screen bg-black overflow-hidden">
       {mediaType === 'movie' ? (
@@ -45,8 +38,10 @@ export default function WatchPageClient({
       ) : (
         <TvPlayer
           mediaId={mediaId}
-          season={season || 1}
-          episode={episode || 1}
+          // Pass the values directly. 
+          // If they are undefined, TvPlayer will handle its own defaults (usually 1)
+          season={season ?? 1}
+          episode={episode ?? 1}
           title={title}
           onClose={handleClose}
         />
