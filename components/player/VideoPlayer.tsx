@@ -25,6 +25,7 @@ export default function VideoPlayer({
   onClose,
   showBackButton = true
 }: VideoPlayerProps) {
+  // State tracks INDEX of the source, not just URL
   const [currentSourceIndex, setCurrentSourceIndex] = useState<number>(0);
   const [sources, setSources] = useState<{ url: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,66 +35,11 @@ export default function VideoPlayer({
 
   const router = useRouter();
 
-  // 🛡️ SECURITY: DevTools Protection & Anti-Inspect
-  useEffect(() => {
-    // Only active in production to avoid annoying the developer
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    // 1. Disable Context Menu (Right Click)
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    // 2. Disable Keyboard Shortcuts (F12, Ctrl+Shift+I, Ctrl+U, etc.)
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
-        (e.ctrlKey && e.key === 'u')
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    // 3. Detect DevTools & Redirect (The "Debugger Trap")
-    let devToolsInterval: NodeJS.Timeout;
-    
-    if (isProduction) {
-      devToolsInterval = setInterval(() => {
-        const start = performance.now();
-        // This statement pauses execution if DevTools is open
-        // eslint-disable-next-line no-debugger
-        debugger; 
-        const end = performance.now();
-
-        // If execution paused (>100ms), DevTools is likely open -> Force Redirect
-        if (end - start > 100) {
-          router.replace('/');
-          // Hard fallback if router fails
-          window.location.href = '/';
-        }
-      }, 1000);
-    }
-
-    // Attach Listeners
-    window.addEventListener('contextmenu', handleContextMenu);
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('contextmenu', handleContextMenu);
-      window.removeEventListener('keydown', handleKeyDown);
-      if (devToolsInterval) clearInterval(devToolsInterval);
-    };
-  }, [router]);
-
-
   // Load Sources
   useEffect(() => {
     setLoading(true);
     setError(null);
-    setCurrentSourceIndex(0); 
+    setCurrentSourceIndex(0); // Reset to first server on new media load
 
     const loadSources = async () => {
       try {
@@ -128,10 +74,11 @@ export default function VideoPlayer({
 
   // AUTOMATED SWITCHING LOGIC
   const handleSourceError = useCallback(() => {
-    if (sources.length <= 1) return;
+    if (sources.length <= 1) return; // No other sources to try
 
     setIsAutoSwitching(true);
     
+    // Small delay to show UI feedback that we are switching
     setTimeout(() => {
       setCurrentSourceIndex((prev) => {
         const nextIndex = (prev + 1) % sources.length;
@@ -162,14 +109,12 @@ export default function VideoPlayer({
     </div>
   );
 
+  // Get current source safely
   const currentUrl = sources[currentSourceIndex]?.url;
   const currentLabel = sources[currentSourceIndex]?.label;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black z-50 flex flex-col select-none"
-      onContextMenu={(e) => e.preventDefault()} // Double protection on wrapper
-    >
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {showBackButton && (
         <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent pointer-events-none transition-opacity hover:opacity-100">
           <button onClick={handleClose} className="pointer-events-auto flex items-center gap-3 text-white/80 hover:text-white transition-colors group">
@@ -243,16 +188,16 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {/* VIDEO IFRAME - SECURE & WORKING */}
+      {/* VIDEO IFRAME */}
       {currentUrl && (
         <iframe
-          key={currentUrl}
+          key={currentUrl} // Force reload on URL change
           src={currentUrl}
           className="w-full h-full border-0 bg-black"
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           referrerPolicy="origin"
-          // 🛡️ Confirmed Working Sandbox Config
+          // 🛡️ SECURITY: Blocks redirects/popups while allowing video playback
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
         />
