@@ -1,16 +1,13 @@
 // components/media/MediaCard.tsx
 
-
 'use client';
-
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Plus, Heart, Info, Star } from 'lucide-react';
+import { Play, Plus, Heart, Star } from 'lucide-react';
 import { Movie, Genre } from '@/lib/api/types';
 import { watchlistStorage, likedStorage } from '@/lib/storage/watchlist';
-
 
 interface MediaCardProps {
   media: Movie;
@@ -19,13 +16,11 @@ interface MediaCardProps {
   mediaType: 'movie' | 'tv';
 }
 
-
 // ✅ Landscape size for modern horizontal cards
 const TMDB_IMAGE_SIZES = {
   backdrop: 'w780', // Landscape
   poster: 'w500',
 } as const;
-
 
 export default function MediaCard({
   media,
@@ -37,7 +32,6 @@ export default function MediaCard({
   const [inWatch, setInWatch] = useState(false);
   const [liked, setLiked] = useState(false);
 
-
   // ✅ Prefer backdrop (landscape) image for horizontal cards
   const buildImage = (backdrop: string | null, poster: string | null) => {
     if (backdrop) return `https://image.tmdb.org/t/p/${TMDB_IMAGE_SIZES.backdrop}${backdrop}`;
@@ -45,13 +39,11 @@ export default function MediaCard({
     return '/placeholder-movie.jpg';
   };
 
-
   // Sync buttons
   useEffect(() => {
     setInWatch(watchlistStorage.isInWatchlist(media.id, mediaType));
     setLiked(likedStorage.isLiked(media.id, mediaType));
   }, [media.id, mediaType]);
-
 
   const toggleWatch = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,7 +59,6 @@ export default function MediaCard({
       first_air_date: mediaType === 'tv' ? media.first_air_date : undefined,
     };
 
-
     if (inWatch) {
       watchlistStorage.removeFromWatchlist(media.id, mediaType);
     } else {
@@ -76,7 +67,6 @@ export default function MediaCard({
     setInWatch(!inWatch);
     window.dispatchEvent(new CustomEvent('watchlist-updated'));
   };
-
 
   const toggleLike = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -92,7 +82,6 @@ export default function MediaCard({
       first_air_date: mediaType === 'tv' ? media.first_air_date : undefined,
     };
 
-
     if (liked) {
       likedStorage.removeFromLiked(media.id, mediaType);
     } else {
@@ -102,15 +91,14 @@ export default function MediaCard({
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
-
   const title = mediaType === 'movie' ? media.title : media.name;
   const date = mediaType === 'movie' ? media.release_date : media.first_air_date;
   const year = date ? new Date(date).getFullYear() : null;
 
-
   return (
+    // ⬇️ RESIZED: Reduced width for a more compact look
     <div
-      className="relative group cursor-pointer w-[280px] sm:w-[320px] flex-shrink-0"
+      className="relative group cursor-pointer w-[240px] sm:w-[280px] flex-shrink-0"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -124,70 +112,64 @@ export default function MediaCard({
             src={buildImage(media.backdrop_path, media.poster_path)}
             alt={title || 'Media'}
             fill
-            sizes="(max-width: 768px) 280px, 320px"
+            sizes="(max-width: 768px) 240px, 280px"
             priority={priority}
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-
           {/* Gradient Overlay - Always visible at bottom for readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
 
-
           {/* Rating Badge - Top Right */}
           {media.vote_average > 0 && (
-            <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md border border-white/10 px-2 py-1 rounded-lg flex items-center gap-1">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md border border-white/10 px-1.5 py-0.5 rounded-md flex items-center gap-1">
+              <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
               <span className="text-[10px] font-bold text-white">{media.vote_average.toFixed(1)}</span>
             </div>
           )}
 
-
           {/* Hover Actions Overlay */}
-          <div className={`absolute inset-0 flex items-center justify-center gap-3 transition-opacity duration-300 ${hover ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-300 ${hover ? 'opacity-100' : 'opacity-0'}`}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
             
             {/* Play Button */}
             <Link
               href={`/watch/${mediaType}/${media.id}`}
-              className="relative z-10 w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+              className="relative z-10 w-9 h-9 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
               onClick={(e) => e.stopPropagation()}
             >
-              <Play className="w-4 h-4 fill-current ml-0.5" />
+              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
             </Link>
-
 
             {/* Watchlist Button */}
             <button
               onClick={toggleWatch}
-              className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+              className={`relative z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all border ${
                 inWatch ? 'bg-green-500 border-green-500 text-white' : 'bg-black/50 border-white/30 text-white hover:bg-white hover:text-black'
               }`}
             >
-              <Plus className={`w-5 h-5 transition-transform ${inWatch ? 'rotate-45' : ''}`} />
+              <Plus className={`w-4 h-4 transition-transform ${inWatch ? 'rotate-45' : ''}`} />
             </button>
-
 
             {/* Like Button */}
             <button
               onClick={toggleLike}
-              className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+              className={`relative z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all border ${
                 liked ? 'bg-red-500 border-red-500 text-white' : 'bg-black/50 border-white/30 text-white hover:bg-white hover:text-black'
               }`}
             >
-              <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
+              <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-current' : ''}`} />
             </button>
           </div>
 
-
           {/* Content Info (Always visible at bottom) */}
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            <h3 className="text-white font-bold text-base leading-tight line-clamp-1 font-chillax group-hover:text-blue-400 transition-colors">
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <h3 className="text-white font-bold text-sm md:text-base leading-tight line-clamp-1 font-chillax group-hover:text-blue-400 transition-colors">
               {title}
             </h3>
-            <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+            <div className="flex items-center gap-2 mt-1 text-[10px] md:text-xs text-gray-400">
               {year && <span>{year}</span>}
-              <span className="w-1 h-1 bg-gray-600 rounded-full" />
+              <span className="w-0.5 h-0.5 bg-gray-600 rounded-full" />
               <span className="uppercase">{mediaType === 'movie' ? 'Movie' : 'TV'}</span>
             </div>
           </div>
