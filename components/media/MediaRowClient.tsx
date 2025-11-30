@@ -1,3 +1,5 @@
+// components/media/MediaRow.tsx (and/or MediaRowClient.tsx)
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -29,12 +31,15 @@ export default function MediaRow({
 
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
-  const [arrowVertical, setArrowVertical] = useState('50%');
+  
+  // ✅ FIXED: Hardcoded a better vertical position relative to the container
+  // Instead of dynamic calc which can be buggy, we'll use a % that works better visually
+  // top-1/2 of the scroll container usually works best.
 
   const getScrollAmount = () => {
-    if (!scrollRef.current) return 340 * 2;
+    if (!scrollRef.current) return 300;
     const width = scrollRef.current.clientWidth;
-    return Math.max(340, Math.round(width * 0.8));
+    return Math.max(280, Math.round(width * 0.8));
   };
 
   const handleScroll = () => {
@@ -42,23 +47,14 @@ export default function MediaRow({
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
 
-    setShowLeftArrow(scrollLeft > 5);
-    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
-  };
-
-  const updateArrowPosition = () => {
-    if (!rowRef.current) return;
-    const row = rowRef.current;
-    // Center arrows vertically relative to the row height
-    const center = Math.max(150, row.offsetHeight / 2);
-    setArrowVertical(`${center}px`);
+    setShowLeftArrow(scrollLeft > 10); // slightly higher threshold prevents flicker
+    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
   };
 
   useEffect(() => {
     handleScroll();
-    updateArrowPosition();
-    window.addEventListener('resize', updateArrowPosition);
-    return () => window.removeEventListener('resize', updateArrowPosition);
+    window.addEventListener('resize', handleScroll);
+    return () => window.removeEventListener('resize', handleScroll);
   }, [items]);
 
   const scroll = (dir: 'left' | 'right') => {
@@ -75,11 +71,11 @@ export default function MediaRow({
   if (!items?.length) return null;
 
   return (
-    <div className="relative mb-14 group/row" ref={rowRef}>
+    <div className="relative mb-12 group/row" ref={rowRef}>
 
       {/* HEADER */}
-      <div className="flex items-end justify-between px-6 md:px-8 mb-4">
-        <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">
+      <div className="flex items-end justify-between px-4 md:px-8 mb-3 md:mb-4">
+        <h2 className="text-lg md:text-2xl font-bold text-white font-chillax tracking-wide">
           {title}
         </h2>
 
@@ -92,36 +88,44 @@ export default function MediaRow({
         </Link>
       </div>
 
-      {/* ARROWS */}
-      <div className="hidden md:block">
-        {showLeftArrow && (
-          <button
-            onClick={() => scroll('left')}
-            aria-label="Scroll left"
-            className="absolute z-20 left-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
-            style={{ top: arrowVertical, transform: 'translateY(-50%)' }}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-        )}
+      {/* ARROWS - NOW VISIBLE ON MOBILE & BETTER POSITIONED */}
+      {/* Using absolute positioning relative to the ROW, pushing them up into the card area */}
+      <div className="absolute top-[60%] md:top-[55%] left-0 right-0 w-full -translate-y-1/2 z-20 pointer-events-none px-2 md:px-4">
+        <div className="flex justify-between w-full">
+          
+          {/* Left Arrow */}
+          <div className="pointer-events-auto">
+            {showLeftArrow && (
+              <button
+                onClick={() => scroll('left')}
+                aria-label="Scroll left"
+                className="bg-black/60 backdrop-blur-md border border-white/10 text-white p-2 md:p-3 rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg md:opacity-0 md:group-hover/row:opacity-100"
+              >
+                <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
+              </button>
+            )}
+          </div>
 
-        {showRightArrow && (
-          <button
-            onClick={() => scroll('right')}
-            aria-label="Scroll right"
-            className="absolute z-20 right-6 bg-black/40 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
-            style={{ top: arrowVertical, transform: 'translateY(-50%)' }}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        )}
+          {/* Right Arrow */}
+          <div className="pointer-events-auto">
+            {showRightArrow && (
+              <button
+                onClick={() => scroll('right')}
+                aria-label="Scroll right"
+                className="bg-black/60 backdrop-blur-md border border-white/10 text-white p-2 md:p-3 rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg md:opacity-0 md:group-hover/row:opacity-100"
+              >
+                <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* SCROLL AREA - Hiding Scrollbars Forcefully */}
+      {/* SCROLL AREA */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex gap-4 overflow-x-auto pb-4 px-6 md:px-8 snap-x snap-mandatory hide-scrollbar"
+        className="flex overflow-x-auto pb-4 px-4 md:px-8 snap-x snap-mandatory hide-scrollbar scroll-smooth"
       >
         {items.map((item) => (
           <div key={item.id} className="snap-start">
@@ -133,7 +137,8 @@ export default function MediaRow({
             />
           </div>
         ))}
-        <div className="w-8 flex-shrink-0" />
+        {/* Spacer at the end to ensure last item isn't cut off */}
+        <div className="w-4 md:w-8 flex-shrink-0" />
       </div>
 
       {/* Inline Style to guarantee scrollbar hiding */}
