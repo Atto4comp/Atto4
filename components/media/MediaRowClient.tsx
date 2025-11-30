@@ -71,33 +71,9 @@ export default function MediaRow({
 
       {/* HEADER ROW */}
       <div className="flex items-center justify-between px-4 md:px-8 mb-3 md:mb-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg md:text-2xl font-bold text-white font-chillax tracking-wide">
-            {title}
-          </h2>
-
-          {/* 📱 MOBILE ARROWS (Inline next to title) */}
-          <div className="flex md:hidden items-center gap-2">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!showLeftArrow}
-              className={`p-1.5 rounded-full border border-white/10 bg-white/5 ${
-                !showLeftArrow ? 'opacity-30 cursor-not-allowed' : 'active:bg-white/20'
-              }`}
-            >
-              <ChevronLeft className="w-4 h-4 text-white" />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!showRightArrow}
-              className={`p-1.5 rounded-full border border-white/10 bg-white/5 ${
-                !showRightArrow ? 'opacity-30 cursor-not-allowed' : 'active:bg-white/20'
-              }`}
-            >
-              <ChevronRight className="w-4 h-4 text-white" />
-            </button>
-          </div>
-        </div>
+        <h2 className="text-lg md:text-2xl font-bold text-white font-chillax tracking-wide">
+          {title}
+        </h2>
 
         <Link
           href={`/browse/${category}?type=${mediaType}`}
@@ -109,17 +85,18 @@ export default function MediaRow({
         </Link>
       </div>
 
-      {/* 🖥️ DESKTOP ARROWS (Floating Overlay) */}
+      {/* 🖥️ DESKTOP ARROWS (Floating Overlay - HIDDEN ON MOBILE) */}
       <div className="hidden md:block pointer-events-none absolute inset-0 z-20">
         <div className="relative w-full h-full">
+          
           {/* Left Arrow */}
           {showLeftArrow && (
             <button
               onClick={() => scroll('left')}
               aria-label="Scroll left"
-              className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+              className="pointer-events-auto absolute left-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-2 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
           )}
 
@@ -128,9 +105,9 @@ export default function MediaRow({
             <button
               onClick={() => scroll('right')}
               aria-label="Scroll right"
-              className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-3 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
+              className="pointer-events-auto absolute right-4 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md border border-white/10 text-white p-2 rounded-full opacity-0 group-hover/row:opacity-100 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           )}
         </div>
@@ -156,7 +133,6 @@ export default function MediaRow({
         <div className="w-4 md:w-8 flex-shrink-0" />
       </div>
 
-      {/* Styles */}
       <style jsx>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
