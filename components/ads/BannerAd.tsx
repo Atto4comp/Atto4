@@ -3,7 +3,7 @@
 
 // Define your ad URLs here (direct iframe links)
 const AD_SOURCES = [
-  "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6668961984680825",
+  "https://cdn.ampproject.org/v0/amp-ad-0.1.js",
   // Add more ad iframe URLs as needed
 ];
 
