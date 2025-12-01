@@ -8,6 +8,7 @@ import MediaRow from '@/components/media/MediaRow';
 import WatchlistRow from '@/components/media/WatchlistRow';
 import LikedRow from '@/components/media/LikedRow';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import BannerAd from '@/components/ads/BannerAd'; // ✅ IMPORTED
 
 // make this static with ISR
 export const dynamic = 'force-static';
@@ -136,7 +137,12 @@ export default async function HomePage() {
       <Suspense fallback={<LoadingSpinner />}>
         <HeroSection media={(trending || []).slice(0, 5)} />
       </Suspense>
+      
       <meta name="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" content="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" />
+      
+      {/* ✅ ADVERTISEMENT SLOT ADDED HERE */}
+      <BannerAd />
+
       <div className="relative z-10 pt-16 pb-20 bg-gradient-to-b from-black via-gray-900 to-black space-y-16">
         <MediaRow title="Trending Movies" items={trending} genres={genres} category="trending" mediaType="movie" priority />
         <MediaRow title="Popular Movies" items={popular} genres={genres} category="popular" mediaType="movie" />
