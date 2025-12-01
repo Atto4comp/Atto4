@@ -138,6 +138,7 @@ export default async function HomePage() {
         <HeroSection media={(trending || []).slice(0, 5)} />
       </Suspense>
       
+      <meta name="google-adsense-account" content="ca-pub-6668961984680825">
       <meta name="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" content="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" />
       
       {/* ✅ ADVERTISEMENT SLOT ADDED HERE */}
