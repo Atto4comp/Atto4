@@ -143,7 +143,7 @@ export default async function HomePage() {
       {/* ✅ ADVERTISEMENT SLOT ADDED HERE */}
       <BannerAd />
 
-      <div className="relative z-10 pt-16 pb-20 bg-gradient-to-b from-black via-gray-900 to-black space-y-16">
+      <div className="relative z-10 pt-16 pb-20 bg-b from-black via-gray-900 to-black space-y-16">
         <MediaRow title="Trending Movies" items={trending} genres={genres} category="trending" mediaType="movie" priority />
         <MediaRow title="Popular Movies" items={popular} genres={genres} category="popular" mediaType="movie" />
         <MediaRow title="Top-Rated Movies" items={topRated} genres={genres} category="top-rated" mediaType="movie" />
