@@ -139,6 +139,7 @@ export default async function HomePage() {
       </Suspense>
       
       <meta name="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" content="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" />
+      <meta name="google-adsense-account" content="ca-pub-6668961984680825">
       
       {/* ✅ ADVERTISEMENT SLOT ADDED HERE */}
       <BannerAd />
