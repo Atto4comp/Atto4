@@ -18,7 +18,7 @@ export default function BannerAd() {
     // The provided script logic wrapped safely
     const code = `
 async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6668961984680825"
-     crossorigin="anonymous">
+     crossorigin="anonymous"
 <!-- beauford framer lost in deep dense hassle -->
 <ins class="adsbygoogle"
      style="display:block"
@@ -31,7 +31,7 @@ async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client
     // Create the script element
     const s = document.createElement('script');
     // Use the specific source URL provided in your snippet logic
-    s.src = "//aggressivestruggle.com/bFX.Vxs_ddGqlh0jYcWVcN/keimc9uuzZ/UwlPkHP/T/YW3LM/TxcQ1xMbzMQOtKN/jLcpxoN/zrUJzGNgQw";
+    s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6668961984680825";
     s.async = true;
     s.referrerPolicy = 'no-referrer-when-downgrade';
     
