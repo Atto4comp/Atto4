@@ -136,7 +136,7 @@ export default async function HomePage() {
       <Suspense fallback={<LoadingSpinner />}>
         <HeroSection media={(trending || []).slice(0, 5)} />
       </Suspense>
-
+      <meta name="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" content="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" />
       <div className="relative z-10 pt-16 pb-20 bg-gradient-to-b from-black via-gray-900 to-black space-y-16">
         <MediaRow title="Trending Movies" items={trending} genres={genres} category="trending" mediaType="movie" priority />
         <MediaRow title="Popular Movies" items={popular} genres={genres} category="popular" mediaType="movie" />
