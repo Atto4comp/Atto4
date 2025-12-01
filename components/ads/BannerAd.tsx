@@ -3,7 +3,7 @@
 
 // Define your ad URLs here (direct iframe links)
 const AD_SOURCES = [
-  'https://embarrassed-bridge.com/b.3TVm0/Pm3QpNv/b/myVgJEZaDF0o2LN/zeEf3xN/TBUm4/LrT/YY3/MBTRcT1SNBTOkr',
+  "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6668961984680825",
   // Add more ad iframe URLs as needed
 ];
 
