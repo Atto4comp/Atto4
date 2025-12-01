@@ -16,16 +16,17 @@ export default function BannerAd() {
    const script = document.createElement('script');
     // The provided script logic wrapped safely
     const code = `
-(function(xlhcc){
+(function(wdzliw){
 var d = document,
     s = d.createElement('script'),
     l = d.scripts[d.scripts.length - 1];
-s.settings = xlhcc || {};
-s.src = "\/\/embarrassed-bridge.com\/caD.9J6Gb\/2r5dlbS\/WvQs9QN\/jecgxKNszjU\/1AO\/Cs0J2GNHznE-3NN\/TbUs5N";
+s.settings = wdzliw || {};
+s.src = "\/\/aggressivestruggle.com\/b\/XPVysPd.Gxlj0BY\/W-cv\/meump9yuIZKUDlUkzPOT\/YZ3JMCTacU2AMvT\/QmtINojecsxMNAzzYtxxN\/Qh";
 s.async = true;
 s.referrerPolicy = 'no-referrer-when-downgrade';
 l.parentNode.insertBefore(s, l);
 })({})
+
     `;
     // Create the script element
     const s = document.createElement('script');
