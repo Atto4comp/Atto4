@@ -1,35 +1,69 @@
 // components/ads/BannerAd.tsx
 'use client';
 
-// Define your ad URLs here (direct iframe links)
-const AD_SOURCES = [
-  "https://cdn.ampproject.org/v0/amp-ad-0.1.js",
-  // Add more ad iframe URLs as needed
-];
+import { useEffect, useRef } from 'react';
 
 export default function BannerAd() {
-  // Randomly select an ad on each page load (or just use [0] for fixed)
-  const adUrl = AD_SOURCES[Math.floor(Math.random() * AD_SOURCES.length)];
+  const adContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!adContainerRef.current) return;
+
+    // Check if script already exists to prevent duplicates on re-renders
+    if (adContainerRef.current.querySelector('script[src*="aggressivestruggle.com"]')) {
+      return;
+    }
+    
+  const script = document.createElement('script');
+    // The provided script logic wrapped safely
+    const code = `
+async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6668961984680825"
+     crossorigin="anonymous"></script>
+<!-- beauford framer lost in deep dense hassle -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-6668961984680825"
+     data-ad-slot="5254377433"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+    `;
+    // Create the script element
+    const s = document.createElement('script');
+    // Use the specific source URL provided in your snippet logic
+    s.src = "//aggressivestruggle.com/bFX.Vxs_ddGqlh0jYcWVcN/keimc9uuzZ/UwlPkHP/T/YW3LM/TxcQ1xMbzMQOtKN/jLcpxoN/zrUJzGNgQw";
+    s.async = true;
+    s.referrerPolicy = 'no-referrer-when-downgrade';
+    
+    // Append to our container
+    adContainerRef.current.appendChild(s);
+
+    return () => {
+      if (adContainerRef.current) {
+        adContainerRef.current.innerHTML = '';
+      }
+    };
+  }, []);
 
   return (
     <div className="w-full flex flex-col items-center justify-center my-8 px-4">
       {/* Label */}
-      <div className="text-[10px] uppercase tracking-widest text-gray-500/50 mb-2 font-medium">
-        Sponsored
+      <div className="text-[10px] uppercase tracking-widest text-gray-600 mb-2 font-medium">
+        Advertisement
       </div>
 
-      {/* Single Rectangular Frame */}
-      <div className="relative w-full max-w-[728px] h-[90px] bg-white/5 border border-white/10 rounded-xl overflow-hidden backdrop-blur-md shadow-2xl transition-all hover:border-white/20 hover:bg-white/10">
+      {/* Ad Container Frame */}
+      <div className="relative w-full max-w-[728px] min-h-[90px] flex items-center justify-center bg-white/5 border border-white/10 rounded-xl overflow-hidden backdrop-blur-sm shadow-lg transition-all hover:border-white/20">
         
-        {/* Ad Iframe */}
-        <iframe
-          src={adUrl}
-          className="w-full h-full border-0"
-          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-          referrerPolicy="no-referrer-when-downgrade"
-          loading="lazy"
+        {/* The Ad Script Injection Slot */}
+        <div 
+          id="ad-slot-hero-bottom"
+          ref={adContainerRef} 
+          className="w-full h-full flex items-center justify-center overflow-hidden"
         />
-
+        
       </div>
     </div>
   );
