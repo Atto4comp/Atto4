@@ -18,7 +18,7 @@ export default function BannerAd() {
     // The provided script logic wrapped safely
     const code = `
 async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6668961984680825"
-     crossorigin="anonymous"></script>
+     crossorigin="anonymous">
 <!-- beauford framer lost in deep dense hassle -->
 <ins class="adsbygoogle"
      style="display:block"
@@ -26,9 +26,7 @@ async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client
      data-ad-slot="5254377433"
      data-ad-format="auto"
      data-full-width-responsive="true"></ins>
-<script>
      (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
     `;
     // Create the script element
     const s = document.createElement('script');
