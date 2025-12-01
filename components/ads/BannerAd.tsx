@@ -17,17 +17,16 @@ export default function BannerAd() {
     const script = document.createElement('script');
     // The provided script logic wrapped safely
     const code = `
-      (function(zpvdzg){
-        var d = document,
-            s = d.createElement('script'),
-            l = d.scripts[d.scripts.length - 1];
-        s.settings = zpvdzg || {};
-        s.src = "//aggressivestruggle.com/bFX.Vxs_ddGqlh0jYcWVcN/keimc9uuzZ/UwlPkHP/T/YW3LM/TxcQ1xMbzMQOtKN/jLcpxoN/zrUJzGNgQw";
-        s.async = true;
-        s.referrerPolicy = 'no-referrer-when-downgrade';
-        /* We append to our specific container instead of relying on d.scripts location */
-        document.getElementById('ad-slot-hero-bottom').appendChild(s);
-      })({})
+(function(xlhcc){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = xlhcc || {};
+s.src = "\/\/embarrassed-bridge.com\/caD.9J6Gb\/2r5dlbS\/WvQs9QN\/jecgxKNszjU\/1AO\/Cs0J2GNHznE-3NN\/TbUs5N";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
     `;
 
     // Since the original script uses `l.parentNode.insertBefore`, which relies on the script tag's position,
