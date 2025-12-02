@@ -11,11 +11,7 @@ export default function BannerAd() {
     // 1. Load the Google AdSense script globally if not already loaded
     if (!window.adsbygoogle && !scriptLoaded.current) {
       const script = document.createElement('script');
-      script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6668961984680825";
-      script.async = true;
-      script.crossOrigin = "anonymous";
-      document.head.appendChild(script);
-      scriptLoaded.current = true;
+      ;
     }
 
     // 2. Push the ad only once after component mounts
