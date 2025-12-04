@@ -10,8 +10,9 @@ export interface MovieEmbedResult {
 
 const PROVIDERS = [
   { url: "https://fmovies4u.com/embed/tmdb-movie-${id}?theme=16A085&hideServer=true&autoPlay=true&sub=en&nextButton=true&autoNext=true&title=false", label: "Vidly" },
-  { url: "https://bidsrc.pro/movie/${id}?autoplay=true", label: "vidzy" },
-  { url: "https://vidfast.to/embed/movie/${id}", label: "Vidme" }
+  { url: "https://www.vidking.net/embed/movie/${id}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true", label: "vidme" },
+  { url: "https://bidsrc.pro/movie/${id}?autoplay=true", label: "vidzy" }
+  
 ];
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
