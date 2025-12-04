@@ -39,14 +39,17 @@ export default function BannerAd() {
   }, []);
 
   return (
-    <div className="w-full flex flex-col items-center justify-center my-8 px-4">
-      {/* Label - Darker text for subtle look */}
-      <div className="text-[10px] uppercase tracking-widest text-gray-700 mb-2 font-medium">
+    // ⬇️ UPDATED: Removed any 'bg-' classes from this outer div
+    // It is now transparent, so it will show the page's main background
+    <div className="w-full flex flex-col items-center justify-center my-8 px-4 bg-transparent">
+      
+      {/* Label */}
+      <div className="text-[10px] uppercase tracking-widest text-gray-600 mb-2 font-medium opacity-50">
         Sponsored
       </div>
 
-      {/* Ad Container Frame - Black Background */}
-      <div className="relative w-full max-w-[320px] min-h-[50px] flex items-center justify-center bg-black border border-white/5 rounded-xl overflow-hidden shadow-lg transition-all hover:border-white/10">
+      {/* Ad Container Frame - Kept the internal styling for the ad box itself */}
+      <div className="relative w-full max-w-[320px] min-h-[50px] flex items-center justify-center bg-black border border-white/5 rounded-xl overflow-hidden shadow-lg">
         <div
           ref={adContainerRef}
           className="w-full h-full flex items-center justify-center overflow-hidden"
