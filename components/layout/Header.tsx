@@ -5,43 +5,30 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, Menu, Home, Film, Tv, Grid3X3, X, Sparkles } from 'lucide-react';
+import { Search, Menu, Home, Film, Tv, Grid3X3, X } from 'lucide-react';
 import SearchBar from '@/components/common/SearchBar';
 
-// Custom Donation Jar Icon Component
-const DonateJarIcon = ({ className, size = 24 }: { className?: string; size?: number }) => (
+// 🎨 Custom Donation Icon Component (from your image)
+const DonateIcon = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
   <svg 
     width={size} 
     height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
+    viewBox="0 0 512 512" 
+    fill="currentColor" 
+    xmlns="http://www.w3.org/2000/svg"
     className={className}
   >
-    {/* Jar Outline */}
-    <path d="M19 10c0-3.9-3.1-7-7-7S5 6.1 5 10v6a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-6z" />
-    <path d="M8 3h8" />
-    <path d="M12 11v6" />
-    {/* Dollar Symbol */}
-    <path d="M12 11a2 2 0 0 1 2 2 2 2 0 1 1-4 0 2 2 0 0 1 2-2" />
-    <path d="M12 17v-6" />
-    <path d="M12 11a2 2 0 0 0-2-2 2 2 0 0 0 2 2" />
-    <path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2 2" />
-    
-    {/* Simplified S shape inside */}
-    <path d="M10 13h4" />
-    <path d="M12 12v2" />
+    {/* Coin */}
+    <path d="M256 0C185.3 0 128 57.3 128 128H170.7C170.7 80.8 208.8 42.7 256 42.7C303.2 42.7 341.3 80.8 341.3 128H384C384 57.3 326.7 0 256 0Z" />
+    <path d="M256 64C220.7 64 192 92.7 192 128H234.7C234.7 116.2 244.2 106.7 256 106.7C267.8 106.7 277.3 116.2 277.3 128H320C320 92.7 291.3 64 256 64Z" />
+    {/* Dollar Sign */}
+    <path d="M245.3 74.7V96C233.6 98.4 224 106.9 224 117.3C224 129.1 233.6 138.7 245.3 138.7V160C239.5 160 234.7 155.2 234.7 149.3H213.3C213.3 163.2 222.2 175.1 234.7 179.7V181.3H256V160C267.8 157.6 277.3 149.1 277.3 138.7C277.3 126.9 267.8 117.3 256 117.3V96C261.9 96 266.7 100.8 266.7 106.7H288C288 92.8 279.1 80.9 266.7 76.3V74.7H245.3ZM256 138.7C261.9 138.7 266.7 143.5 266.7 149.3C266.7 155.2 261.9 160 256 160V138.7ZM245.3 117.3C245.3 111.5 250.1 106.7 256 106.7V128C250.1 128 245.3 123.2 245.3 117.3Z" />
+    {/* Box Top */}
+    <path d="M64 192V256H448V192H64ZM106.7 234.7V213.3H405.3V234.7H106.7Z" />
+    {/* Box Bottom with Heart */}
+    <path d="M85.3 277.3V490.7H426.7V277.3H384V448H128V277.3H85.3ZM256 330.7C220.5 330.7 192 359.2 192 394.7C192 419.7 256 469.3 256 469.3C256 469.3 320 419.7 320 394.7C320 359.2 291.5 330.7 256 330.7ZM256 438.7C241.3 425.6 213.3 399.5 213.3 394.7C213.3 371.1 232.5 352 256 352C279.5 352 298.7 371.1 298.7 394.7C298.7 399.5 270.7 425.6 256 438.7Z" />
   </svg>
 );
-
-// OR better yet, using standard Lucide 'Coins' which is cleaner, 
-// but I will stick to your request for a "Jar". 
-// Actually, let's just use 'CircleDollarSign' as it's cleaner if the custom SVG looks weird.
-// Let's try to approximate the visual:
-import { CircleDollarSign } from 'lucide-react';
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -73,8 +60,10 @@ export default function Header() {
 
   return (
     <>
+      {/* Floating Header Wrapper */}
       <header className={`modern-header-wrapper ${scrolled ? 'scrolled' : ''}`}>
         
+        {/* Glass Capsule Island */}
         <div className="glass-capsule">
           
           {/* Brand */}
@@ -95,7 +84,7 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Nav */}
+          {/* Nav Pills (Desktop) */}
           <nav className="nav-island mx-4">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -113,9 +102,9 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Actions */}
+          {/* Action Orbs */}
           <div className="action-group">
-            {/* Search */}
+            {/* Search Orb */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className="action-orb"
@@ -124,14 +113,13 @@ export default function Header() {
               {isSearchOpen ? <X size={18} /> : <Search size={18} />}
             </button>
 
-            {/* DONATE BUTTON (Replaced Login) */}
+            {/* DONATE ORB (Desktop) */}
             <button
               onClick={() => router.push('/donate')}
               className="action-orb primary hidden sm:flex text-yellow-400 hover:bg-yellow-400/20 hover:text-yellow-300 transition-colors border-yellow-400/20"
               aria-label="Donate"
             >
-              {/* Using CircleDollarSign as a clean, standard representation of 'Money/Donate' */}
-              <CircleDollarSign size={20} strokeWidth={2.5} />
+              <DonateIcon size={20} />
             </button>
 
             {/* Mobile Menu Toggle */}
@@ -146,7 +134,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Search Curtain */}
+      {/* Search Overlay */}
       <div 
         className={`search-curtain ${isSearchOpen ? 'open' : ''}`}
         onClick={() => setIsSearchOpen(false)}
@@ -160,7 +148,7 @@ export default function Header() {
         )}
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Sheet */}
       <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="flex justify-between items-center mb-6 px-2">
           <span className="text-white font-chillax text-lg">Menu</span>
@@ -190,12 +178,12 @@ export default function Header() {
         </div>
 
         <div className="mt-6">
-          {/* Donate Button Mobile */}
+          {/* DONATE BUTTON (Mobile) */}
           <button 
             onClick={() => router.push('/donate')}
             className="w-full py-4 bg-yellow-500 text-black rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg shadow-yellow-500/20"
           >
-            <CircleDollarSign size={20} strokeWidth={2.5} />
+            <DonateIcon size={24} />
             Donate
           </button>
         </div>
