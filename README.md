@@ -70,13 +70,96 @@ A quick look at the top-level files and directories you'll see in the project:
 ├── public/               # Static assets (images, fonts)
 ├── .env.local            # Environment variables (API Keys)
 └── next.config.ts        # Next.js configuration
+````
+
+## 🏁 Getting Started
+
+Ready to dive in? Follow these steps to get Atto4 running locally.
+
+### Prerequisites
+
+  - Node.js 18+ installed
+  - A [TMDB API Key](https://www.themoviedb.org/documentation/api) (It's Free\!)
+
+### Installation
+
+1.  **Clone the repo**
+
+    ```bash
+    git clone [https://github.com/yourusername/atto4.git](https://github.com/yourusername/atto4.git)
+    cd atto4
+    ```
+
+2.  **Install dependencies**
+    We recommend using `pnpm` for speed, but npm works too.
+
+    ```bash
+    pnpm install
+    # or
+    npm install
+    ```
+
+3.  **Configure Environment**
+    Create a `.env.local` file in the root directory and add your keys:
+
+    ```env
+    NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key_here
+    NEXT_PUBLIC_SITE_URL=http://localhost:3000
+    ```
+
+4.  **Run the development server**
+
+    ```bash
+    pnpm dev
+    ```
+
+Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) to see the magic\! ✨
+
+## 🤝 Contributing
+
+We ❤️ contributors\! Atto4 is built by the community, for the community.
+
+**Don't know where to start?**
+Check out our [Issues](https://github.com/yourusername/atto4/issues) tab\! We have labeled tasks for everyone:
+
+| Label | Description |
+| :--- | :--- |
+| 🟢 **Good First Issue** | Perfect for beginners. UI tweaks, typos, simple components. |
+| 🟡 **Enhancement** | New features, API integrations, and search improvements. |
+| 🔴 **Advanced** | Backend auth, database integration, performance optimization. |
+
+### How to submit a Pull Request
+
+1.  **Fork** the repository.
+2.  **Create a branch** for your feature (`git checkout -b feature/AmazingFeature`).
+3.  **Commit** your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  **Push** to the branch (`git push origin feature/AmazingFeature`).
+5.  **Open a Pull Request**.
+
+## 🗺 Roadmap
+
+  - [x] Core Streaming UI (Home, Details, Player)
+  - [x] Search Functionality
+  - [x] Watchlist & Likes (Local Storage)
+  - [ ] **User Authentication** (Save watchlist across devices)
+  - [ ] **Multi-Language Support** (i18n)
+  - [ ] **PWA Support** (Installable app)
+  - [ ] **Social Features** (Share lists with friends)
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+-----
+
+\<div align="center"\>
+\<p\>Built with 💻 and ☕ by the Atto4 Community.\</p\>
+\<p\>
+\<a href="https://github.com/yourusername/atto4/stargazers"\>
+\<img src="https://img.shields.io/github/stars/yourusername/atto4?style=social" alt="GitHub stars"\>
+\</a\>
+\</p\>
+\</div\>
+
 ```
-🏁 Getting StartedReady to dive in? Follow these steps to get Atto4 running locally.PrerequisitesNode.js 18+ installedA TMDB API Key (It's Free!)InstallationClone the repoBashgit clone [https://github.com/yourusername/atto4.git](https://github.com/yourusername/atto4.git)
-cd atto4
-Install dependenciesWe recommend using pnpm for speed, but npm works too.Bashpnpm install
-# or
-npm install
-Configure EnvironmentCreate a .env.local file in the root directory and add your keys:Code snippetNEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key_here
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-Run the development serverBashpnpm dev
-Open http://localhost:3000 to see the magic! ✨🤝 ContributingWe ❤️ contributors! Atto4 is built by the community, for the community.Don't know where to start?Check out our Issues tab! We have labeled tasks for everyone:LabelDescription🟢 Good First IssuePerfect for beginners. UI tweaks, typos, simple components.🟡 EnhancementNew features, API integrations, and search improvements.🔴 AdvancedBackend auth, database integration, performance optimization.How to submit a Pull RequestFork the repository.Create a branch for your feature (git checkout -b feature/AmazingFeature).Commit your changes (git commit -m 'Add some AmazingFeature').Push to the branch (git push origin feature/AmazingFeature).Open a Pull Request.🗺 Roadmap[x] Core Streaming UI (Home, Details, Player)[x] Search Functionality[x] Watchlist & Likes (Local Storage)[ ] User Authentication (Save watchlist across devices)[ ] Multi-Language Support (i18n)[ ] PWA Support (Installable app)[ ] Social Features (Share lists with friends)📄 LicenseDistributed under the MIT License. See LICENSE for more information.<div align="center"><p>Built with 💻 and ☕ by the Atto4 Community.</p><p><a href="https://github.com/yourusername/atto4/stargazers"><img src="https://img.shields.io/github/stars/yourusername/atto4?style=social" alt="GitHub stars"></a></p></div>
+```
