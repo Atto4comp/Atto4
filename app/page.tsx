@@ -160,7 +160,7 @@ export default async function HomePage() {
 
         <Suspense fallback={<div className="h-64" />}><WatchlistRow /></Suspense>
         <Suspense fallback={<div className="h-64" />}><LikedRow /></Suspense>
-      </div>
+      
     </main>
   );
 }
