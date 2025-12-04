@@ -10,8 +10,8 @@ export interface TVEmbedResult {
 
 const PROVIDERS = [
   { url: "https://fmovies4u.com/embed/tmdb-tv-${id}/${season}/${episode}?theme=16A085&hideServer=true&autoPlay=true&sub=en&nextButton=true&autoNext=true&title=false", label: "Vidly" },
-  { url: "https://bidsrc.pro/tv/${id}/${season}/${episode}?autoplay=true", label: "Vidzy" },
-  { url: "https://vidfast.to/embed/tv/${id}/${season}/${episode}", label: "Vidme" }
+  { url: "https://www.vidking.net/embed/tv/${id}/${season}/${episode}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true", label: "Vidme" },
+  { url: "https://bidsrc.pro/tv/${id}/${season}/${episode}?autoplay=true", label: "Vidzy" }
   
 ];
 
