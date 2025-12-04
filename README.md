@@ -1,7 +1,7 @@
 <div align="center">
   <br />
   <a href="https://atto4.pro" target="_blank">
-    <img src="public/logo.png" alt="Atto4 Logo" width="150">
+    <img src="public/logo.png" alt="Atto4 Logo" width="120">
   </a>
   <br />
 
@@ -20,8 +20,8 @@
     <a href="#-features">Features</a> •
     <a href="#-tech-stack">Tech Stack</a> •
     <a href="#-getting-started">Getting Started</a> •
-    <a href="#-contributing">Contributing</a> •
-    <a href="#-roadmap">Roadmap</a>
+    <a href="#-project-structure">Structure</a> •
+    <a href="#-contributing">Contributing</a>
   </p>
 </div>
 
@@ -32,6 +32,12 @@
 **Atto4** is a modern, open-source streaming platform built for speed, aesthetics, and community. We aim to create the ultimate movie and TV show discovery experience, combining a sleek, Apple TV-inspired UI with robust performance.
 
 We believe streaming should be beautiful, fast, and **free for everyone to build upon**. Whether you're a React beginner or a Next.js veteran, Atto4 is your playground to experiment with the latest web technologies.
+
+## 📸 Screenshots
+
+<div align="center">
+  <img src="https://placehold.co/800x400/1a1a1a/FFF?text=Home+Page+Preview" alt="Home Page" width="800" />
+</div>
 
 ## ✨ Features
 
@@ -50,83 +56,25 @@ We believe streaming should be beautiful, fast, and **free for everyone to build
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/)
 - **Data Source**: [TMDB API](https://www.themoviedb.org/)
 - **State Management**: React Hooks + Context API
-- **Deployment**: Vercel (Recommended)
+- **Package Manager**: [pnpm](https://pnpm.io/) (Recommended)
 
-## 🏁 Getting Started
+## 📂 Project Structure
 
-Ready to dive in? Follow these steps to get Atto4 running locally.
+A quick look at the top-level files and directories you'll see in the project:
 
-### Prerequisites
-- Node.js 18+ installed
-- A [TMDB API Key](https://www.themoviedb.org/documentation/api) (Free!)
 
-### Installation
-
-1. **Clone the repo**
-git clone https://github.com/yourusername/atto4.git
+├── app/                  # Next.js App Router pages and layouts
+├── components/           # Reusable UI components (Buttons, Cards, Player)
+├── lib/                  # Utility functions and API configurations
+├── public/               # Static assets (images, fonts)
+├── .env.local            # Environment variables (API Keys)
+└── next.config.ts        # Next.js configuration
+🏁 Getting StartedReady to dive in? Follow these steps to get Atto4 running locally.PrerequisitesNode.js 18+ installedA TMDB API Key (It's Free!)InstallationClone the repoBashgit clone [https://github.com/yourusername/atto4.git](https://github.com/yourusername/atto4.git)
 cd atto4
-
-text
-
-2. **Install dependencies**
+Install dependenciesWe recommend using pnpm for speed, but npm works too.Bashpnpm install
+# or
 npm install
-
-or
-yarn install
-
-text
-
-3. **Configure Environment**
-Create a `.env.local` file in the root directory:
-NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key_here
+Configure EnvironmentCreate a .env.local file in the root directory and add your keys:Code snippetNEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key_here
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-
-text
-
-4. **Run the development server**
-npm run dev
-
-text
-
-Open [http://localhost:3000](http://localhost:3000) to see the magic! ✨
-
-## 🤝 Contributing
-
-We ❤️ contributors! Atto4 is built by the community, for the community. Here's how you can help:
-
-1.  **Fork** the repository.
-2.  **Create a branch** for your feature (`git checkout -b feature/AmazingFeature`).
-3.  **Commit** your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  **Push** to the branch (`git push origin feature/AmazingFeature`).
-5.  **Open a Pull Request**.
-
-### 💡 Looking for ideas?
-Check out our [Issues](https://github.com/yourusername/atto4/issues) tab! We have tasks for everyone:
-- 🟢 **Beginner**: UI tweaks, fixing typos, adding tooltips.
-- 🟡 **Intermediate**: New API integrations, improving the search algorithm.
-- 🔴 **Advanced**: Backend auth, database integration (Supabase/Firebase), performance optimization.
-
-## 🗺 Roadmap
-
-- [x] Core Streaming UI (Home, Details, Player)
-- [x] Search Functionality
-- [x] Watchlist & Likes (Local Storage)
-- [ ] **User Authentication** (Save watchlist across devices)
-- [ ] **Multi-Language Support** (i18n)
-- [ ] **PWA Support** (Installable app)
-- [ ] **Social Features** (Share lists with friends)
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-<div align="center">
-<p>Built with 💻 and ☕ by the Atto4 Community.</p>
-<p>
- <a href="https://github.com/yourusername/atto4/stargazers">
-   <img src="https://img.shields.io/github/stars/yourusername/atto4?style=social" alt="GitHub stars">
- </a>
-</p>
-</div>
+Run the development serverBashpnpm dev
+Open http://localhost:3000 to see the magic! ✨🤝 ContributingWe ❤️ contributors! Atto4 is built by the community, for the community.Don't know where to start?Check out our Issues tab! We have labeled tasks for everyone:LabelDescription🟢 Good First IssuePerfect for beginners. UI tweaks, typos, simple components.🟡 EnhancementNew features, API integrations, and search improvements.🔴 AdvancedBackend auth, database integration, performance optimization.How to submit a Pull RequestFork the repository.Create a branch for your feature (git checkout -b feature/AmazingFeature).Commit your changes (git commit -m 'Add some AmazingFeature').Push to the branch (git push origin feature/AmazingFeature).Open a Pull Request.🗺 Roadmap[x] Core Streaming UI (Home, Details, Player)[x] Search Functionality[x] Watchlist & Likes (Local Storage)[ ] User Authentication (Save watchlist across devices)[ ] Multi-Language Support (i18n)[ ] PWA Support (Installable app)[ ] Social Features (Share lists with friends)📄 LicenseDistributed under the MIT License. See LICENSE for more information.<div align="center"><p>Built with 💻 and ☕ by the Atto4 Community.</p><p><a href="https://github.com/yourusername/atto4/stargazers"><img src="https://img.shields.io/github/stars/yourusername/atto4?style=social" alt="GitHub stars"></a></p></div>
