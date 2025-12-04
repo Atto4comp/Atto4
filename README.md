@@ -86,7 +86,7 @@ Ready to dive in? Follow these steps to get Atto4 running locally.
 1.  **Clone the repo**
 
     ```bash
-    git clone [https://github.com/Atto4comp/atto4.git](https://github.com/Atto4comp/atto4.git)
+    git clone https://github.com/Atto4comp/atto4.git
     cd atto4
     ```
 
