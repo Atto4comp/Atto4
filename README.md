@@ -36,7 +36,7 @@ We believe streaming should be beautiful, fast, and **free for everyone to build
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="./public/Screenshot.png" alt="Home Page" width="800" />
+  <img src="./public/Screenshot1.png" alt="Home Page" width="800" />
 </div>
 
 ## ✨ Features
