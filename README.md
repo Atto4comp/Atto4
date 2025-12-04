@@ -157,8 +157,8 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <p\>
 <br>
 <br>
-<a href="https://github.com/yourusername/Atto4/stargazers"\>
-<img src="https://img.shields.io/github/stars/yourusername/Atto4?style=social" alt="GitHub stars"\>
+<a href="https://github.com/Atto4comp/Atto4/stargazers"\>
+<img src="https://img.shields.io/github/stars/Atto4comp/Atto4?style=social" alt="GitHub stars"\>
 </a\>
 </p\>
 </div\>
