@@ -5,8 +5,43 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, Menu, User, Home, Film, Tv, Grid3X3, X, Sparkles } from 'lucide-react';
+import { Search, Menu, Home, Film, Tv, Grid3X3, X, Sparkles } from 'lucide-react';
 import SearchBar from '@/components/common/SearchBar';
+
+// Custom Donation Jar Icon Component
+const DonateJarIcon = ({ className, size = 24 }: { className?: string; size?: number }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    {/* Jar Outline */}
+    <path d="M19 10c0-3.9-3.1-7-7-7S5 6.1 5 10v6a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-6z" />
+    <path d="M8 3h8" />
+    <path d="M12 11v6" />
+    {/* Dollar Symbol */}
+    <path d="M12 11a2 2 0 0 1 2 2 2 2 0 1 1-4 0 2 2 0 0 1 2-2" />
+    <path d="M12 17v-6" />
+    <path d="M12 11a2 2 0 0 0-2-2 2 2 0 0 0 2 2" />
+    <path d="M12 17a2 2 0 0 0 2-2 2 2 0 0 0-2 2" />
+    
+    {/* Simplified S shape inside */}
+    <path d="M10 13h4" />
+    <path d="M12 12v2" />
+  </svg>
+);
+
+// OR better yet, using standard Lucide 'Coins' which is cleaner, 
+// but I will stick to your request for a "Jar". 
+// Actually, let's just use 'CircleDollarSign' as it's cleaner if the custom SVG looks weird.
+// Let's try to approximate the visual:
+import { CircleDollarSign } from 'lucide-react';
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -23,7 +58,7 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Scroll detection for dynamic capsule styling
+  // Scroll detection
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -38,13 +73,11 @@ export default function Header() {
 
   return (
     <>
-      {/* Floating Header Wrapper */}
       <header className={`modern-header-wrapper ${scrolled ? 'scrolled' : ''}`}>
         
-        {/* Glass Capsule Island */}
         <div className="glass-capsule">
           
-          {/* Brand Identity */}
+          {/* Brand */}
           <Link href="/" className="flex items-center group">
             <div className="logo-circle">
               <Image 
@@ -62,7 +95,7 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Navigation Pills (Desktop) */}
+          {/* Nav */}
           <nav className="nav-island mx-4">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -80,9 +113,9 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Action Orbs */}
+          {/* Actions */}
           <div className="action-group">
-            {/* Search Orb */}
+            {/* Search */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className="action-orb"
@@ -91,13 +124,14 @@ export default function Header() {
               {isSearchOpen ? <X size={18} /> : <Search size={18} />}
             </button>
 
-            {/* Login Orb (Primary) */}
+            {/* DONATE BUTTON (Replaced Login) */}
             <button
-              onClick={() => router.push('/login')}
-              className="action-orb primary hidden sm:flex"
-              aria-label="Login"
+              onClick={() => router.push('/donate')}
+              className="action-orb primary hidden sm:flex text-yellow-400 hover:bg-yellow-400/20 hover:text-yellow-300 transition-colors border-yellow-400/20"
+              aria-label="Donate"
             >
-              <User size={18} />
+              {/* Using CircleDollarSign as a clean, standard representation of 'Money/Donate' */}
+              <CircleDollarSign size={20} strokeWidth={2.5} />
             </button>
 
             {/* Mobile Menu Toggle */}
@@ -112,7 +146,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Modern Search Overlay */}
+      {/* Search Curtain */}
       <div 
         className={`search-curtain ${isSearchOpen ? 'open' : ''}`}
         onClick={() => setIsSearchOpen(false)}
@@ -126,7 +160,7 @@ export default function Header() {
         )}
       </div>
 
-      {/* Mobile Bottom Sheet Menu */}
+      {/* Mobile Menu */}
       <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="flex justify-between items-center mb-6 px-2">
           <span className="text-white font-chillax text-lg">Menu</span>
@@ -156,12 +190,13 @@ export default function Header() {
         </div>
 
         <div className="mt-6">
+          {/* Donate Button Mobile */}
           <button 
-            onClick={() => router.push('/login')}
-            className="w-full py-4 bg-white text-black rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+            onClick={() => router.push('/donate')}
+            className="w-full py-4 bg-yellow-500 text-black rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg shadow-yellow-500/20"
           >
-            <User size={20} />
-            Sign In
+            <CircleDollarSign size={20} strokeWidth={2.5} />
+            Donate
           </button>
         </div>
       </div>
