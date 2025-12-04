@@ -62,7 +62,8 @@ We believe streaming should be beautiful, fast, and **free for everyone to build
 
 A quick look at the top-level files and directories you'll see in the project:
 
-
+```text
+.
 ├── app/                  # Next.js App Router pages and layouts
 ├── components/           # Reusable UI components (Buttons, Cards, Player)
 ├── lib/                  # Utility functions and API configurations
