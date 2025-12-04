@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./public/images/logo.png" alt="Atto4 Logo" width="150" height="auto" />
+<img src="./public/logo.png" alt="Atto4 Logo" width="150" height="auto" />
 
 # Atto4
 
