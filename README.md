@@ -1,123 +1,132 @@
 <div align="center">
+  <br />
+  <a href="https://atto4.pro" target="_blank">
+    <img src="public/logo.png" alt="Atto4 Logo" width="150">
+  </a>
+  <br />
 
-<img src="./public/logo.png" alt="Atto4 Logo" width="150" height="auto" />
+  # Atto4
+  
+  **The Next-Gen Open Source Streaming Platform**
 
-# Atto4
+  [![Next.js](https://img.shields.io/badge/Next.js-15.0-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+  [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
 
-**The next-generation open-source streaming experience.**
-Built for speed, designed for community.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-[![Built with Next.js](https://img.shields.io/badge/built%20with-Next.js-000000.svg?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%23007ACC?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-
-[Join the Community Discord] | [View Documentation] | [Contribute]
-
----
+  <p align="center">
+    <a href="#-about">About</a> •
+    <a href="#-features">Features</a> •
+    <a href="#-tech-stack">Tech Stack</a> •
+    <a href="#-getting-started">Getting Started</a> •
+    <a href="#-contributing">Contributing</a> •
+    <a href="#-roadmap">Roadmap</a>
+  </p>
 </div>
 
-## 👋 Welcome to the Project
+---
 
-Welcome to **Atto4**! We are building a modern, high-performance streaming platform that prioritizes user experience and elegant code.
+## 🚀 About
 
-Atto4 isn't just another streaming site clone. It's an open-source initiative aimed at creating a robust, scalable, and highly customizable streaming engine that anyone can contribute to and learn from. Whether you are a seasoned React veteran or just starting your open-source journey, there is a place for you here.
+**Atto4** is a modern, open-source streaming platform built for speed, aesthetics, and community. We aim to create the ultimate movie and TV show discovery experience, combining a sleek, Apple TV-inspired UI with robust performance.
 
-We believe that the best software is built together.
+We believe streaming should be beautiful, fast, and **free for everyone to build upon**. Whether you're a React beginner or a Next.js veteran, Atto4 is your playground to experiment with the latest web technologies.
 
-## ✨ Why Atto4?
+## ✨ Features
 
-We wanted a streaming platform that felt modern, responsive, and wasn't bogged down by legacy code.
+- 🎥 **Vast Library**: Integration with TMDB for comprehensive movie and TV show metadata.
+- ⚡ **Blazing Fast**: Built on Next.js 15 with Server Components and ISR (Incremental Static Regeneration).
+- 🎨 **Sleek UI/UX**: Minimalist, glassmorphism-inspired design using Tailwind CSS.
+- 📱 **Responsive**: Perfect experience across mobile, tablet, and desktop.
+- 🔍 **Smart Search**: Instant search results with optimized debounce logic.
+- ⏯️ **Advanced Player**: Custom video player with auto-server switching and anti-redirect protection.
+- ❤️ **Personalization**: LocalStorage-based Watchlist and "Liked" collections (No login required!).
 
-* **Community First:** Decisions are driven by community needs and contributor input.
-* **Modern Stack:** Built on the bleeding edge with Next.js App Router and TypeScript for a type-safe, lightning-fast experience.
-* **Sleek UI/UX:** A focus on minimalist design and intuitive navigation.
-* **Custom Player:** (In progress) A bespoke video player experience designed specifically for Atto4.
+## 🛠 Tech Stack
 
-## 🛠️ The Tech Stack
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/)
+- **Data Source**: [TMDB API](https://www.themoviedb.org/)
+- **State Management**: React Hooks + Context API
+- **Deployment**: Vercel (Recommended)
 
-We use the best modern tools available to ensure a great developer experience (DX) and user experience (UX).
+## 🏁 Getting Started
 
-* **Framework:** [Next.js 14/15 (App Router)](https://nextjs.org/)
-* **Language:** [TypeScript](https://www.typescriptlang.org/)
-* **Styling:** [Tailwind CSS](https://tailwindcss.com/) (Assumed based on modern standards)
-* **Package Manager:** [pnpm](https://pnpm.io/)
-* **Linting:** ESLint
+Ready to dive in? Follow these steps to get Atto4 running locally.
 
-## 🚀 Getting Started
+### Prerequisites
+- Node.js 18+ installed
+- A [TMDB API Key](https://www.themoviedb.org/documentation/api) (Free!)
 
-Ready to dive into the code? Setting up Atto4 locally is easy.
+### Installation
 
-**Prerequisites:**
-* Node.js (LTS version recommended)
-* pnpm installed globally (`npm install -g pnpm`)
+1. **Clone the repo**
+git clone https://github.com/yourusername/atto4.git
+cd atto4
 
-**Steps:**
+text
 
-1.  **Fork and Clone the repository:**
-    ```bash
-    git clone [https://github.com/YOUR-USERNAME/atto4.git](https://github.com/YOUR-USERNAME/atto4.git)
-    cd atto4
-    ```
+2. **Install dependencies**
+npm install
 
-2.  **Install dependencies:**
-    We use `pnpm` for fast, reliable installs.
-    ```bash
-    pnpm install
-    ```
+or
+yarn install
 
-3.  **Set up environment variables:**
-    Copy the example env file to a local one.
-    ```bash
-    cp .env.local.example .env.local
-    # Open .env.local and fill in necessary API keys (if any are currently required)
-    ```
+text
 
-4.  **Run the development server:**
-    ```bash
-    pnpm dev
-    ```
+3. **Configure Environment**
+Create a `.env.local` file in the root directory:
+NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key_here
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result!
+text
 
-## 🤝 How to Contribute
+4. **Run the development server**
+npm run dev
 
-We **love** contributions! This project thrives on community involvement. You don't need to be a 10x engineer to help; we appreciate all kinds of contributions.
+text
 
-### Ways you can help right now:
+Open [http://localhost:3000](http://localhost:3000) to see the magic! ✨
 
-* **🐛 Squash Bugs:** Check the "Issues" tab for bugs reported by users.
-* **✨ New Features:** Look for issues labeled `enhancement` or `help wanted`.
-* **🎨 Design & UI:** Help us polish the interface or design new components.
-* **📝 Documentation:** Improve this README, write docs for components, or create tutorials.
-* **🗣️ Discussion:** Join our Discord and participate in architectural discussions.
+## 🤝 Contributing
 
-### Contribution Guidelines
+We ❤️ contributors! Atto4 is built by the community, for the community. Here's how you can help:
 
-Please take a moment to review our `CONTRIBUTING.md` (Coming Soon!) for details on our code style, pull request process, and community standards.
+1.  **Fork** the repository.
+2.  **Create a branch** for your feature (`git checkout -b feature/AmazingFeature`).
+3.  **Commit** your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  **Push** to the branch (`git push origin feature/AmazingFeature`).
+5.  **Open a Pull Request**.
 
-> **Note for new contributors:** If you're looking for a good first issue, filter the issues tab by the label `good first issue`. These are designed to be approachable introductions to the codebase.
+### 💡 Looking for ideas?
+Check out our [Issues](https://github.com/yourusername/atto4/issues) tab! We have tasks for everyone:
+- 🟢 **Beginner**: UI tweaks, fixing typos, adding tooltips.
+- 🟡 **Intermediate**: New API integrations, improving the search algorithm.
+- 🔴 **Advanced**: Backend auth, database integration (Supabase/Firebase), performance optimization.
 
-## 🗺️ Roadmap & Vision
+## 🗺 Roadmap
 
-We are currently in the early stages of development. Here is a high-level view of where we are headed:
+- [x] Core Streaming UI (Home, Details, Player)
+- [x] Search Functionality
+- [x] Watchlist & Likes (Local Storage)
+- [ ] **User Authentication** (Save watchlist across devices)
+- [ ] **Multi-Language Support** (i18n)
+- [ ] **PWA Support** (Installable app)
+- [ ] **Social Features** (Share lists with friends)
 
-* [x] Initial Next.js App Router setup.
-* [ ] Basic routing and layout structure.
-* [ ] Implementation of the custom Atto4 Player.
-* [ ] User authentication system.
-* [ ] Backend integration for media catalog.
-* [ ] Community theming support.
+## 📄 License
 
-## 💬 Join the Conversation
+Distributed under the MIT License. See `LICENSE` for more information.
 
-The heart of Atto4 is its community.
-
-* **Discord:** [Link to your Discord Server] - For quick chats, brainstorming, and hanging out.
-* **GitHub Discussions:** For deeper technical debates and feature proposals.
-
-***
+---
 
 <div align="center">
-Made with ❤️ by the Atto4 Community.
+<p>Built with 💻 and ☕ by the Atto4 Community.</p>
+<p>
+ <a href="https://github.com/yourusername/atto4/stargazers">
+   <img src="https://img.shields.io/github/stars/yourusername/atto4?style=social" alt="GitHub stars">
+ </a>
+</p>
 </div>
