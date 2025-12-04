@@ -12,7 +12,7 @@ export default function BannerAd() {
     // Clear any previous content before injecting a new ad
     adContainerRef.current.innerHTML = '';
 
-    // Set the global atOptions config (as in the snippet)
+    // Set the global atOptions config
     (window as any).atOptions = {
       key: '28f3f29a3ad710ba8ebc6c0299a7ac43',
       format: 'iframe',
@@ -40,13 +40,13 @@ export default function BannerAd() {
 
   return (
     <div className="w-full flex flex-col items-center justify-center my-8 px-4">
-      {/* Label */}
-      <div className="text-[10px] uppercase tracking-widest text-gray-600 mb-2 font-medium">
-        Advertisement
+      {/* Label - Darker text for subtle look */}
+      <div className="text-[10px] uppercase tracking-widest text-gray-700 mb-2 font-medium">
+        Sponsored
       </div>
 
-      {/* Ad Container Frame (320x50 horizontal banner) */}
-      <div className="relative w-full max-w-[320px] min-h-[50px] flex items-center justify-center bg-white/5 border border-white/10 rounded-xl overflow-hidden backdrop-blur-sm shadow-lg transition-all hover:border-white/20">
+      {/* Ad Container Frame - Black Background */}
+      <div className="relative w-full max-w-[320px] min-h-[50px] flex items-center justify-center bg-black border border-white/5 rounded-xl overflow-hidden shadow-lg transition-all hover:border-white/10">
         <div
           ref={adContainerRef}
           className="w-full h-full flex items-center justify-center overflow-hidden"
