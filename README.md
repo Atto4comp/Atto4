@@ -1,7 +1,7 @@
 <div align="center">
   <br />
   <a href="https://atto4.pro" target="_blank">
-    <img src="public/logo.png" alt="Atto4 Logo" width="120">
+    <img src="./public/logo.png" alt="Atto4 Logo" width="120">
   </a>
   <br />
 
@@ -162,4 +162,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 \</div\>
 
 ```
-```
+
