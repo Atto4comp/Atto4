@@ -86,7 +86,7 @@ Ready to dive in? Follow these steps to get Atto4 running locally.
 1.  **Clone the repo**
 
     ```bash
-    git clone [https://github.com/yourusername/atto4.git](https://github.com/yourusername/atto4.git)
+    git clone [https://github.com/Atto4comp/atto4.git](https://github.com/Atto4comp/atto4.git)
     cd atto4
     ```
 
@@ -120,7 +120,7 @@ Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:30
 We ❤️ contributors\! Atto4 is built by the community, for the community.
 
 **Don't know where to start?**
-Check out our [Issues](https://github.com/yourusername/atto4/issues) tab\! We have labeled tasks for everyone:
+Check out our [Issues](https://github.com/Atto4comp/atto4/issues) tab\! We have labeled tasks for everyone:
 
 | Label | Description |
 | :--- | :--- |
