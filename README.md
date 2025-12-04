@@ -155,6 +155,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <div align="center"\>
 <p\>Built with 💻 and ☕ by the Atto4 Community.\</p\>
 <p\>
+<br>
 <a href="https://github.com/yourusername/atto4/stargazers"\>
 <img src="https://img.shields.io/github/stars/yourusername/atto4?style=social" alt="GitHub stars"\>
 </a\>
