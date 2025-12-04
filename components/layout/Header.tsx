@@ -98,7 +98,7 @@ export default function Header() {
               aria-label="Donate"
             >
               <Image 
-                src="/donation.svg" // ✅ Points to your SVG in public folder
+                src="/donation1.svg" // ✅ Points to your SVG in public folder
                 alt="Donate" 
                 width={20} 
                 height={20} 
