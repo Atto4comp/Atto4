@@ -70,6 +70,7 @@ A quick look at the top-level files and directories you'll see in the project:
 ├── public/               # Static assets (images, fonts)
 ├── .env.local            # Environment variables (API Keys)
 └── next.config.ts        # Next.js configuration
+```
 🏁 Getting StartedReady to dive in? Follow these steps to get Atto4 running locally.PrerequisitesNode.js 18+ installedA TMDB API Key (It's Free!)InstallationClone the repoBashgit clone [https://github.com/yourusername/atto4.git](https://github.com/yourusername/atto4.git)
 cd atto4
 Install dependenciesWe recommend using pnpm for speed, but npm works too.Bashpnpm install
