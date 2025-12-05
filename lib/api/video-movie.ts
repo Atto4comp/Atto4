@@ -9,11 +9,11 @@ export interface MovieEmbedResult {
 }
 
 const PROVIDERS = [
+  { url: "https://fmovies4u.com/embed/tmdb-movie-${id}", label: "Vidly" },
   { url: "https://api.cinezo.net/media/tmdb-movie-${id}", label: "Cinezo" },
   { url: "https://www.vidking.net/embed/movie/${id}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true", label: "vidme" },
-  { url: "https://bidsrc.pro/movie/${id}?autoplay=true", label: "vidzy" },
-  { url: "https://fmovies4u.com/embed/tmdb-movie-${id}", label: "Vidly" }
-  
+  { url: "https://bidsrc.pro/movie/${id}?autoplay=true", label: "vidzy" }
+    
 ];
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
