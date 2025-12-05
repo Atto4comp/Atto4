@@ -12,7 +12,7 @@ const PROVIDERS = [
   { url: "https://api.cinezo.net/media/tmdb-tv-${id}/${season}/${episode}", label: "Cinezo" },
   { url: "https://www.vidking.net/embed/tv/${id}/${season}/${episode}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true", label: "Vidme" },
   { url: "https://bidsrc.pro/tv/${id}/${season}/${episode}?autoplay=true", label: "Vidzy" },
-  { url: "https://fmovies4u.com/embed/tmdb-tv-${id}/${season}/${episode}?theme=16A085&hideServer=true&autoPlay=true&sub=en&nextButton=true&autoNext=true&title=false", label: "Vidly" }
+  { url: "https://fmovies4u.io/embed/tmdb-tv-${id}/${season}/${episode}?theme=16A085&hideServer=true&autoPlay=true&sub=en&nextButton=true&autoNext=true&title=false", label: "Vidly" }
   
 ];
 
