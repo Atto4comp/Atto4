@@ -8,7 +8,7 @@ import MediaRow from '@/components/media/MediaRow';
 import WatchlistRow from '@/components/media/WatchlistRow';
 import LikedRow from '@/components/media/LikedRow';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import BannerAd from '@/components/ads/BannerAd'; // ✅ IMPORTED
+import BannerAd from '@/components/ads/BannerAd'; 
 
 // make this static with ISR
 export const dynamic = 'force-static';
@@ -138,12 +138,13 @@ export default async function HomePage() {
         <HeroSection media={(trending || []).slice(0, 5)} />
       </Suspense>
       
-      <meta name="google-adsense-account" content="ca-pub-6668961984680825"></meta>
-      <meta name="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" content="b2b4e492a079f757d4b5bb735a0b869a6c6db20e"></meta>
-      <meta name="monetag" content="b9b033ecae1bfb91e08c27b64bd425be"></meta>
-      <meta name="clckd" content="fe3300dbc05d420fca54fc1ebed516ba" ></meta>
+      {/* Meta Tags for Ads */}
+      <meta name="google-adsense-account" content="ca-pub-6668961984680825" />
+      <meta name="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" content="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" />
+      <meta name="monetag" content="b9b033ecae1bfb91e08c27b64bd425be" />
+      <meta name="clckd" content="fe3300dbc05d420fca54fc1ebed516ba" />
       
-      {/* ✅ ADVERTISEMENT SLOT ADDED HERE */}
+      {/* Banner Ad */}
       <BannerAd />
 
       <div className="relative z-10 pt-16 pb-20 bg-gradient-to-b from-black via-gray-900 to-black space-y-16">
