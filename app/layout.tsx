@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import ActivitySidebar from '@/components/layout/ActivitySidebar'; // ✅ Added
 import { SITE_CONFIG } from '@/lib/constants';
 import { Analytics } from "@vercel/analytics/next";
 
@@ -12,7 +13,7 @@ import { Analytics } from "@vercel/analytics/next";
 const inter = Inter({ 
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap', // Prevent invisible text during font load
+  display: 'swap',
   preload: true,
   fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
 });
@@ -87,11 +88,6 @@ export const metadata: Metadata = {
     initialScale: 1,
     maximumScale: 5,
   },
-  verification: {
-    google: 'your-google-verification-code', // Add your verification code
-    // yandex: 'your-yandex-verification-code',
-    // bing: 'your-bing-verification-code',
-  },
   alternates: {
     canonical: SITE_CONFIG.url,
   },
@@ -126,9 +122,12 @@ export default function RootLayout({
         <Header />
         
         {/* Main Content with proper spacing */}
-        <main className="pt-16 md:pt-20 min-h-screen">
+        <main className="pt-16 md:pt-20 min-h-screen relative">
           {children}
         </main>
+
+        {/* ✅ Activity Sidebar (Floating) */}
+        <ActivitySidebar />
         
         {/* Footer */}
         <Footer />
