@@ -43,7 +43,7 @@ export default function Footer() {
             {/* ✅ Social Media Links Added Here */}
             <div className="flex items-center gap-4 mt-2">
               <a 
-                href="https://github.com/YOUR_USERNAME" // Replace with your actual link
+                href="https://github.com/Atto4comp/Atto4" // Replace with your actual link
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-all border border-white/5 hover:border-white/20"
