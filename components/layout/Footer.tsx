@@ -3,6 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { Github, Instagram, Twitter } from 'lucide-react'; // Imported icons
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -38,6 +39,37 @@ export default function Footer() {
               Your premium destination for streaming movies and TV shows. 
               Discover, watch, and enjoy in HD.
             </p>
+            
+            {/* ✅ Social Media Links Added Here */}
+            <div className="flex items-center gap-4 mt-2">
+              <a 
+                href="https://github.com/YOUR_USERNAME" // Replace with your actual link
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-all border border-white/5 hover:border-white/20"
+                aria-label="GitHub"
+              >
+                <Github size={18} />
+              </a>
+              <a 
+                href="https://instagram.com/YOUR_USERNAME" // Replace with your actual link
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-pink-500 transition-all border border-white/5 hover:border-pink-500/20"
+                aria-label="Instagram"
+              >
+                <Instagram size={18} />
+              </a>
+              <a 
+                href="https://twitter.com/YOUR_USERNAME" // Replace with your actual link
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-blue-400 transition-all border border-white/5 hover:border-blue-400/20"
+                aria-label="Twitter / X"
+              >
+                <Twitter size={18} />
+              </a>
+            </div>
           </div>
 
           {/* Disclaimer Section (Minimal) */}
