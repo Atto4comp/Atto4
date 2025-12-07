@@ -62,7 +62,7 @@ export default function BannerAd() {
             {/* Label */}
             <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-gray-500 font-medium opacity-70">
                 <Sparkles size={10} className="text-yellow-500" />
-                <span>Ad Blocked? Support Us Directly</span>
+                <span>Support Us</span>
                 <Sparkles size={10} className="text-yellow-500" />
             </div>
 
@@ -83,7 +83,7 @@ export default function BannerAd() {
                             Donate to Atto4
                         </span>
                         <span className="text-[10px] text-gray-400 group-hover:text-gray-300">
-                            Keep the servers running 🚀
+                            Keep the website running 🚀
                         </span>
                     </div>
                 </div>
