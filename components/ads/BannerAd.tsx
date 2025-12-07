@@ -1,20 +1,21 @@
 // components/ads/BannerAd.tsx
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 export default function BannerAd() {
   const adContainerRef = useRef<HTMLDivElement>(null);
-  const socialBarRef = useRef<boolean>(false);
+  const [isAdBlocked, setIsAdBlocked] = useState(false);
 
-  // 1. Existing Banner Ad Logic
   useEffect(() => {
     if (!adContainerRef.current) return;
 
-    // Clear previous banner content
+    // 1. Clear previous content
     adContainerRef.current.innerHTML = '';
 
-    // Set global options for the Banner
+    // 2. Define the ad configuration
     (window as any).atOptions = {
       key: '28f3f29a3ad710ba8ebc6c0299a7ac43',
       format: 'iframe',
@@ -23,65 +24,68 @@ export default function BannerAd() {
       params: {},
     };
 
+    // 3. Create the script
     const script = document.createElement('script');
     script.type = 'text/javascript';
-    // NOTE: I kept your original banner link. Ensure this URL is correct for your banner ad key '28f3...43'
-    // If you meant to replace the banner source with the social bar source, let me know.
-    // Assuming this is the "Banner" part:
-    script.src = '//pigeoncontentmentcotton.com/28f3f29a3ad710ba8ebc6c0299a7ac43/invoke.js'; 
+    script.src = '//www.highperformanceformat.com/28f3f29a3ad710ba8ebc6c0299a7ac43/invoke.js';
     script.async = true;
 
+    // 4. Detect Ad Blockers (Error Handling)
+    script.onerror = () => {
+      console.log("Ad script blocked by extension");
+      setIsAdBlocked(true);
+    };
+
     adContainerRef.current.appendChild(script);
+
+    // 5. Secondary Check: If height remains 0 after 2 seconds, assume blocked
+    const checkInterval = setInterval(() => {
+        if (adContainerRef.current && adContainerRef.current.clientHeight < 10) {
+            setIsAdBlocked(true);
+        }
+    }, 2000);
 
     return () => {
       if (adContainerRef.current) {
         adContainerRef.current.innerHTML = '';
       }
+      clearInterval(checkInterval);
     };
   }, []);
 
-  // 2. New Social Bar Script Logic
-  useEffect(() => {
-    // Prevent duplicate injection
-    if (socialBarRef.current) return;
+  // If Ad is blocked, show this Fallback (Static Affiliate/Donation)
+  if (isAdBlocked) {
+    return (
+        <div className="w-full flex flex-col items-center justify-center my-8 px-4 bg-transparent gap-2">
+            <div className="text-[10px] uppercase tracking-widest text-gray-600 font-medium opacity-50">
+                Supported by
+            </div>
+            <Link 
+                href="/donate" // Link to your donation page or an affiliate offer (e.g., 1Win, VPN)
+                className="relative w-full max-w-[320px] h-[50px] flex items-center justify-center bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden hover:border-white/30 transition-all group"
+            >
+                {/* You can replace this text with a static image banner from public folder */}
+                <span className="text-sm font-bold text-gray-400 group-hover:text-white transition-colors flex items-center gap-2">
+                   ❤️ Support Atto4 - Donate Here
+                </span>
+            </Link>
+        </div>
+    );
+  }
 
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = '//pigeoncontentmentcotton.com/40/2c/5a/402c5ae54cc050c5e5c9b22337c9ce34.js';
-    script.async = true;
-
-    // Social Bars usually attach to body. We append it to body to ensure it works.
-    // If you want to try and force it into a specific div, you can append to a ref,
-    // but these scripts often break if not in body/head.
-    document.body.appendChild(script);
-    
-    socialBarRef.current = true;
-    
-    // No cleanup for global script to prevent errors on unmount/remount cycles
-  }, []);
-
+  // Standard Ad View
   return (
     <div className="w-full flex flex-col items-center justify-center my-8 px-4 bg-transparent gap-6">
-      
-      {/* Label */}
       <div className="text-[10px] uppercase tracking-widest text-gray-600 mb-2 font-medium opacity-50">
         Sponsored
       </div>
 
-      {/* Main Banner Frame */}
       <div className="relative w-full max-w-[320px] min-h-[50px] flex items-center justify-center bg-black border border-white/5 rounded-xl overflow-hidden shadow-lg">
         <div
           ref={adContainerRef}
           className="w-full h-full flex items-center justify-center overflow-hidden"
         />
       </div>
-
-      {/* 
-         Note: The Social Bar script (pigeoncontentmentcotton) typically renders a floating element 
-         fixed to the screen edges, so it won't appear "inside" a div here. 
-         It is now injected and will appear as an overlay on the site.
-      */}
-
     </div>
   );
 }
