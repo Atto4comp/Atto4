@@ -23,7 +23,7 @@ export default function DonatePage() {
           Support Atto4
         </h1>
         <p className="text-gray-400 text-lg">
-          Atto4 is free and open source. Your donations help cover server costs and keep the platform ad-free and fast.
+          Atto4 is free and open source. Your donations help cover hosting costs and keep the platform ad-free and fast.
         </p>
       </div>
 
