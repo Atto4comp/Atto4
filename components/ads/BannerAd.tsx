@@ -24,7 +24,7 @@ export default function BannerAd() {
     // Create the invoke.js script
     const script = document.createElement('script');
     script.type = 'text/javascript';
-    script.src = '//www.highperformanceformat.com/28f3f29a3ad710ba8ebc6c0299a7ac43/invoke.js';
+    script.src = '//pigeoncontentmentcotton.com/28f3f29a3ad710ba8ebc6c0299a7ac43/invoke.js';
     script.async = true;
 
     // Append into our banner container
