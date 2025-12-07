@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Heart, Sparkles, ArrowRight } from 'lucide-react'; // Import icons
+import { Heart, Sparkles, ArrowRight } from 'lucide-react'; 
 
 export default function BannerAd() {
   const adContainerRef = useRef<HTMLDivElement>(null);
@@ -27,30 +27,37 @@ export default function BannerAd() {
     // 3. Create the script
     const script = document.createElement('script');
     script.type = 'text/javascript';
-    script.src = '//pigeoncontentmentcotton.com/28f3f29a3ad710ba8ebc6c0299a7ac43/invoke.js';
+    // Using standard banner domain. Change if your specific code differs.
+    script.src = '//pigeoncontentmentcotton.com/28f3f29a3ad710ba8ebc6c0299a7ac43/invoke.js'; 
     script.async = true;
 
-    // 4. Detect Ad Blockers (Error Handling)
+    // 4. Detect Hard Blocks (Script Load Error)
     script.onerror = () => {
-      console.log("Ad script blocked by extension");
+      console.log("Ad script blocked (onerror)");
       setIsAdBlocked(true);
     };
 
     adContainerRef.current.appendChild(script);
 
-    // 5. Secondary Check: If height remains 0 after 2 seconds, assume blocked
-    const checkInterval = setInterval(() => {
-        // If the container is empty or super small, it's likely blocked/hidden
-        if (adContainerRef.current && adContainerRef.current.clientHeight < 10) {
+    // 5. SMARTER CHECK: Wait 12 seconds before deciding it's blocked/empty
+    const checkTimeout = setTimeout(() => {
+        if (!adContainerRef.current) return;
+
+        const hasIframe = adContainerRef.current.querySelector('iframe');
+        const hasHeight = adContainerRef.current.clientHeight > 10;
+
+        // If no iframe exists AND height is 0 after 12s, show backup
+        if (!hasIframe && !hasHeight) {
+            console.log("Ad timed out (12s) - switching to backup");
             setIsAdBlocked(true);
         }
-    }, 2000);
+    }, 12000); // 12 Seconds
 
     return () => {
       if (adContainerRef.current) {
         adContainerRef.current.innerHTML = '';
       }
-      clearInterval(checkInterval);
+      clearTimeout(checkTimeout);
     };
   }, []);
 
@@ -83,7 +90,7 @@ export default function BannerAd() {
                             Donate to Atto4
                         </span>
                         <span className="text-[10px] text-gray-400 group-hover:text-gray-300">
-                            Keep the website running 🚀
+                            Keep the service running 🚀
                         </span>
                     </div>
                 </div>
