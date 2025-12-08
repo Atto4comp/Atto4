@@ -5,12 +5,13 @@ import { useEffect } from 'react';
 
 export function useDevToolsProtection() {
   useEffect(() => {
-    // 1. Disable Right Click
+    // 1. Disable Right Click (On your UI)
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
+      return false;
     };
 
-    // 2. Disable Keyboard Shortcuts (F12, Ctrl+Shift+I, etc.)
+    // 2. Disable Keyboard Shortcuts (On your UI)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         e.key === 'F12' || 
@@ -23,28 +24,33 @@ export function useDevToolsProtection() {
       }
     };
 
-    // 3. The "Debugger Trap" (Aggressive)
-    // If DevTools is open, this freezes the page so they can't click elements.
-    const freezeDevTools = () => {
-      const start = Date.now();
-      debugger; // This halts execution if DevTools is open!
+    // 3. AGGRESSIVE TRAP: Detect DevTools even if Iframe is focused
+    const threshold = 160; // ms
+    
+    const aggressiveTrap = () => {
+      const start = performance.now();
       
-      // Optional: Detect if they bypassed the debugger
-      // If 'debugger' took more than 100ms, DevTools is likely open
-      if (Date.now() - start > 100) {
-        // They are inspecting. We can redirect or clear the DOM.
-        document.body.innerHTML = '<div style="background:black;color:white;height:100vh;display:flex;align-items:center;justify-content:center;"><h1>Access Denied</h1></div>';
-        // or: window.location.href = "about:blank";
+      // The 'debugger' statement pauses execution if DevTools is open
+      debugger; 
+      
+      const end = performance.now();
+      
+      // If the debugger paused us, 'end - start' will be huge (>100ms)
+      if (end - start > threshold) {
+        // DevTools is definitely open. PUNISH THEM.
+        
+        // Option A: Clear the entire page
+        document.body.innerHTML = '<div style="background:black;color:red;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;text-align:center;"><h1>⚠️ Developer Tools Detected</h1><p>Please close Inspector to continue watching.</p></div>';
+        
+        // Option B: Redirect (Uncomment to use)
+        // window.location.href = "about:blank";
       }
     };
 
-    // Run the trap every second. 
-    // It has zero impact on normal users (debugger statement does nothing if DevTools is closed).
-    const interval = setInterval(() => {
-      freezeDevTools();
-    }, 1000);
+    // Run this check frequently
+    const interval = setInterval(aggressiveTrap, 1000);
 
-    // Attach listeners
+    // Add listeners
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('keydown', handleKeyDown);
 
