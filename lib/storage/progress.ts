@@ -1,53 +1,64 @@
 // lib/storage/progress.ts
 
-interface WatchHistoryItem {
+export interface WatchHistoryItem {
   id: number;
   mediaType: 'movie' | 'tv';
   title: string;
   poster_path: string | null;
   backdrop_path: string | null;
-  lastWatched: number; // Timestamp
+  position: number;    // seconds
+  duration?: number;   // seconds
   season?: number;
   episode?: number;
+  lastWatched: number; // timestamp
 }
 
 const STORAGE_KEY = 'atto4_watch_history';
+const MAX_ITEMS = 20;
 
 export const progressStorage = {
-  // Get all history
+  // Get all history sorted by lastWatched desc (newest first)
   getHistory: (): WatchHistoryItem[] => {
     if (typeof window === 'undefined') return [];
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      const items: WatchHistoryItem[] = raw ? JSON.parse(raw) : [];
+      return items.sort((a, b) => b.lastWatched - a.lastWatched);
     } catch {
       return [];
     }
   },
 
-  // Add or Update Item
+  // Save progress (Upsert)
   saveProgress: (item: Omit<WatchHistoryItem, 'lastWatched'>) => {
     if (typeof window === 'undefined') return;
     
     const history = progressStorage.getHistory();
-    const newItem = { ...item, lastWatched: Date.now() };
+    const now = Date.now();
+
+    // 1. Filter out existing entry for this specific ID + MediaType (Deduping)
+    const others = history.filter(i => !(i.id === item.id && i.mediaType === item.mediaType));
+
+    // 2. Create updated item
+    const newItem: WatchHistoryItem = {
+      ...item,
+      lastWatched: now,
+    };
+
+    // 3. Add to top & limit size
+    const updated = [newItem, ...others].slice(0, MAX_ITEMS);
     
-    // Remove existing entry for this ID to avoid duplicates
-    const filtered = history.filter(i => i.id !== item.id);
-    
-    // Add to top
-    const updated = [newItem, ...filtered].slice(0, 20); // Keep max 20 items
-    
+    // 4. Persist
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     
-    // Dispatch event for UI updates
+    // 5. Emit event
     window.dispatchEvent(new CustomEvent('history-updated'));
   },
 
-  // Clear specific item
-  removeItem: (id: number) => {
+  // Remove specific item
+  removeItem: (id: number, mediaType: 'movie' | 'tv') => {
     const history = progressStorage.getHistory();
-    const updated = history.filter(i => i.id !== id);
+    const updated = history.filter(i => !(i.id === id && i.mediaType === mediaType));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('history-updated'));
   }
