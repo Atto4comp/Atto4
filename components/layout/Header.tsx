@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, Menu, Home, Film, Tv, Grid3X3, X } from 'lucide-react';
+import { Search, Menu, Home, Film, Tv, Grid3X3, X, History } from 'lucide-react'; // Added History icon
 import SearchBar from '@/components/common/SearchBar';
 
 const navigationItems = [
@@ -23,28 +23,28 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Scroll detection
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close menus on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsSearchOpen(false);
   }, [pathname]);
 
+  // ✅ Helper to toggle the activity sidebar
+  const toggleActivity = () => {
+    window.dispatchEvent(new CustomEvent('toggle-activity-view'));
+  };
+
   return (
     <>
-      {/* Floating Header Wrapper */}
       <header className={`modern-header-wrapper ${scrolled ? 'scrolled' : ''}`}>
         
-        {/* Glass Capsule Island */}
         <div className="glass-capsule">
           
-          {/* Brand */}
           <Link href="/" className="flex items-center group">
             <div className="logo-circle">
               <Image 
@@ -62,7 +62,6 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Nav Pills (Desktop) */}
           <nav className="nav-island mx-4">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -80,9 +79,7 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Action Orbs */}
           <div className="action-group">
-            {/* Search Orb */}
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className="action-orb"
@@ -91,22 +88,31 @@ export default function Header() {
               {isSearchOpen ? <X size={18} /> : <Search size={18} />}
             </button>
 
-            {/* DONATE ORB (Desktop) - Uses public/donation.svg */}
+            {/* ✅ NEW: Activity / History Button */}
+            <button
+              onClick={toggleActivity}
+              className="action-orb hover:bg-blue-500/20 hover:text-blue-400 transition-colors"
+              aria-label="Activity"
+              title="Continue Watching"
+            >
+              <History size={18} />
+            </button>
+
+            {/* Donate Orb */}
             <button
               onClick={() => router.push('/donate')}
               className="action-orb primary hidden sm:flex bg-yellow-400/10 hover:bg-yellow-400/20 border-yellow-400/20 transition-colors p-2"
               aria-label="Donate"
             >
               <Image 
-                src="/money.svg" // ✅ Points to your SVG in public folder
+                src="/donation.svg"
                 alt="Donate" 
                 width={20} 
                 height={20} 
-                className="w-5 h-5 object-contain" // Ensure it fits well
+                className="w-5 h-5 object-contain"
               />
             </button>
 
-            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="action-orb sm:hidden"
@@ -118,7 +124,6 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Search Overlay */}
       <div 
         className={`search-curtain ${isSearchOpen ? 'open' : ''}`}
         onClick={() => setIsSearchOpen(false)}
@@ -132,7 +137,6 @@ export default function Header() {
         )}
       </div>
 
-      {/* Mobile Sheet */}
       <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="flex justify-between items-center mb-6 px-2">
           <span className="text-white font-chillax text-lg">Menu</span>
@@ -159,16 +163,27 @@ export default function Header() {
               </Link>
             );
           })}
+          
+          {/* ✅ Mobile Menu Item for Activity */}
+          <button 
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              toggleActivity();
+            }}
+            className="mobile-item"
+          >
+            <History className="mobile-icon" />
+            <span className="mobile-label">Activity</span>
+          </button>
         </div>
 
         <div className="mt-6">
-          {/* DONATE BUTTON (Mobile) */}
           <button 
             onClick={() => router.push('/donate')}
             className="w-full py-4 bg-yellow-500 text-black rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-lg shadow-yellow-500/20"
           >
              <Image 
-                src="/donation.svg" // ✅ Points to your SVG in public folder
+                src="/donation.svg"
                 alt="Donate" 
                 width={24} 
                 height={24} 
