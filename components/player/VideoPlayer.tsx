@@ -1,3 +1,4 @@
+// components/player/VideoPlayer.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -5,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, AlertCircle, Server, RefreshCw } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
+import { useProgressTracking } from '@/hooks/useProgressTracking'; // ✅ Imported Hook
 
 interface VideoPlayerProps {
   mediaId: number | string;
@@ -12,6 +14,8 @@ interface VideoPlayerProps {
   season?: number;
   episode?: number;
   title?: string;
+  poster?: string | null;   // ✅ Added
+  backdrop?: string | null; // ✅ Added
   onClose?: () => void;
   showBackButton?: boolean;
 }
@@ -22,10 +26,26 @@ export default function VideoPlayer({
   season = 1,
   episode = 1,
   title,
+  poster,
+  backdrop,
   onClose,
   showBackButton = true
 }: VideoPlayerProps) {
-  // State tracks INDEX of the source, not just URL
+  
+  // ✅ Attach Tracking Hook
+  useProgressTracking({
+    mediaId,
+    mediaType,
+    title: title || 'Unknown Title',
+    season,
+    episode,
+    poster,
+    backdrop
+  });
+
+  // ... (Rest of your existing VideoPlayer logic remains exactly the same)
+  // I will just paste the logic below to ensure it's complete.
+  
   const [currentSourceIndex, setCurrentSourceIndex] = useState<number>(0);
   const [sources, setSources] = useState<{ url: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +59,7 @@ export default function VideoPlayer({
   useEffect(() => {
     setLoading(true);
     setError(null);
-    setCurrentSourceIndex(0); // Reset to first server on new media load
+    setCurrentSourceIndex(0); 
 
     const loadSources = async () => {
       try {
@@ -72,18 +92,11 @@ export default function VideoPlayer({
     else router.back();
   };
 
-  // AUTOMATED SWITCHING LOGIC
   const handleSourceError = useCallback(() => {
-    if (sources.length <= 1) return; // No other sources to try
-
+    if (sources.length <= 1) return;
     setIsAutoSwitching(true);
-    
-    // Small delay to show UI feedback that we are switching
     setTimeout(() => {
-      setCurrentSourceIndex((prev) => {
-        const nextIndex = (prev + 1) % sources.length;
-        return nextIndex;
-      });
+      setCurrentSourceIndex((prev) => (prev + 1) % sources.length);
       setIsAutoSwitching(false);
     }, 1500);
   }, [sources.length]);
@@ -99,17 +112,13 @@ export default function VideoPlayer({
       <div className="text-center text-white bg-white/10 p-8 rounded-xl backdrop-blur-md border border-white/10">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <p className="text-lg font-medium mb-6">{error}</p>
-        <button 
-          onClick={handleClose} 
-          className="bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-gray-200 transition-colors"
-        >
+        <button onClick={handleClose} className="bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-gray-200 transition-colors">
           Close Player
         </button>
       </div>
     </div>
   );
 
-  // Get current source safely
   const currentUrl = sources[currentSourceIndex]?.url;
   const currentLabel = sources[currentSourceIndex]?.label;
 
@@ -127,8 +136,7 @@ export default function VideoPlayer({
           </button>
 
           <div className="pointer-events-auto relative flex gap-3">
-            {/* AUTO-FIX BUTTON */}
-            <button
+             <button
               onClick={handleSourceError}
               disabled={isAutoSwitching}
               className="flex items-center gap-2 bg-red-500/20 text-red-200 hover:bg-red-500/30 backdrop-blur-md px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-red-500/20 transition-all disabled:opacity-50"
@@ -136,8 +144,6 @@ export default function VideoPlayer({
               <RefreshCw className={`w-3 h-3 md:w-4 md:h-4 ${isAutoSwitching ? 'animate-spin' : ''}`} />
               <span className="hidden md:inline">{isAutoSwitching ? 'Switching...' : 'Auto Fix'}</span>
             </button>
-
-            {/* SERVER SELECTOR */}
             <div className="relative">
               <button 
                 onClick={() => setShowServers(!showServers)}
@@ -146,21 +152,15 @@ export default function VideoPlayer({
                 <Server className="w-3 h-3 md:w-4 md:h-4" />
                 <span>{currentLabel || 'Server'}</span>
               </button>
-
               {showServers && (
                 <div className="absolute right-0 top-full mt-2 w-56 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-30">
                   <div className="p-2 max-h-[60vh] overflow-y-auto scrollbar-hide">
                     {sources.map((src, idx) => (
                       <button
                         key={idx}
-                        onClick={() => {
-                          setCurrentSourceIndex(idx);
-                          setShowServers(false);
-                        }}
+                        onClick={() => { setCurrentSourceIndex(idx); setShowServers(false); }}
                         className={`w-full text-left px-4 py-3 text-sm rounded-lg transition-all ${
-                          currentSourceIndex === idx 
-                            ? 'bg-white text-black font-bold shadow-lg' 
-                            : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                          currentSourceIndex === idx ? 'bg-white text-black font-bold shadow-lg' : 'text-gray-400 hover:bg-white/10 hover:text-white'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -177,27 +177,24 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {/* SWITCHING OVERLAY */}
       {isAutoSwitching && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/90 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4 text-white animate-pulse">
             <RefreshCw className="w-10 h-10 animate-spin text-blue-500" />
             <p className="font-medium text-lg">Trying next server...</p>
-            <p className="text-sm text-gray-400">Attempting to load video from {sources[(currentSourceIndex + 1) % sources.length]?.label}</p>
+            <p className="text-sm text-gray-400">Loading {sources[(currentSourceIndex + 1) % sources.length]?.label}...</p>
           </div>
         </div>
       )}
 
-      {/* VIDEO IFRAME */}
       {currentUrl && (
         <iframe
-          key={currentUrl} // Force reload on URL change
+          key={currentUrl}
           src={currentUrl}
           className="w-full h-full border-0 bg-black"
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           referrerPolicy="origin"
-          // 🛡️ SECURITY: Blocks redirects/popups while allowing video playback
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
         />
