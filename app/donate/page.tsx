@@ -47,7 +47,7 @@ export default function DonatePage() {
             </p>
             
             <a 
-              href="https://ko-fi.com/YOUR_USERNAME" // REPLACE WITH YOUR KO-FI LINK
+              href="https://ko-fi.com/atto4" // REPLACE WITH YOUR KO-FI LINK
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-4 rounded-xl bg-[#FF5E5B] text-white font-bold text-center hover:bg-[#ff4845] transition-colors flex items-center justify-center gap-2"
