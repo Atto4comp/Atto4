@@ -5,15 +5,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { History, X, Play, Sparkles } from 'lucide-react';
-import { progressStorage } from '@/lib/storage/progress';
+import { progressStorage, WatchHistoryItem } from '@/lib/storage/progress';
 
 export default function ActivitySidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<WatchHistoryItem[]>([]);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Load Data
   const loadData = async () => {
     const watched = progressStorage.getHistory();
     setHistory(watched);
@@ -22,7 +21,6 @@ export default function ActivitySidebar() {
       setLoading(true);
       const lastItem = watched[0];
       try {
-        // Client-side fetch for recommendations based on last watched
         const res = await fetch(
           `https://api.themoviedb.org/3/${lastItem.mediaType}/${lastItem.id}/recommendations?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&language=en-US&page=1`
         );
@@ -37,16 +35,10 @@ export default function ActivitySidebar() {
   };
 
   useEffect(() => {
-    // Initial load
     loadData();
-
-    // Listen for history updates
     window.addEventListener('history-updated', loadData);
-    
-    // ✅ Listen for Toggle Event from Header
     const handleToggle = () => setIsOpen(prev => !prev);
     window.addEventListener('toggle-activity-view', handleToggle);
-
     return () => {
       window.removeEventListener('history-updated', loadData);
       window.removeEventListener('toggle-activity-view', handleToggle);
@@ -55,7 +47,6 @@ export default function ActivitySidebar() {
 
   return (
     <>
-      {/* Overlay */}
       <div 
         className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998] transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -63,28 +54,22 @@ export default function ActivitySidebar() {
         onClick={() => setIsOpen(false)}
       />
 
-      {/* Sidebar Panel - Slides from Right */}
       <div className={`fixed top-0 right-0 h-full w-[400px] max-w-[90vw] bg-[#0f0f0f] border-l border-white/10 z-[9999] shadow-2xl transform transition-transform duration-300 ease-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/5">
           <h2 className="text-xl font-bold font-chillax text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-blue-500" />
             For You
           </h2>
-          <button 
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
-          >
+          <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 space-y-8 overflow-y-auto h-[calc(100vh-80px)] custom-scrollbar">
           
-          {/* 1. Continue Watching Section */}
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -99,18 +84,36 @@ export default function ActivitySidebar() {
               </div>
             ) : (
               <div className="space-y-3">
-                {history.slice(0, 3).map((item) => (
+                {history.slice(0, 4).map((item) => (
                   <Link 
                     key={`${item.mediaType}-${item.id}`}
                     href={`/watch/${item.mediaType}/${item.id}${item.mediaType === 'tv' ? `?season=${item.season}&episode=${item.episode}` : ''}`}
                     onClick={() => setIsOpen(false)}
                     className="flex gap-4 group p-3 rounded-xl bg-white/5 border border-white/5 hover:border-blue-500/50 hover:bg-white/10 transition-all"
                   >
-                    {/* Thumbnail Placeholder */}
+                    {/* Thumbnail with Resume Overlay */}
                     <div className="relative w-28 aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0">
-                       <div className="absolute inset-0 flex items-center justify-center bg-white/5 group-hover:bg-blue-500/20 transition-colors">
-                          <Play className="w-8 h-8 text-white/50 group-hover:text-white group-hover:scale-110 transition-all" fill="currentColor" />
+                       {item.poster_path || item.backdrop_path ? (
+                         <Image 
+                           src={`https://image.tmdb.org/t/p/w342${item.backdrop_path || item.poster_path}`} 
+                           alt={item.title} 
+                           fill 
+                           className="object-cover group-hover:scale-110 transition-transform"
+                         />
+                       ) : (
+                         <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                            <Play className="w-8 h-8 text-white/20" />
+                         </div>
+                       )}
+                       
+                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-blue-500/20 transition-colors">
+                          <Play className="w-8 h-8 text-white/80 group-hover:text-white group-hover:scale-110 transition-all drop-shadow-lg" fill="currentColor" />
                        </div>
+                       
+                       {/* Resume Badge (Optional if we tracked duration) */}
+                       {/* <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[9px] text-white font-mono">
+                         RESUME
+                       </div> */}
                     </div>
                     
                     <div className="flex flex-col justify-center min-w-0">
@@ -122,8 +125,9 @@ export default function ActivitySidebar() {
                           S{item.season} : E{item.episode}
                         </p>
                       )}
-                      <p className="text-[10px] text-gray-600 mt-2">
-                        Resume where you left off
+                      <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1">
+                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                         Resume
                       </p>
                     </div>
                   </Link>
@@ -132,7 +136,6 @@ export default function ActivitySidebar() {
             )}
           </section>
 
-          {/* 2. Suggestions Section */}
           <section>
              <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
