@@ -5,7 +5,8 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import ActivitySidebar from '@/components/layout/ActivitySidebar'; // ✅ Added
+import ActivitySidebar from '@/components/layout/ActivitySidebar'; 
+import ClientLayout from '@/components/layout/ClientLayout'; // ✅ Added Wrapper
 import { SITE_CONFIG } from '@/lib/constants';
 import { Analytics } from "@vercel/analytics/next";
 
@@ -118,22 +119,27 @@ export default function RootLayout({
         className="min-h-screen bg-black text-white antialiased overflow-x-hidden"
         suppressHydrationWarning
       >
-        {/* Header */}
-        <Header />
-        
-        {/* Main Content with proper spacing */}
-        <main className="pt-16 md:pt-20 min-h-screen relative">
-          {children}
-        </main>
+        {/* ✅ Wrap everything in ClientLayout for DevTools Protection */}
+        <ClientLayout>
+          
+          {/* Header */}
+          <Header />
+          
+          {/* Main Content with proper spacing */}
+          <main className="pt-16 md:pt-20 min-h-screen relative">
+            {children}
+          </main>
 
-        {/* ✅ Activity Sidebar (Floating) */}
-        <ActivitySidebar />
-        
-        {/* Footer */}
-        <Footer />
-        
-        {/* Analytics */}
-        <Analytics />
+          {/* ✅ Activity Sidebar (Floating) */}
+          <ActivitySidebar />
+          
+          {/* Footer */}
+          <Footer />
+          
+          {/* Analytics */}
+          <Analytics />
+
+        </ClientLayout>
       </body>
     </html>
   );
