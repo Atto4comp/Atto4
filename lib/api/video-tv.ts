@@ -23,10 +23,10 @@ const SERVERS = [
     key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
-    id: 'vidon', 
-    label: 'Vidon', 
-    // "https://player.vidplus.to/embed/tv/"
-    key: "L3Z0L2RlYm1lL290LnN1bHBkaXYucmV5YWxwLy86c3B0dGg=" 
+    id: 'vidzy', 
+    label: 'Vidzy', 
+    // "https://bidsrc.pro/tv/"
+    key: "L3Z0L29ycC5jcnNkaWIvLzpzcHR0aA==" 
   }
 ];
 
