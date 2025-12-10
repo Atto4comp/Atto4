@@ -1,4 +1,3 @@
-// components/players/TvPlayer.tsx
 'use client';
 
 import { useState } from 'react';
@@ -30,12 +29,8 @@ export default function TvPlayer({
   const handleEpisodeChange = (s: number, e: number) => {
     setCurrentSeason(s);
     setCurrentEpisode(e);
-    // Update URL silently without reload
-    window.history.replaceState(
-      null,
-      '',
-      `/watch/tv/${mediaId}?season=${s}&episode=${e}`,
-    );
+    // Update URL silently
+    window.history.replaceState(null, '', `/watch/tv/${mediaId}?season=${s}&episode=${e}`);
   };
 
   const nextEpisode = () => handleEpisodeChange(currentSeason, currentEpisode + 1);
@@ -46,35 +41,35 @@ export default function TvPlayer({
   return (
     <div className="relative w-full h-full">
       <VideoPlayer
-        // KEY IS IMPORTANT: Forces full reset when episode changes
+        // Force reset on episode change
         key={`${mediaId}-s${currentSeason}-e${currentEpisode}`}
         mediaId={mediaId}
         mediaType="tv"
         season={currentSeason}
         episode={currentEpisode}
-        title={title} // no S/E here
+        title={title}
         poster={poster}
         backdrop={backdrop}
         onClose={onClose}
       />
 
-      {/* TV Navigation Overlay */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-black/50 backdrop-blur-lg px-6 py-3 rounded-full border border-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300">
+      {/* TV Navigation Overlay - FIXED Z-INDEX [120] to sit ABOVE the player (z-100) */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[120] flex items-center gap-4 bg-black/60 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 hover:bg-black/80 transition-all duration-300 group">
         <button
           onClick={prevEpisode}
           disabled={currentEpisode <= 1}
-          className="text-white hover:text-blue-400 disabled:opacity-30 transition-colors"
+          className="text-white hover:text-blue-400 disabled:opacity-30 transition-colors p-1"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        <span className="text-sm font-bold text-white min-w-[80px] text-center">
+        <span className="text-sm font-bold text-white min-w-[90px] text-center select-none font-mono">
           S{currentSeason} : E{currentEpisode}
         </span>
 
         <button
           onClick={nextEpisode}
-          className="text-white hover:text-blue-400 transition-colors"
+          className="text-white hover:text-blue-400 transition-colors p-1"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
