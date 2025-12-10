@@ -18,12 +18,6 @@ const SERVERS = [
     key: "LWVpdm9tLWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   },
   { 
-    id: 'cinezo', 
-    label: 'Cinezo', 
-    // "https://api.cinezo.net/media/tmdb-movie-"
-    key: "LWVpdm9tLWJkbXQvYWlkZW0vdGVuLm96ZW5pYy5pcGEvLzpzcHR0aA==" 
-  },
-  { 
     id: 'vidme', 
     label: 'Vidme', 
     // "https://www.vidking.net/embed/movie/"
