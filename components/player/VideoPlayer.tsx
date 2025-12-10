@@ -29,66 +29,6 @@ const unlock = (str: string) => {
   }
 };
 
-// DevTools trap helper (kept local to player for isolation)
-function startPlayerDevtoolsTrap(opts?: { intervalMs?: number; thresholdMs?: number; onDetect?: () => void }) {
-  const intervalMs = opts?.intervalMs ?? 1000;
-  const thresholdMs = opts?.thresholdMs ?? 100;
-  let intervalId: number | null = null;
-
-  const preventInspect = (e: KeyboardEvent) => {
-    const key = e.key?.toLowerCase();
-    if (
-      e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && key === 'i') ||
-      (e.ctrlKey && key === 'u') ||
-      (e.ctrlKey && e.shiftKey && key === 'c')
-    ) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-    return true;
-  };
-
-  const preventContext = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  };
-
-  const trigger = () => {
-    try {
-      if (typeof opts?.onDetect === 'function') opts.onDetect();
-    } catch (e) {
-      // best-effort
-    }
-  };
-
-  const run = () => {
-    const t0 = performance.now();
-    // eslint-disable-next-line no-debugger
-    debugger;
-    const t1 = performance.now();
-    if (t1 - t0 > thresholdMs) {
-      trigger();
-    }
-  };
-
-  document.addEventListener('contextmenu', preventContext, { passive: false });
-  document.addEventListener('keydown', preventInspect, { passive: false });
-
-  intervalId = window.setInterval(run, intervalMs);
-
-  return () => {
-    if (intervalId !== null) {
-      clearInterval(intervalId);
-      intervalId = null;
-    }
-    document.removeEventListener('contextmenu', preventContext);
-    document.removeEventListener('keydown', preventInspect as any);
-  };
-}
-
 export default function VideoPlayer({
   mediaId,
   mediaType,
@@ -114,31 +54,28 @@ export default function VideoPlayer({
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   const router = useRouter();
-  const trapCleanupRef = useRef<(() => void) | null>(null);
 
   // 🛡️ SECONDARY TRAP: Self-Destruct if DevTools Detected
+  // This runs inside the player component itself.
   useEffect(() => {
-    // On detection, wipe sensitive state and redirect
-    const onDetect = () => {
-      try {
-        setBlobUrl(null);
-        setSources([]);
-        setLoading(true);
-        try { localStorage.clear(); } catch {}
-        try { sessionStorage.clear(); } catch {}
-      } finally {
-        window.location.replace('about:blank');
+    const check = setInterval(() => {
+      const t0 = Date.now();
+      
+      // 🛑 Inner Trap
+      debugger; 
+      
+      const t1 = Date.now();
+      
+      // If paused for > 100ms, destroy player state
+      if (t1 - t0 > 100) {
+        setBlobUrl(null); 
+        setSources([]); // Clear sources list
+        setLoading(true); // Freeze UI
+        window.location.replace('about:blank'); // Redirect
       }
-    };
-
-    trapCleanupRef.current = startPlayerDevtoolsTrap({ intervalMs: 1000, thresholdMs: 100, onDetect });
-
-    return () => {
-      if (trapCleanupRef.current) {
-        trapCleanupRef.current();
-        trapCleanupRef.current = null;
-      }
-    };
+    }, 1000); // Check every second
+    
+    return () => clearInterval(check);
   }, []);
 
   // Load Sources
@@ -176,8 +113,6 @@ export default function VideoPlayer({
   useEffect(() => {
     const source = sources[currentSourceIndex];
     if (!source) return;
-
-    let createdUrl: string | null = null;
 
     const createSecureFrame = async () => {
       setLoading(true);
@@ -226,8 +161,8 @@ export default function VideoPlayer({
         `;
 
         const blob = new Blob([html], { type: 'text/html' });
-        createdUrl = URL.createObjectURL(blob);
-        setBlobUrl(createdUrl);
+        const url = URL.createObjectURL(blob);
+        setBlobUrl(url);
         setLoading(false);
         setIsAutoSwitching(false);
 
@@ -240,9 +175,7 @@ export default function VideoPlayer({
     createSecureFrame();
 
     return () => {
-      if (createdUrl) {
-        URL.revokeObjectURL(createdUrl);
-      }
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
     };
   }, [currentSourceIndex, sources]); 
 
