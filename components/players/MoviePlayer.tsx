@@ -6,16 +6,26 @@ import VideoPlayer from '@/components/player/VideoPlayer';
 interface MoviePlayerProps {
   mediaId: number | string;
   title: string;
+  poster?: string | null;
+  backdrop?: string | null;
   onClose?: () => void;
 }
 
-export default function MoviePlayer({ mediaId, title, onClose }: MoviePlayerProps) {
+export default function MoviePlayer({
+  mediaId,
+  title,
+  poster,
+  backdrop,
+  onClose,
+}: MoviePlayerProps) {
   return (
     <VideoPlayer
-      key={mediaId} // Resets player if movie ID changes
+      key={mediaId}
       mediaId={mediaId}
       mediaType="movie"
       title={title}
+      poster={poster}
+      backdrop={backdrop}
       onClose={onClose}
     />
   );
