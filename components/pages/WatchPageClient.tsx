@@ -67,9 +67,9 @@ export default function WatchPageClient({
         episode={episode}
         title={title}
         onClose={handleClose}
-        // guardMs={5000}
-        // autoNextMs={25 * 60 * 1000} 
-        // showControls={true}
+        guardMs={5000}
+        autoNextMs={25 * 60 * 1000} 
+        showControls={true}
       />
     );
   }
