@@ -30,10 +30,11 @@ export default function TvPlayer({
   const handleEpisodeChange = (s: number, e: number) => {
     setCurrentSeason(s);
     setCurrentEpisode(e);
+    // Update URL silently without reload
     window.history.replaceState(
       null,
       '',
-      `/watch/tv/${mediaId}?season=${s}&episode=${e}`
+      `/watch/tv/${mediaId}?season=${s}&episode=${e}`,
     );
   };
 
@@ -45,18 +46,19 @@ export default function TvPlayer({
   return (
     <div className="relative w-full h-full">
       <VideoPlayer
+        // KEY IS IMPORTANT: Forces full reset when episode changes
         key={`${mediaId}-s${currentSeason}-e${currentEpisode}`}
         mediaId={mediaId}
         mediaType="tv"
         season={currentSeason}
         episode={currentEpisode}
-        title={title}            {/* no S/E here */}
+        title={title} // no S/E here
         poster={poster}
         backdrop={backdrop}
         onClose={onClose}
       />
 
-      {/* TV Navigation Overlay (shows S/E only here) */}
+      {/* TV Navigation Overlay */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-black/50 backdrop-blur-lg px-6 py-3 rounded-full border border-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300">
         <button
           onClick={prevEpisode}
