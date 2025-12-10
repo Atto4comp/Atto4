@@ -178,9 +178,13 @@ export default function VideoPlayer({
     };
   }, [currentSourceIndex, sources]); 
 
+  // ✅ UPDATED: Always go to home page
   const handleClose = () => {
-    if (onClose) onClose();
-    else router.back();
+    if (onClose) {
+      onClose();
+    } else {
+      router.push('/'); // Redirect to home page instead of router.back()
+    }
   };
 
   const handleSourceError = useCallback(() => {
@@ -212,7 +216,6 @@ export default function VideoPlayer({
   const currentLabel = sources[currentSourceIndex]?.label;
 
   return (
-    // ✅ FIX: Added 'items-center justify-center' here for perfect centering
     <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
       
       {showBackButton && (
@@ -278,12 +281,11 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {/* 4. BLOB IFRAME */}
+      {/* BLOB IFRAME */}
       {blobUrl && (
         <iframe
           key={blobUrl}
           src={blobUrl}
-          // ✅ FIX: Keep w-full h-full, Flex parent handles the centering
           className="w-full h-full border-0 bg-black"
           allowFullScreen
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
