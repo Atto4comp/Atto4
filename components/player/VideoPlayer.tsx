@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, AlertCircle, Server, RefreshCw } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
-import { useProgressTracking } from '@/hooks/useProgressTracking'; // ✅ Imported Hook
+import { useProgressTracking } from '@/hooks/useProgressTracking';
 
 interface VideoPlayerProps {
   mediaId: number | string;
@@ -14,11 +14,20 @@ interface VideoPlayerProps {
   season?: number;
   episode?: number;
   title?: string;
-  poster?: string | null;   // ✅ Added
-  backdrop?: string | null; // ✅ Added
+  poster?: string | null;
+  backdrop?: string | null;
   onClose?: () => void;
   showBackButton?: boolean;
 }
+
+// 🔓 UNLOCKER
+const unlock = (str: string) => {
+  try {
+    return window.atob(str).split('').reverse().join('');
+  } catch (e) {
+    return '';
+  }
+};
 
 export default function VideoPlayer({
   mediaId,
@@ -32,30 +41,20 @@ export default function VideoPlayer({
   showBackButton = true
 }: VideoPlayerProps) {
   
-  // ✅ Attach Tracking Hook
   useProgressTracking({
-    mediaId,
-    mediaType,
-    title: title || 'Unknown Title',
-    season,
-    episode,
-    poster,
-    backdrop
+    mediaId, mediaType, title: title || 'Unknown Title', season, episode, poster, backdrop
   });
 
-  // ... (Rest of your existing VideoPlayer logic remains exactly the same)
-  // I will just paste the logic below to ensure it's complete.
-  
   const [currentSourceIndex, setCurrentSourceIndex] = useState<number>(0);
-  const [sources, setSources] = useState<{ url: string; label: string }[]>([]);
+  const [sources, setSources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showServers, setShowServers] = useState(false);
   const [isAutoSwitching, setIsAutoSwitching] = useState(false);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   const router = useRouter();
 
-  // Load Sources
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -72,9 +71,8 @@ export default function VideoPlayer({
 
         if (result.allSources && result.allSources.length > 0) {
           setSources(result.allSources);
-          setLoading(false);
         } else {
-          setError('No sources available for this title.');
+          setError('No sources available.');
           setLoading(false);
         }
       } catch (err) {
@@ -87,6 +85,67 @@ export default function VideoPlayer({
     loadSources();
   }, [mediaId, mediaType, season, episode]);
 
+  // 🔐 SECURE BLOB GENERATION
+  useEffect(() => {
+    const source = sources[currentSourceIndex];
+    if (!source) return;
+
+    const createSecureFrame = async () => {
+      setLoading(true);
+      setBlobUrl(null);
+
+      try {
+        let realUrl = '';
+        
+        // 1. Unlock the URL
+        if (source.isEncrypted) {
+          const base = unlock(source.encryptedKey);
+          realUrl = `${base}${source.mediaId}${source.suffix || ''}`;
+        } else {
+          realUrl = source.url;
+        }
+
+        // 2. HTML Sandwich
+        // Ensure we set base href so relative links don't break
+        const html = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <style>body,html,iframe{width:100%;height:100%;margin:0;padding:0;background:#000;border:none;overflow:hidden}</style>
+            </head>
+            <body>
+              <iframe 
+                src="${realUrl}" 
+                allowfullscreen="true" 
+                webkitallowfullscreen="true" 
+                mozallowfullscreen="true"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              ></iframe>
+            </body>
+          </html>
+        `;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        setBlobUrl(url);
+        setLoading(false);
+        setIsAutoSwitching(false);
+
+      } catch (err) {
+        console.error("Secure frame error", err);
+        handleSourceError();
+      }
+    };
+
+    createSecureFrame();
+
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [currentSourceIndex, sources]); 
+
   const handleClose = () => {
     if (onClose) onClose();
     else router.back();
@@ -97,11 +156,10 @@ export default function VideoPlayer({
     setIsAutoSwitching(true);
     setTimeout(() => {
       setCurrentSourceIndex((prev) => (prev + 1) % sources.length);
-      setIsAutoSwitching(false);
     }, 1500);
   }, [sources.length]);
 
-  if (loading) return (
+  if (loading && !isAutoSwitching) return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
     </div>
@@ -119,11 +177,11 @@ export default function VideoPlayer({
     </div>
   );
 
-  const currentUrl = sources[currentSourceIndex]?.url;
   const currentLabel = sources[currentSourceIndex]?.label;
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
+      {/* Controls */}
       {showBackButton && (
         <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent pointer-events-none transition-opacity hover:opacity-100">
           <button onClick={handleClose} className="pointer-events-auto flex items-center gap-3 text-white/80 hover:text-white transition-colors group">
@@ -187,14 +245,15 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {currentUrl && (
+      {/* 4. BLOB IFRAME (Fixed) */}
+      {blobUrl && (
         <iframe
-          key={currentUrl}
-          src={currentUrl}
+          key={blobUrl}
+          src={blobUrl}
           className="w-full h-full border-0 bg-black"
           allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          referrerPolicy="origin"
+          // ✅ FIX: Removed "allow-same-origin" to force better isolation if possible, 
+          // or kept it if necessary. If it still fails, adding 'allow-same-origin' back is usually required for blobs.
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
         />
