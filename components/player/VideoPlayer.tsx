@@ -1,12 +1,12 @@
 // components/player/VideoPlayer.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, AlertCircle, Server, RefreshCw } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
-import { useProgressTracking } from '@/hooks/useProgressTracking'; // ✅ Imported Hook
+import { useProgressTracking } from '@/hooks/useProgressTracking';
 
 interface VideoPlayerProps {
   mediaId: number | string;
@@ -14,11 +14,20 @@ interface VideoPlayerProps {
   season?: number;
   episode?: number;
   title?: string;
-  poster?: string | null;   // ✅ Added
-  backdrop?: string | null; // ✅ Added
+  poster?: string | null;
+  backdrop?: string | null;
   onClose?: () => void;
   showBackButton?: boolean;
 }
+
+// 🔓 DECRYPTION FUNCTION (Reverse the obfuscation)
+const unlock = (str: string) => {
+  try {
+    return window.atob(str).split('').reverse().join('');
+  } catch (e) {
+    return '';
+  }
+};
 
 export default function VideoPlayer({
   mediaId,
@@ -32,30 +41,22 @@ export default function VideoPlayer({
   showBackButton = true
 }: VideoPlayerProps) {
   
-  // ✅ Attach Tracking Hook
   useProgressTracking({
-    mediaId,
-    mediaType,
-    title: title || 'Unknown Title',
-    season,
-    episode,
-    poster,
-    backdrop
+    mediaId, mediaType, title: title || 'Unknown Title', season, episode, poster, backdrop
   });
 
-  // ... (Rest of your existing VideoPlayer logic remains exactly the same)
-  // I will just paste the logic below to ensure it's complete.
-  
   const [currentSourceIndex, setCurrentSourceIndex] = useState<number>(0);
-  const [sources, setSources] = useState<{ url: string; label: string }[]>([]);
+  const [sources, setSources] = useState<any[]>([]); // Changed type to any for flexibility
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showServers, setShowServers] = useState(false);
   const [isAutoSwitching, setIsAutoSwitching] = useState(false);
+  
+  // 🔒 BLOB STATE
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   const router = useRouter();
 
-  // Load Sources
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -72,9 +73,8 @@ export default function VideoPlayer({
 
         if (result.allSources && result.allSources.length > 0) {
           setSources(result.allSources);
-          setLoading(false);
         } else {
-          setError('No sources available for this title.');
+          setError('No sources available.');
           setLoading(false);
         }
       } catch (err) {
@@ -87,6 +87,64 @@ export default function VideoPlayer({
     loadSources();
   }, [mediaId, mediaType, season, episode]);
 
+  // 🔐 CREATE SECURE BLOB FRAME
+  useEffect(() => {
+    const source = sources[currentSourceIndex];
+    if (!source) return;
+
+    const createSecureFrame = async () => {
+      setLoading(true);
+      setBlobUrl(null);
+
+      try {
+        let realUrl = '';
+        
+        // 1. UNLOCK URL
+        if (source.isEncrypted) {
+          const base = unlock(source.encryptedKey);
+          // Combine: BaseURL + ID + Suffix (e.g. ?autoplay=true)
+          realUrl = `${base}${source.mediaId}${source.suffix || ''}`;
+        } else {
+          realUrl = source.url;
+        }
+
+        // 2. CREATE SANDWICH HTML
+        const html = `
+          <!DOCTYPE html>
+          <html style="height:100%;margin:0;overflow:hidden">
+            <body style="height:100%;margin:0;background:#000;overflow:hidden">
+              <iframe 
+                src="${realUrl}" 
+                style="width:100%;height:100%;border:0" 
+                allowfullscreen 
+                scrolling="no"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              ></iframe>
+            </body>
+          </html>
+        `;
+
+        // 3. GENERATE BLOB URL
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        
+        setBlobUrl(url);
+        setLoading(false);
+        setIsAutoSwitching(false);
+
+      } catch (err) {
+        console.error("Secure frame error", err);
+        handleSourceError();
+      }
+    };
+
+    createSecureFrame();
+
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [currentSourceIndex, sources]); 
+
   const handleClose = () => {
     if (onClose) onClose();
     else router.back();
@@ -97,11 +155,10 @@ export default function VideoPlayer({
     setIsAutoSwitching(true);
     setTimeout(() => {
       setCurrentSourceIndex((prev) => (prev + 1) % sources.length);
-      setIsAutoSwitching(false);
     }, 1500);
   }, [sources.length]);
 
-  if (loading) return (
+  if (loading && !isAutoSwitching) return (
     <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
     </div>
@@ -119,7 +176,6 @@ export default function VideoPlayer({
     </div>
   );
 
-  const currentUrl = sources[currentSourceIndex]?.url;
   const currentLabel = sources[currentSourceIndex]?.label;
 
   return (
@@ -187,14 +243,15 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {currentUrl && (
+      {/* 🔒 THE BLOB IFRAME */}
+      {blobUrl && (
         <iframe
-          key={currentUrl}
-          src={currentUrl}
+          key={blobUrl}
+          src={blobUrl}
           className="w-full h-full border-0 bg-black"
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          referrerPolicy="origin"
+          // We need same-origin for the blob to work properly with some scripts
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
         />
