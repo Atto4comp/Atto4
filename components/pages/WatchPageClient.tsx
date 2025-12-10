@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MoviePlayer from '@/components/players/MoviePlayer';
 import TvPlayer from '@/components/players/TvPlayer';
+import { useDevToolsProtection } from '@/hooks/useDevToolsProtection'; // ✅ Import Hook
 
 interface WatchPageClientProps {
   mediaType: 'movie' | 'tv';
@@ -24,6 +25,10 @@ export default function WatchPageClient({
   mediaData,
 }: WatchPageClientProps) {
   const router = useRouter();
+
+  // ✅ ACTIVATE DEVTOOLS PROTECTION
+  // This triggers the trap immediately when the watch page mounts
+  useDevToolsProtection();
 
   useEffect(() => {
     // Hide body scroll for fullscreen experience
@@ -46,8 +51,9 @@ export default function WatchPageClient({
         mediaId={mediaId}
         title={title}
         onClose={handleClose}
-        guardMs={6000}
-        showControls={true}
+        // Passed props for compatibility
+        // guardMs={6000} 
+        // showControls={true}
       />
     );
   }
@@ -61,14 +67,14 @@ export default function WatchPageClient({
         episode={episode}
         title={title}
         onClose={handleClose}
-        guardMs={5000}
-        autoNextMs={25 * 60 * 1000} // auto-advance after ~25 minutes
-        showControls={true}
+        // guardMs={5000}
+        // autoNextMs={25 * 60 * 1000} 
+        // showControls={true}
       />
     );
   }
 
-  // Fallback (shouldn't reach here)
+  // Fallback
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center text-white">
       <div className="text-center">
