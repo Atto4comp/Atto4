@@ -1,11 +1,10 @@
 // components/pages/WatchPageClient.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import MoviePlayer from '@/components/players/MoviePlayer';
 import TvPlayer from '@/components/players/TvPlayer';
-import { useDevToolsProtection } from '@/hooks/useDevToolsProtection'; // ✅ Import Hook
 
 interface WatchPageClientProps {
   mediaType: 'movie' | 'tv';
@@ -25,10 +24,48 @@ export default function WatchPageClient({
   mediaData,
 }: WatchPageClientProps) {
   const router = useRouter();
+  const trapInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // ✅ ACTIVATE DEVTOOLS PROTECTION
-  // This triggers the trap immediately when the watch page mounts
-  useDevToolsProtection();
+  // 🛡️ AGGRESSIVE DEVTOOLS PROTECTION (Direct Implementation)
+  useEffect(() => {
+    // 1. Disable Interactions
+    const preventInspect = (e: any) => {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', preventInspect);
+
+    // 2. The Trap Loop
+    const runTrap = () => {
+      const start = performance.now();
+      
+      // 🛑 THIS PAUSES EXECUTION IF DEVTOOLS IS OPEN
+      debugger; 
+      
+      const end = performance.now();
+      
+      // If execution paused for > 100ms, DevTools is open.
+      if (end - start > 100) {
+        // 🚨 WIPE DOM IMMEDIATELY
+        document.body.innerHTML = '';
+        document.body.style.backgroundColor = 'black';
+        
+        // 🚨 REDIRECT
+        window.location.href = "about:blank";
+      }
+    };
+
+    // Run extremely frequently (every 200ms)
+    trapInterval.current = setInterval(runTrap, 200);
+
+    return () => {
+      if (trapInterval.current) clearInterval(trapInterval.current);
+      document.removeEventListener('keydown', preventInspect);
+    };
+  }, []);
 
   useEffect(() => {
     // Hide body scroll for fullscreen experience
@@ -51,9 +88,6 @@ export default function WatchPageClient({
         mediaId={mediaId}
         title={title}
         onClose={handleClose}
-        // Passed props for compatibility
-        // guardMs={6000} 
-        // showControls={true}
       />
     );
   }
@@ -67,25 +101,9 @@ export default function WatchPageClient({
         episode={episode}
         title={title}
         onClose={handleClose}
-        guardMs={5000}
-        autoNextMs={25 * 60 * 1000} 
-        showControls={true}
       />
     );
   }
 
-  // Fallback
-  return (
-    <div className="fixed inset-0 bg-black flex items-center justify-center text-white">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold mb-4">Unsupported media type</h1>
-        <button
-          onClick={handleClose}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
-        >
-          Go Back
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 }
