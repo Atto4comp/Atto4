@@ -11,16 +11,16 @@ export interface TVEmbedResult {
 // 🔐 CORRECTED ENCRYPTED KEYS FOR TV
 const SERVERS = [
   { 
-    id: 'vidme', 
-    label: 'Vidme', 
-    // "https://www.vidking.net/embed/tv/"
-    key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
-  },
-  { 
     id: 'vidly', 
     label: 'Vidly', 
     // "https://fmovies4u.com/embed/tmdb-tv-"
     key: "LXZ0LWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
+  },
+  { 
+    id: 'vidme', 
+    label: 'Vidme', 
+    // "https://www.vidking.net/embed/tv/"
+    key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
     id: 'vidon', 
