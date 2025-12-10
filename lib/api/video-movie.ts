@@ -11,17 +11,17 @@ export interface MovieEmbedResult {
 // 🔐 CORRECTED ENCRYPTED KEYS
 const SERVERS = [
   { 
+    id: 'vidme', 
+    label: 'Vidme', 
+    // "https://www.vidking.net/embed/movie/"
+    key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
+  },
+  { 
     id: 'vidly', 
     label: 'Vidly', 
     // "https://fmovies4u.com/embed/tmdb-movie-"
     // TYPO FIXED: 'embed', not 'mebed'
     key: "LWVpdm9tLWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
-  },
-  { 
-    id: 'vidme', 
-    label: 'Vidme', 
-    // "https://www.vidking.net/embed/movie/"
-    key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
     id: 'vidzy', 
