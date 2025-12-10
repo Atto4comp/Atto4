@@ -1,7 +1,7 @@
 // components/player/VideoPlayer.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, AlertCircle, Server, RefreshCw } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
@@ -55,6 +55,7 @@ export default function VideoPlayer({
 
   const router = useRouter();
 
+  // Load Sources
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -106,14 +107,24 @@ export default function VideoPlayer({
         }
 
         // 2. HTML Sandwich
-        // Ensure we set base href so relative links don't break
+        // Using a complete HTML structure ensures better compatibility
         const html = `
           <!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1">
-              <style>body,html,iframe{width:100%;height:100%;margin:0;padding:0;background:#000;border:none;overflow:hidden}</style>
+              <style>
+                body, html, iframe {
+                  width: 100%;
+                  height: 100%;
+                  margin: 0;
+                  padding: 0;
+                  background-color: #000;
+                  border: none;
+                  overflow: hidden;
+                }
+              </style>
             </head>
             <body>
               <iframe 
@@ -181,7 +192,6 @@ export default function VideoPlayer({
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Controls */}
       {showBackButton && (
         <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent pointer-events-none transition-opacity hover:opacity-100">
           <button onClick={handleClose} className="pointer-events-auto flex items-center gap-3 text-white/80 hover:text-white transition-colors group">
@@ -252,8 +262,7 @@ export default function VideoPlayer({
           src={blobUrl}
           className="w-full h-full border-0 bg-black"
           allowFullScreen
-          // ✅ FIX: Removed "allow-same-origin" to force better isolation if possible, 
-          // or kept it if necessary. If it still fails, adding 'allow-same-origin' back is usually required for blobs.
+          // Using both allow-scripts and allow-same-origin is usually required for blob iframes to work properly
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
         />
