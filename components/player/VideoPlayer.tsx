@@ -56,7 +56,6 @@ export default function VideoPlayer({
   const router = useRouter();
 
   // 🛡️ SECONDARY TRAP: Self-Destruct if DevTools Detected
-  // This runs inside the player component itself.
   useEffect(() => {
     const check = setInterval(() => {
       const t0 = Date.now();
@@ -69,11 +68,11 @@ export default function VideoPlayer({
       // If paused for > 100ms, destroy player state
       if (t1 - t0 > 100) {
         setBlobUrl(null); 
-        setSources([]); // Clear sources list
-        setLoading(true); // Freeze UI
-        window.location.replace('about:blank'); // Redirect
+        setSources([]); 
+        setLoading(true); 
+        window.location.replace('about:blank'); 
       }
-    }, 1000); // Check every second
+    }, 1000); 
     
     return () => clearInterval(check);
   }, []);
@@ -213,7 +212,9 @@ export default function VideoPlayer({
   const currentLabel = sources[currentSourceIndex]?.label;
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+    // ✅ FIX: Added 'items-center justify-center' here for perfect centering
+    <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
+      
       {showBackButton && (
         <div className="absolute top-0 left-0 right-0 z-20 p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent pointer-events-none transition-opacity hover:opacity-100">
           <button onClick={handleClose} className="pointer-events-auto flex items-center gap-3 text-white/80 hover:text-white transition-colors group">
@@ -282,9 +283,9 @@ export default function VideoPlayer({
         <iframe
           key={blobUrl}
           src={blobUrl}
+          // ✅ FIX: Keep w-full h-full, Flex parent handles the centering
           className="w-full h-full border-0 bg-black"
           allowFullScreen
-          // Usually required for blob iframes to work properly
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
         />
