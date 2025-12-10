@@ -55,6 +55,29 @@ export default function VideoPlayer({
 
   const router = useRouter();
 
+  // 🛡️ SECONDARY TRAP: Self-Destruct if DevTools Detected
+  // This runs inside the player component itself.
+  useEffect(() => {
+    const check = setInterval(() => {
+      const t0 = Date.now();
+      
+      // 🛑 Inner Trap
+      debugger; 
+      
+      const t1 = Date.now();
+      
+      // If paused for > 100ms, destroy player state
+      if (t1 - t0 > 100) {
+        setBlobUrl(null); 
+        setSources([]); // Clear sources list
+        setLoading(true); // Freeze UI
+        window.location.replace('about:blank'); // Redirect
+      }
+    }, 1000); // Check every second
+    
+    return () => clearInterval(check);
+  }, []);
+
   // Load Sources
   useEffect(() => {
     setLoading(true);
@@ -107,7 +130,6 @@ export default function VideoPlayer({
         }
 
         // 2. HTML Sandwich
-        // Using a complete HTML structure ensures better compatibility
         const html = `
           <!DOCTYPE html>
           <html>
@@ -255,14 +277,14 @@ export default function VideoPlayer({
         </div>
       )}
 
-      {/* 4. BLOB IFRAME (Fixed) */}
+      {/* 4. BLOB IFRAME */}
       {blobUrl && (
         <iframe
           key={blobUrl}
           src={blobUrl}
           className="w-full h-full border-0 bg-black"
           allowFullScreen
-          // Using both allow-scripts and allow-same-origin is usually required for blob iframes to work properly
+          // Usually required for blob iframes to work properly
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
         />
