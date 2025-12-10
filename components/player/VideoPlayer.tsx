@@ -1,9 +1,14 @@
-// components/player/VideoPlayer.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { 
+  AlertCircle, 
+  RefreshCw, 
+  ArrowLeft, 
+  Server, 
+  Settings 
+} from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
 import { useProgressTracking } from '@/hooks/useProgressTracking';
@@ -54,24 +59,21 @@ export default function VideoPlayer({
   const [error, setError] = useState<string | null>(null);
   const [isAutoSwitching, setIsAutoSwitching] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [showControls, setShowControls] = useState(false); // UI toggle
 
   const router = useRouter();
 
-  // 🛡️ SECONDARY TRAP: Self-Destruct if DevTools Detected
+  // 🛡️ TRAP: Self-Destruct if DevTools Detected
   useEffect(() => {
     const check = setInterval(() => {
       const t0 = Date.now();
       debugger;
       const t1 = Date.now();
-
       if (t1 - t0 > 100) {
         setBlobUrl(null);
-        setSources([]);
-        setLoading(true);
         window.location.replace('about:blank');
       }
     }, 1000);
-
     return () => clearInterval(check);
   }, []);
 
@@ -117,7 +119,6 @@ export default function VideoPlayer({
 
       try {
         let realUrl = '';
-
         if (source.isEncrypted) {
           const base = unlock(source.encryptedKey);
           realUrl = `${base}${source.mediaId}${source.suffix || ''}`;
@@ -132,15 +133,7 @@ export default function VideoPlayer({
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1">
               <style>
-                body, html, iframe {
-                  width: 100%;
-                  height: 100%;
-                  margin: 0;
-                  padding: 0;
-                  background-color: #000;
-                  border: none;
-                  overflow: hidden;
-                }
+                body, html, iframe { width: 100%; height: 100%; margin: 0; padding: 0; background: #000; border: none; }
               </style>
             </head>
             <body>
@@ -167,19 +160,12 @@ export default function VideoPlayer({
     };
 
     createSecureFrame();
-
-    return () => {
-      if (blobUrl) URL.revokeObjectURL(blobUrl);
-    };
+    return () => { if (blobUrl) URL.revokeObjectURL(blobUrl); };
   }, [currentSourceIndex, sources]); 
 
-  // ⬅ Back: restore original behavior
   const handleClose = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      router.back();
-    }
+    if (onClose) onClose();
+    else router.back();
   };
 
   const handleSourceError = useCallback(() => {
@@ -190,41 +176,82 @@ export default function VideoPlayer({
     }, 1500);
   }, [sources.length]);
 
-  if (loading && !isAutoSwitching)
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
-      </div>
-    );
+  const manualSourceSwitch = () => {
+    setLoading(true);
+    setCurrentSourceIndex((prev) => (prev + 1) % sources.length);
+  };
 
-  if (error)
+  const reloadPlayer = () => {
+    setLoading(true);
+    const current = currentSourceIndex;
+    setCurrentSourceIndex(-1); // force reset
+    setTimeout(() => setCurrentSourceIndex(current), 100);
+  };
+
+  if (error) {
     return (
-      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+      <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
         <div className="text-center text-white bg-white/10 p-8 rounded-xl backdrop-blur-md border border-white/10">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <p className="text-lg font-medium mb-6">{error}</p>
-          <button
-            onClick={handleClose}
-            className="bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-gray-200 transition-colors"
-          >
+          <button onClick={handleClose} className="bg-white text-black px-8 py-3 rounded-full font-bold">
             Close Player
           </button>
         </div>
       </div>
     );
+  }
 
   return (
-    // Full-screen overlay; covers site header while playing
-    <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
-      {isAutoSwitching && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/90 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-4 text-white animate-pulse">
-            <RefreshCw className="w-10 h-10 animate-spin text-blue-500" />
-            <p className="font-medium text-lg">Trying next server...</p>
+    // Z-INDEX 100 to cover site header (usually z-50)
+    <div 
+      className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center group"
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
+    >
+      {/* --- TOP CONTROLS --- */}
+      <div className={`absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-[110] transition-opacity duration-300 ${showControls || loading ? 'opacity-100' : 'opacity-0'}`}>
+        
+        {/* Back Button */}
+        <button 
+          onClick={handleClose}
+          className="bg-black/50 backdrop-blur-md p-3 rounded-full text-white hover:bg-white/20 transition-all border border-white/10"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+
+        {/* Right Side: Server & Tools */}
+        <div className="flex gap-3">
+          <button 
+            onClick={reloadPlayer}
+            className="flex items-center gap-2 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full text-white hover:bg-white/20 transition-all border border-white/10 text-sm font-medium"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">Reload</span>
+          </button>
+
+          <button 
+            onClick={manualSourceSwitch}
+            disabled={sources.length <= 1}
+            className="flex items-center gap-2 bg-blue-600/80 backdrop-blur-md px-4 py-2 rounded-full text-white hover:bg-blue-500 transition-all border border-white/10 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Server className="w-4 h-4" />
+            <span className="hidden sm:inline">Server {currentSourceIndex + 1}/{sources.length}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Loading / Switching State */}
+      {(loading || isAutoSwitching) && (
+        <div className="absolute inset-0 z-[105] flex items-center justify-center bg-black">
+          <div className="flex flex-col items-center gap-4 text-white">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+            {isAutoSwitching && <p className="font-medium animate-pulse">Switching server...</p>}
           </div>
         </div>
       )}
 
+      {/* IFRAME */}
       {blobUrl && (
         <iframe
           key={blobUrl}
