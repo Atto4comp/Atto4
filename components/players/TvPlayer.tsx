@@ -29,7 +29,7 @@ export default function TvPlayer({
   const handleEpisodeChange = (s: number, e: number) => {
     setCurrentSeason(s);
     setCurrentEpisode(e);
-    // Update URL silently
+    // Update URL silently without reload
     window.history.replaceState(null, '', `/watch/tv/${mediaId}?season=${s}&episode=${e}`);
   };
 
@@ -41,35 +41,36 @@ export default function TvPlayer({
   return (
     <div className="relative w-full h-full">
       <VideoPlayer
-        // Force reset on episode change
-        key={`${mediaId}-s${currentSeason}-e${currentEpisode}`}
+        // Forces reset on episode change
+        key={`${mediaId}-s${currentSeason}-e${currentEpisode}`} 
         mediaId={mediaId}
         mediaType="tv"
         season={currentSeason}
         episode={currentEpisode}
-        title={title}
+        // ✅ JUST THE TITLE: No "Season X Episode Y" appended here
+        title={title} 
         poster={poster}
         backdrop={backdrop}
         onClose={onClose}
       />
 
-      {/* TV Navigation Overlay - FIXED Z-INDEX [120] to sit ABOVE the player (z-100) */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[120] flex items-center gap-4 bg-black/60 backdrop-blur-xl px-6 py-3 rounded-full border border-white/10 hover:bg-black/80 transition-all duration-300 group">
-        <button
+      {/* TV Navigation Overlay: z-[60] is ABOVE VideoPlayer (z-50) */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-4 bg-black/50 backdrop-blur-lg px-6 py-3 rounded-full border border-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300">
+        <button 
           onClick={prevEpisode}
           disabled={currentEpisode <= 1}
-          className="text-white hover:text-blue-400 disabled:opacity-30 transition-colors p-1"
+          className="text-white hover:text-blue-400 disabled:opacity-30 transition-colors"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-
-        <span className="text-sm font-bold text-white min-w-[90px] text-center select-none font-mono">
+        
+        <span className="text-sm font-bold text-white font-chillax min-w-[80px] text-center whitespace-nowrap">
           S{currentSeason} : E{currentEpisode}
         </span>
 
-        <button
+        <button 
           onClick={nextEpisode}
-          className="text-white hover:text-blue-400 transition-colors p-1"
+          className="text-white hover:text-blue-400 transition-colors"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
