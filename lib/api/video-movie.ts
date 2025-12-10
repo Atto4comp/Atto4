@@ -8,25 +8,26 @@ export interface MovieEmbedResult {
   allSources?: { url: string; label: string }[];
 }
 
-// 🔐 ENCRYPTED KEYS (Obfuscated)
+// 🔐 CORRECTED ENCRYPTED KEYS
 const SERVERS = [
   { 
     id: 'vidly', 
     label: 'Vidly', 
     // "https://fmovies4u.com/embed/tmdb-movie-"
-    key: "LWVpdm9tLWJkbXQvZGViZW0vbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
+    // TYPO FIXED: 'embed', not 'mebed'
+    key: "LWVpdm9tLWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   },
   { 
     id: 'cinezo', 
     label: 'Cinezo', 
     // "https://api.cinezo.net/media/tmdb-movie-"
-    key: "LWVpdm9tLWJkbXQvaWRlbS90ZW4uLXplemluLmMuaXBhLy86c3B0dGg=" 
+    key: "LWVpdm9tLWJkbXQvYWlkZW0vdGVuLm96ZW5pYy5pcGEvLzpzcHR0aA==" 
   },
   { 
     id: 'vidme', 
     label: 'Vidme', 
     // "https://www.vidking.net/embed/movie/"
-    key: "L2Vpdm9tL2RlYm1lL3Rlbi5Zbmlra2Rpdi53d3cvLzpzcHR0aA==" 
+    key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
     id: 'vidzy', 
@@ -42,7 +43,7 @@ const SERVERS = [
   }
 ];
 
-// ⚙️ Configs (Suffixes) for each provider
+// ⚙️ Configs (Suffixes)
 const CONFIGS: Record<string, string> = {
   vidly: "?autoPlay=true&hideTitle=true",
   cinezo: "",
@@ -53,15 +54,15 @@ const CONFIGS: Record<string, string> = {
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
   const sources = SERVERS.map(s => ({
-    encryptedKey: s.key,     // The base URL (encrypted)
-    suffix: CONFIGS[s.id],   // The query params (plain text is fine)
+    encryptedKey: s.key,
+    suffix: CONFIGS[s.id],
     mediaId: id,
     label: s.label,
     isEncrypted: true
   }));
 
   return {
-    embedUrl: "", // Unused
+    embedUrl: "",
     provider: "Obfuscated",
     allSources: sources as any
   };
