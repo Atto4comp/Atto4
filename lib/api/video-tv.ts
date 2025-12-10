@@ -8,25 +8,25 @@ export interface TVEmbedResult {
   allSources?: { url: string; label: string }[];
 }
 
-// 🔐 ENCRYPTED KEYS (Obfuscated)
+// 🔐 CORRECTED ENCRYPTED KEYS FOR TV
 const SERVERS = [
   { 
     id: 'vidly', 
     label: 'Vidly', 
     // "https://fmovies4u.com/embed/tmdb-tv-"
-    key: "LXZ0LWJkbXQvZGViZW0vbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
+    key: "LXZ0LWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   },
   { 
     id: 'cinezo', 
     label: 'Cinezo', 
     // "https://api.cinezo.net/media/tmdb-tv-"
-    key: "LXZ0LWJkbXQvaWRlbS90ZW4uLXplemluLmMuaXBhLy86c3B0dGg=" 
+    key: "LXZ0LWJkbXQvYWlkZW0vdGVuLm96ZW5pYy5pcGEvLzpzcHR0aA==" 
   },
   { 
     id: 'vidme', 
     label: 'Vidme', 
     // "https://www.vidking.net/embed/tv/"
-    key: "L3Z0L2RlYm1lL3Rlbi5Zbmlra2Rpdi53d3cvLzpzcHR0aA==" 
+    key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
     id: 'vidzy', 
@@ -42,7 +42,7 @@ const SERVERS = [
   }
 ];
 
-// ⚙️ Configs
+// ⚙️ Configs (Suffixes with placeholders for season/episode)
 const CONFIGS: Record<string, string> = {
   vidly: "/${season}/${episode}?autoPlay=true&hideTitle=true",
   cinezo: "/${season}/${episode}",
