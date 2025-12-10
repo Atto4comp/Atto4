@@ -5,13 +5,13 @@ import { useEffect } from 'react';
 
 export function useDevToolsProtection() {
   useEffect(() => {
-    // 1. Disable Right Click (On your UI)
+    // 1. Disable Right Click
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       return false;
     };
 
-    // 2. Disable Keyboard Shortcuts (On your UI)
+    // 2. Disable Keyboard Shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         e.key === 'F12' || 
@@ -24,33 +24,25 @@ export function useDevToolsProtection() {
       }
     };
 
-    // 3. AGGRESSIVE TRAP: Detect DevTools even if Iframe is focused
-    const threshold = 160; // ms
-    
+    // 3. THE TRAP: Redirect on Detection
     const aggressiveTrap = () => {
       const start = performance.now();
       
-      // The 'debugger' statement pauses execution if DevTools is open
+      // The browser pauses here if DevTools is open
       debugger; 
       
       const end = performance.now();
       
-      // If the debugger paused us, 'end - start' will be huge (>100ms)
-      if (end - start > threshold) {
-        // DevTools is definitely open. PUNISH THEM.
-        
-        // Option A: Clear the entire page
-        document.body.innerHTML = '<div style="background:black;color:red;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;text-align:center;"><h1>⚠️ Developer Tools Detected</h1><p>Please close Inspector to continue watching.</p></div>';
-        
-        // Option B: Redirect (Uncomment to use)
-        // window.location.href = "about:blank";
+      // If user was paused for more than 100ms, they are inspecting
+      if (end - start > 100) {
+        // 🚨 REDIRECT IMMEDIATELY
+        window.location.href = "about:blank";
       }
     };
 
-    // Run this check frequently
-    const interval = setInterval(aggressiveTrap, 1000);
+    // Check every 500ms
+    const interval = setInterval(aggressiveTrap, 500);
 
-    // Add listeners
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('keydown', handleKeyDown);
 
