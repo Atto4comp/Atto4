@@ -52,7 +52,7 @@ export default function VideoPlayer({
   const [isAutoSwitching, setIsAutoSwitching] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-  // 🛡️ SECONDARY TRAP: Self-Destruct if DevTools Detected
+  // 🛡️ TRAP: Self-Destruct if DevTools Detected
   useEffect(() => {
     const check = setInterval(() => {
       const t0 = Date.now();
@@ -66,6 +66,14 @@ export default function VideoPlayer({
       }
     }, 1000); 
     return () => clearInterval(check);
+  }, []);
+
+  // 🔒 SCROLL LOCK: Prevent main site scrolling while player is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, []);
 
   // Load Sources
@@ -116,6 +124,7 @@ export default function VideoPlayer({
           realUrl = source.url;
         }
 
+        // HTML Sandwich with strict overflow hidden
         const html = `
           <!DOCTYPE html>
           <html>
@@ -123,7 +132,10 @@ export default function VideoPlayer({
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1">
               <style>
-                body, html, iframe { width: 100%; height: 100%; margin: 0; padding: 0; background: #000; border: none; }
+                body, html, iframe { 
+                  width: 100%; height: 100%; margin: 0; padding: 0; 
+                  background: #000; border: none; overflow: hidden; 
+                }
               </style>
             </head>
             <body>
@@ -154,7 +166,6 @@ export default function VideoPlayer({
     return () => { if (blobUrl) URL.revokeObjectURL(blobUrl); };
   }, [currentSourceIndex, sources]); 
 
-  // ✅ Always redirect to absolute home URL
   const handleClose = () => {
     if (onClose) onClose();
     else window.location.href = 'https://atto4.pro/'; 
@@ -169,13 +180,13 @@ export default function VideoPlayer({
   }, [sources.length]);
 
   if (loading && !isAutoSwitching) return (
-    <div className="fixed inset-0 bg-black z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 bg-black z-[200] flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
     </div>
   );
 
   if (error) return (
-    <div className="fixed inset-0 bg-black z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 bg-black z-[200] flex items-center justify-center">
       <div className="text-center text-white bg-white/10 p-8 rounded-xl backdrop-blur-md border border-white/10">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <p className="text-lg font-medium mb-6">{error}</p>
@@ -189,17 +200,15 @@ export default function VideoPlayer({
   const currentLabel = sources[currentSourceIndex]?.label;
 
   return (
-    // Z-INDEX 50: Covers header. Group enables hover.
-    <div className="fixed inset-0 bg-black z-[50] flex flex-col items-center justify-center group">
+    // Z-INDEX 200: Nuclear option to cover EVERYTHING. Overflow hidden to kill scrollbars.
+    <div className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center group overflow-hidden">
       
       {showBackButton && (
-        // Z-INDEX 55: Floating control bar.
-        <div className="absolute top-0 left-0 right-0 z-[55] p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent transition-opacity opacity-0 group-hover:opacity-100 duration-300">
+        <div className="absolute top-0 left-0 right-0 z-[205] p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent transition-opacity opacity-0 group-hover:opacity-100 duration-300">
           <button onClick={handleClose} className="flex items-center gap-3 text-white/80 hover:text-white transition-colors group/btn">
             <div className="p-2 rounded-full bg-white/10 group-hover/btn:bg-white/20 backdrop-blur-md transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </div>
-            {/* Title display - Now purely the show title, no appended S/E */}
             <span className="font-medium text-sm md:text-base drop-shadow-md max-w-[200px] md:max-w-md truncate">
               {title || 'Back'}
             </span>
@@ -225,7 +234,7 @@ export default function VideoPlayer({
               </button>
               
               {showServers && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[60]">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[210]">
                   <div className="p-2 max-h-[60vh] overflow-y-auto scrollbar-hide">
                     {sources.map((src, idx) => (
                       <button
@@ -250,21 +259,19 @@ export default function VideoPlayer({
       )}
 
       {isAutoSwitching && (
-        <div className="absolute inset-0 z-[52] flex items-center justify-center bg-black/90 backdrop-blur-sm">
+        <div className="absolute inset-0 z-[202] flex items-center justify-center bg-black/90 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4 text-white animate-pulse">
             <RefreshCw className="w-10 h-10 animate-spin text-blue-500" />
             <p className="font-medium text-lg">Trying next server...</p>
-            <p className="text-sm text-gray-400">Loading {sources[(currentSourceIndex + 1) % sources.length]?.label}...</p>
           </div>
         </div>
       )}
 
-      {/* BLOB IFRAME */}
       {blobUrl && (
         <iframe
           key={blobUrl}
           src={blobUrl}
-          className="w-full h-full border-0 bg-black"
+          className="w-full h-full border-0 bg-black overflow-hidden"
           allowFullScreen
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
