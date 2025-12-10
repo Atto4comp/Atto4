@@ -11,8 +11,6 @@ import { useProgressTracking } from '@/hooks/useProgressTracking';
 interface VideoPlayerProps {
   mediaId: number | string;
   mediaType: 'movie' | 'tv';
-  season?: number;
-  episode?: number;
   title?: string;
   poster?: string | null;
   backdrop?: string | null;
@@ -178,12 +176,12 @@ export default function VideoPlayer({
     };
   }, [currentSourceIndex, sources]); 
 
-  // ✅ UPDATED: Always go to home page
+  // ✅ UPDATED: Always redirect to absolute home URL
   const handleClose = () => {
     if (onClose) {
       onClose();
     } else {
-      router.push('/'); // Redirect to home page instead of router.back()
+      window.location.href = 'https://atto4.pro/'; // Hard redirect
     }
   };
 
