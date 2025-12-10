@@ -88,8 +88,6 @@ export default function WatchPageClient({
         mediaId={mediaId}
         title={title}
         onClose={handleClose}
-        guardMs={5000}
-        showControls={true}
       />
     );
   }
@@ -103,9 +101,6 @@ export default function WatchPageClient({
         episode={episode}
         title={title}
         onClose={handleClose}
-        guardMs={5000}
-        autoNextMs={25 * 60 * 1000} 
-        showControls={true}
       />
     );
   }
