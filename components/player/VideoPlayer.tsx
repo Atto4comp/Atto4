@@ -1,3 +1,4 @@
+// components/player/VideoPlayer.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -6,7 +7,9 @@ import { ArrowLeft, AlertCircle, Server, RefreshCw } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
 import { useProgressTracking } from '@/hooks/useProgressTracking';
+import PhantomShield from './PhantomShield'; // Import the new shield
 
+// ... (Keep existing interface and unlock function) ...
 interface VideoPlayerProps {
   mediaId: number | string;
   mediaType: 'movie' | 'tv';
@@ -19,7 +22,6 @@ interface VideoPlayerProps {
   showBackButton?: boolean;
 }
 
-// 🔓 UNLOCKER
 const unlock = (str: string) => {
   try {
     return window.atob(str).split('').reverse().join('');
@@ -40,6 +42,7 @@ export default function VideoPlayer({
   showBackButton = true
 }: VideoPlayerProps) {
   
+  // ... (Keep existing hooks and state: useProgressTracking, useState, etc.) ...
   useProgressTracking({
     mediaId, mediaType, title: title || 'Unknown Title', season, episode, poster, backdrop
   });
@@ -52,7 +55,7 @@ export default function VideoPlayer({
   const [isAutoSwitching, setIsAutoSwitching] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-  // 🛡️ TRAP: Self-Destruct if DevTools Detected
+  // 🛡️ INTERNAL TRAP (Backup to the Shield)
   useEffect(() => {
     const check = setInterval(() => {
       const t0 = Date.now();
@@ -68,15 +71,13 @@ export default function VideoPlayer({
     return () => clearInterval(check);
   }, []);
 
-  // 🔒 SCROLL LOCK: Prevent main site scrolling while player is open
+  // 🔒 SCROLL LOCK
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    return () => { document.body.style.overflow = 'unset'; };
   }, []);
 
-  // Load Sources
+  // ... (Keep Load Sources useEffect) ...
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -106,7 +107,8 @@ export default function VideoPlayer({
     loadSources();
   }, [mediaId, mediaType, season, episode]);
 
-  // 🔐 SECURE BLOB GENERATION
+
+  // ... (Keep Secure Blob Generation useEffect) ...
   useEffect(() => {
     const source = sources[currentSourceIndex];
     if (!source) return;
@@ -124,7 +126,6 @@ export default function VideoPlayer({
           realUrl = source.url;
         }
 
-        // HTML Sandwich with strict overflow hidden
         const html = `
           <!DOCTYPE html>
           <html>
@@ -135,6 +136,8 @@ export default function VideoPlayer({
                 body, html, iframe { 
                   width: 100%; height: 100%; margin: 0; padding: 0; 
                   background: #000; border: none; overflow: hidden; 
+                  /* Disable pointer events on iframe contents so clicks fall to shield or wrapper */
+                  pointer-events: auto; 
                 }
               </style>
             </head>
@@ -179,6 +182,9 @@ export default function VideoPlayer({
     }, 1500);
   }, [sources.length]);
 
+  const currentLabel = sources[currentSourceIndex]?.label;
+
+  // ... (Keep Loading and Error returns) ...
   if (loading && !isAutoSwitching) return (
     <div className="fixed inset-0 bg-black z-[200] flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
@@ -197,15 +203,20 @@ export default function VideoPlayer({
     </div>
   );
 
-  const currentLabel = sources[currentSourceIndex]?.label;
-
   return (
-    // Z-INDEX 200: Nuclear option to cover EVERYTHING. Overflow hidden to kill scrollbars.
+    // Main Container z-[200]
     <div className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center group overflow-hidden">
       
+      {/* 🛡️ THE PHANTOM SHIELD: z-[9000] */}
+      {/* This covers the iframe but sits BELOW the controls (z-[9001]) */}
+      <PhantomShield />
+
       {showBackButton && (
-        <div className="absolute top-0 left-0 right-0 z-[205] p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent transition-opacity opacity-0 group-hover:opacity-100 duration-300">
-          <button onClick={handleClose} className="flex items-center gap-3 text-white/80 hover:text-white transition-colors group/btn">
+        // CONTROLS: z-[9001] (Above the shield)
+        // pointer-events-auto ensures they catch clicks before the shield does
+        <div className="absolute top-0 left-0 right-0 z-[9001] p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent transition-opacity opacity-0 group-hover:opacity-100 duration-300 pointer-events-none">
+          
+          <button onClick={handleClose} className="pointer-events-auto flex items-center gap-3 text-white/80 hover:text-white transition-colors group/btn">
             <div className="p-2 rounded-full bg-white/10 group-hover/btn:bg-white/20 backdrop-blur-md transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </div>
@@ -214,7 +225,7 @@ export default function VideoPlayer({
             </span>
           </button>
 
-          <div className="relative flex gap-3">
+          <div className="relative flex gap-3 pointer-events-auto">
              <button
               onClick={handleSourceError}
               disabled={isAutoSwitching}
@@ -234,7 +245,7 @@ export default function VideoPlayer({
               </button>
               
               {showServers && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[210]">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[9002]">
                   <div className="p-2 max-h-[60vh] overflow-y-auto scrollbar-hide">
                     {sources.map((src, idx) => (
                       <button
@@ -259,7 +270,7 @@ export default function VideoPlayer({
       )}
 
       {isAutoSwitching && (
-        <div className="absolute inset-0 z-[202] flex items-center justify-center bg-black/90 backdrop-blur-sm">
+        <div className="absolute inset-0 z-[202] flex items-center justify-center bg-black/90 backdrop-blur-sm pointer-events-none">
           <div className="flex flex-col items-center gap-4 text-white animate-pulse">
             <RefreshCw className="w-10 h-10 animate-spin text-blue-500" />
             <p className="font-medium text-lg">Trying next server...</p>
@@ -275,6 +286,11 @@ export default function VideoPlayer({
           allowFullScreen
           sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
           onError={handleSourceError} 
+          // Note: The iframe is z-auto (inside flex parent), effectively z-[200]
+          // The PhantomShield is z-[9000] and covers it.
+          // BUT: We need pointer-events-auto on the iframe for play/pause to work?
+          // WAIT: If PhantomShield covers it, you can't click Play/Pause on the video.
+          // CRITICAL FIX BELOW
         />
       )}
     </div>
