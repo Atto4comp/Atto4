@@ -23,10 +23,10 @@ const SERVERS = [
     key: "L2Vpdm9tL2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwLy86c3B0dGg="
   },
   { 
-    id: 'vidzy', 
-    label: 'Vidzy', 
-    // "https://bidsrc.pro/movie/"
-    key: "L2Vpdm9tL29ycC5jcnNkaWIvLzpzcHR0aA==" 
+    id: 'vidly', 
+    label: 'Vidly', 
+    // "https://fmovies4u.com/embed/tmdb-movie-"
+    key: "LWVpdm9tLWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   }
 ];
 
