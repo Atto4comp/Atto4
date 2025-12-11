@@ -17,14 +17,14 @@ const SERVERS = [
     key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   {
-    id: 'vidzee',
-    label: 'Vidzee',
+    id: 'vidzy',
+    label: 'Vidzy',
     // "https://player.vidzee.wtf/embed/movie/"
     key: "L2Vpdm9tL2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwLy86c3B0dGg="
   },
   {
-    id: 'vidrock',
-    label: 'Vidrock',
+    id: 'vidfox',
+    label: 'Vidfox',
     // "https://vidrock.net/movie/"
     key: "L2Vpdm9tL3Rlbi5rY29yZGl2Ly86c3B0dGg="
   }
