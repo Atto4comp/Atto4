@@ -2,10 +2,13 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function PhantomShield() {
+  const router = useRouter();
+
   useEffect(() => {
-    // 1. Disable Right Click Context Menu (Global)
+    // 1. Disable Right Click Context Menu
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -21,44 +24,50 @@ export default function PhantomShield() {
       ) {
         e.preventDefault();
         e.stopPropagation();
-        window.location.replace('https://google.com'); // Punishment
+        // Punishment: Redirect immediately
+        window.location.href = 'about:blank';
       }
     };
 
     // 3. DevTools Detection Loop (The "Nuclear" Option)
+    // This constantly checks if the window size changes suspiciously (opening devtools)
+    // or if the debugger statement hits.
     const devToolsTrap = setInterval(() => {
-      // Method A: Dimension Check (If docked devtools opens)
-      // Note: Threshold needs to be large enough to not trigger on resize
       const widthThreshold = window.outerWidth - window.innerWidth > 160;
       const heightThreshold = window.outerHeight - window.innerHeight > 160;
       
-      if ((widthThreshold || heightThreshold) && (window as any).Firebug) {
+      if ((widthThreshold || heightThreshold) && (window as any).Firebug && (window as any).console && (window as any).console.debug) {
+         // This is a common heuristic for open DevTools
          window.location.replace('about:blank');
       }
       
-      // Method B: Debugger Pause Check
       const t0 = Date.now();
       // eslint-disable-next-line no-debugger
       debugger; 
       const t1 = Date.now();
       
       if (t1 - t0 > 100) {
-        window.location.replace('https://google.com'); 
+        window.location.replace('https://google.com'); // Kick them out to Google
       }
-    }, 500); // Check every 500ms
+    }, 1000);
 
-    // Attach listeners to window (captures everything)
-    window.addEventListener('contextmenu', handleContextMenu, { capture: true });
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    // Attach listeners
+    window.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('contextmenu', handleContextMenu, { capture: true });
-      window.removeEventListener('keydown', handleKeyDown, { capture: true });
+      window.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('keydown', handleKeyDown);
       clearInterval(devToolsTrap);
     };
-  }, []);
+  }, [router]);
 
-  // We return null because the protection is logic-based, not a physical div blocking clicks.
-  // A physical div would break video playback interactions (Play/Pause/Volume).
-  return null; 
+  return (
+    // Z-INDEX 9000: Covers almost everything
+    // pointer-events-auto: Captures all clicks that fall on it
+    <div 
+      className="fixed inset-0 z-[9000] w-screen h-screen bg-transparent"
+      onContextMenu={(e) => e.preventDefault()}
+    />
+  );
 }
