@@ -22,11 +22,11 @@ const SERVERS = [
     // "https://player.vidzee.wtf/embed/tv/"
     key: "L3Z0L2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwLy86c3B0dGg="
   },
-  {
-    id: 'vidfox',
-    label: 'Vidfox',
-    // "https://vidrock.net/tv/"
-    key: "L3Z0L3Rlbi5rY29yZGl2Ly86c3B0dGg="
+  { 
+    id: 'vidzy', 
+    label: 'Vidzy', 
+    // "https://bidsrc.pro/tv/"
+    key: "L3Z0L29ycC5jcnNkaWIvLzpzcHR0aA==" 
   }
 ];
 
