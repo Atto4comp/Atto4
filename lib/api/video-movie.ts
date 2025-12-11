@@ -16,18 +16,17 @@ const SERVERS = [
     // "https://www.vidking.net/embed/movie/"
     key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
-  { 
-    id: 'vidly', 
-    label: 'Vidly', 
-    // "https://fmovies4u.com/embed/tmdb-movie-"
-    // TYPO FIXED: 'embed', not 'mebed'
-    key: "LWVpdm9tLWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
+  {
+    id: 'vidzee',
+    label: 'Vidzee',
+    // "https://player.vidzee.wtf/embed/movie/"
+    key: "L2Vpdm9tL2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwLy86c3B0dGg="
   },
-  { 
-    id: 'vidzy', 
-    label: 'Vidzy', 
-    // "https://bidsrc.pro/movie/"
-    key: "L2Vpdm9tL29ycC5jcnNkaWIvLzpzcHR0aA==" 
+  {
+    id: 'vidrock',
+    label: 'Vidrock',
+    // "https://vidrock.net/movie/"
+    key: "L2Vpdm9tL3Rlbi5rY29yZGl2Ly86c3B0dGg="
   }
 ];
 
@@ -37,13 +36,15 @@ const CONFIGS: Record<string, string> = {
   cinezo: "",
   vidme: "?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
   vidzy: "?autoplay=true",
+  vidzee: "", // No specific params provided
+  vidrock: "", // No specific params provided
   vidon: "?autoplay=true&poster=true&title=true&watchparty=false&chromecast=true&servericon=true&setting=true&pip=true&hideprimarycolor=true&hidesecondarycolor=true&hideiconcolor=true&hideprogresscontrol=true&hideiconset=true&hideautonext=true&hideautoplay=true&hidenextbutton=true&hideposter=true&hidetitle=true&hidechromecast=true&hideepisodelist=true&hideservericon=true&hidepip=true&icons=netflix&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5"
 };
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
   const sources = SERVERS.map(s => ({
     encryptedKey: s.key,
-    suffix: CONFIGS[s.id],
+    suffix: CONFIGS[s.id] || "",
     mediaId: id,
     label: s.label,
     isEncrypted: true
