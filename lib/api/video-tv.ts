@@ -21,12 +21,6 @@ const SERVERS = [
     label: 'Vidzy',
     // "https://player.vidzee.wtf/embed/tv/"
     key: "L3Z0L2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwLy86c3B0dGg="
-  },
-  { 
-    id: 'vidly', 
-    label: 'Vidly', 
-    // "https://fmovies4u.com/embed/tmdb-tv-"
-    key: "LXZ0LWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   }
 ];
 
