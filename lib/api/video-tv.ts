@@ -23,10 +23,10 @@ const SERVERS = [
     key: "L3Z0L2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwLy86c3B0dGg="
   },
   { 
-    id: 'vidzy', 
-    label: 'Vidzy', 
-    // "https://bidsrc.pro/tv/"
-    key: "L3Z0L29ycC5jcnNkaWIvLzpzcHR0aA==" 
+    id: 'vidly', 
+    label: 'Vidly', 
+    // "https://fmovies4u.com/embed/tmdb-tv-"
+    key: "LXZ0LWJkbXQvZGVibWUvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   }
 ];
 
