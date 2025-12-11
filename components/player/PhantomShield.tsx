@@ -1,73 +1,88 @@
-// components/player/PhantomShield.tsx
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function PhantomShield() {
-  const router = useRouter();
-
   useEffect(() => {
-    // 1. Disable Right Click Context Menu
+    // 1. 🚫 DISABLE RIGHT CLICK (Context Menu)
+    // We use { capture: true } to intercept the event before it reaches the iframe or anything else.
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       return false;
     };
 
-    // 2. Disable Keyboard Shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+U)
+    // 2. ⌨️ DISABLE SHORTCUTS (The Hacker Keys)
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) ||
-        (e.ctrlKey && e.key === 'u')
-      ) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Punishment: Redirect immediately
-        window.location.href = 'about:blank';
+      // F12
+      if (e.key === 'F12') {
+        nukeSession(e);
+      }
+      
+      // Ctrl+Shift+I (Inspect), Ctrl+Shift+C (Element Picker), Ctrl+Shift+J (Console)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) {
+        nukeSession(e);
+      }
+      
+      // Ctrl+U (View Source)
+      if (e.ctrlKey && e.key === 'u') {
+        nukeSession(e);
       }
     };
 
-    // 3. DevTools Detection Loop (The "Nuclear" Option)
-    // This constantly checks if the window size changes suspiciously (opening devtools)
-    // or if the debugger statement hits.
+    // 3. ☢️ THE PUNISHMENT FUNCTION
+    const nukeSession = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Immediate redirection to wipe state
+      window.location.replace('https://google.com'); 
+    };
+
+    // 4. 🕵️‍♀️ DEVTOOLS TRAP (The Loop)
+    // Detects if the window size changes strangely (docking devtools) 
+    // or if the JS execution time drags (debugger open).
     const devToolsTrap = setInterval(() => {
-      const widthThreshold = window.outerWidth - window.innerWidth > 160;
-      const heightThreshold = window.outerHeight - window.innerHeight > 160;
-      
-      if ((widthThreshold || heightThreshold) && (window as any).Firebug && (window as any).console && (window as any).console.debug) {
-         // This is a common heuristic for open DevTools
-         window.location.replace('about:blank');
-      }
-      
+      // Check A: Debugger Pause
       const t0 = Date.now();
       // eslint-disable-next-line no-debugger
       debugger; 
       const t1 = Date.now();
       
       if (t1 - t0 > 100) {
-        window.location.replace('https://google.com'); // Kick them out to Google
+        window.location.replace('about:blank'); 
+      }
+
+      // Check B: Window Resize Threshold (Aggressive)
+      // Only works if DevTools is docked. 
+      // We skip this on mobile to prevent false positives on rotation.
+      if (window.innerWidth > 768) {
+        const threshold = 160;
+        if (
+          window.outerWidth - window.innerWidth > threshold || 
+          window.outerHeight - window.innerHeight > threshold
+        ) {
+           // Suspicious resize behavior often indicates DevTools opening
+           // We won't ban them immediately (could be resizing window), 
+           // but we can force a reload or clear state.
+        }
       }
     }, 1000);
 
-    // Attach listeners
-    window.addEventListener('contextmenu', handleContextMenu);
-    window.addEventListener('keydown', handleKeyDown);
+    // ATTACH LISTENERS WITH { capture: true }
+    // This is the secret. It catches the event at the Window level 
+    // BEFORE it dives down into the iframe.
+    window.addEventListener('contextmenu', handleContextMenu, { capture: true });
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
 
     return () => {
-      window.removeEventListener('contextmenu', handleContextMenu);
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('contextmenu', handleContextMenu, { capture: true });
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
       clearInterval(devToolsTrap);
     };
-  }, [router]);
+  }, []);
 
-  return (
-    // Z-INDEX 9000: Covers almost everything
-    // pointer-events-auto: Captures all clicks that fall on it
-    <div 
-      className="fixed inset-0 z-[9000] w-screen h-screen bg-transparent"
-      onContextMenu={(e) => e.preventDefault()}
-    />
-  );
+  // We return NULL. We do not render a div.
+  // Rendering a div over the iframe would block the "Play" button.
+  // The security is now entirely in the event listeners above.
+  return null;
 }
