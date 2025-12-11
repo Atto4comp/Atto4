@@ -29,7 +29,6 @@ export default function TvPlayer({
   const handleEpisodeChange = (s: number, e: number) => {
     setCurrentSeason(s);
     setCurrentEpisode(e);
-    // Update URL silently without reload
     window.history.replaceState(null, '', `/watch/tv/${mediaId}?season=${s}&episode=${e}`);
   };
 
@@ -41,7 +40,6 @@ export default function TvPlayer({
   return (
     <div className="relative w-full h-full">
       <VideoPlayer
-        // KEY IS IMPORTANT: Forces full reset when episode changes
         key={`${mediaId}-s${currentSeason}-e${currentEpisode}`} 
         mediaId={mediaId}
         mediaType="tv"
@@ -53,12 +51,8 @@ export default function TvPlayer({
         onClose={onClose}
       />
 
-      {/* 
-        Z-INDEX 9002: 
-        Must be higher than VideoPlayer's top controls (z-[9001]) 
-        and the Phantom Security Shield (z-[9000]) 
-      */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9002] flex items-center gap-4 bg-black/50 backdrop-blur-lg px-6 py-3 rounded-full border border-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300">
+      {/* Z-INDEX 210: Must be higher than VideoPlayer's z-[200] */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[210] flex items-center gap-4 bg-black/50 backdrop-blur-lg px-6 py-3 rounded-full border border-white/10 opacity-0 hover:opacity-100 transition-opacity duration-300">
         <button 
           onClick={prevEpisode}
           disabled={currentEpisode <= 1}
