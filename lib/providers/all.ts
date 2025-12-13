@@ -1,16 +1,17 @@
 // lib/providers/all.ts
-import { Sourcerer } from '@p-stream/providers';
 
 // Import your scrapers here
 import { vidzeeScraper } from './sources/vidzee';
-//import { vidrockScraper } from './sources/vidrock';
-// import { source3Scraper } from './sources/source3';
-// ...
+// import { vidrockScraper } from './sources/vidrock';
 
-export function gatherAllSources(): Array<Sourcerer> {
+// We remove the explicit return type annotation ": Array<Sourcerer>" 
+// to let TypeScript infer the type from the objects themselves. 
+// This avoids the "Sourcerer is not exported" error entirely.
+
+export function gatherAllSources() {
   return [
     vidzeeScraper,
-    vidrockScraper,
+    // vidrockScraper,
     // Add the rest here
   ];
 }
