@@ -1,7 +1,6 @@
 // lib/providers/all.ts
 
 // Import your scrapers here
-import { vidzeeScraper } from './sources/vidzee';
 import { vidsrcScraper } from './sources/vidsrc';
 // import { vidrockScraper } from './sources/vidrock';
 
@@ -11,7 +10,6 @@ import { vidsrcScraper } from './sources/vidsrc';
 
 export function gatherAllSources() {
   return [
-    vidzeeScraper,
     vidsrcScraper
     // vidrockScraper,
     // Add the rest here
