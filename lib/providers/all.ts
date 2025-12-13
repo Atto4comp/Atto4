@@ -1,7 +1,7 @@
 // lib/providers/all.ts
 
 // Import your scrapers here
-import { vidsrcScraper } from './sources/vidsrc';
+import { vidlinkScraper } from './sources/vidlink';
 // import { vidrockScraper } from './sources/vidrock';
 
 // We remove the explicit return type annotation ": Array<Sourcerer>" 
@@ -10,7 +10,7 @@ import { vidsrcScraper } from './sources/vidsrc';
 
 export function gatherAllSources() {
   return [
-    vidsrcScraper
+    vidlinkScraper
     // vidrockScraper,
     // Add the rest here
   ];
