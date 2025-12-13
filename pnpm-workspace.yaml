@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - '@p-stream/providers'
+  - bufferutil
+  - puppeteer
+  - sharp
+  - unrs-resolver
