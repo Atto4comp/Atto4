@@ -2,6 +2,7 @@
 
 // Import your scrapers here
 import { vidzeeScraper } from './sources/vidzee';
+import { vidsrcScraper } from './sources/vidsrc';
 // import { vidrockScraper } from './sources/vidrock';
 
 // We remove the explicit return type annotation ": Array<Sourcerer>" 
@@ -11,6 +12,7 @@ import { vidzeeScraper } from './sources/vidzee';
 export function gatherAllSources() {
   return [
     vidzeeScraper,
+    vidsrcScraper
     // vidrockScraper,
     // Add the rest here
   ];
