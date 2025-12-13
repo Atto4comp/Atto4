@@ -5,8 +5,8 @@ async function comboScraper(ctx: ShowScrapeContext | MovieScrapeContext): Promis
   
   // 1. Build the VidSrc Embed URL
   const embedUrl = isMovie
-    ? `https://vidsrc-embed.ru/embed/movie/${ctx.media.tmdbId}`
-    : `https://vidsrc-embed.ru/embed/tv/${ctx.media.tmdbId}/${ctx.media.season.number}/${ctx.media.episode.number}`;
+    ? `https://vidsrc-embed.ru/embed/movie/${ctx.media.id}`
+    : `https://vidsrc-embed.ru/embed/tv/${ctx.media.id}/${ctx.media.season.number}/${ctx.media.episode.number}`;
 
   // 2. Fetch the page via Proxy
   const pageHtml = await ctx.proxiedFetcher<string>(embedUrl, {
