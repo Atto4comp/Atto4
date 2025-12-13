@@ -10,7 +10,7 @@ import { vidlinkScraper } from './sources/vidlink';
 
 export function gatherAllSources() {
   return [
-    vidlinkScraper
+    vidlinkScraper,
     // vidrockScraper,
     // Add the rest here
   ];
