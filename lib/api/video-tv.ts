@@ -11,16 +11,10 @@ export interface TVEmbedResult {
 // 🔐 CORRECTED ENCRYPTED KEYS FOR TV
 const SERVERS = [
   { 
-    id: 'vidfast', 
-    label: 'VidFast', 
-    // "https://vidfast.pro/tv/"
-    key: "L3Z0L29ycC50c2FmZGl2Ly86c3B0dGg=" 
-  },
-  { 
-    id: 'bidsrc', 
-    label: 'BidSrc', 
-    // "https://bidsrc.pro/tv/"
-    key: "L3Z0L29ycC5jcnNkaWIvLzpwYXR0aA==" 
+    id: 'vidme', 
+    label: 'Vidme', 
+    // "https://www.vidking.net/embed/tv/"
+    key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
     id: 'vidly', 
@@ -29,10 +23,10 @@ const SERVERS = [
     key: "LXZ0LWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   },
   { 
-    id: 'vidme', 
-    label: 'Vidme', 
-    // "https://www.vidking.net/embed/tv/"
-    key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
+    id: 'bidsrc', 
+    label: 'BidSrc', 
+    // "https://bidsrc.pro/tv/"
+    key: "L3Z0L29ycC5jcnNkaWIvLzpwYXR0aA==" 
   },
   {
     id: 'vidzy',
