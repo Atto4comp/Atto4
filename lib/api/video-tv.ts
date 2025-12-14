@@ -11,6 +11,24 @@ export interface TVEmbedResult {
 // 🔐 CORRECTED ENCRYPTED KEYS FOR TV
 const SERVERS = [
   { 
+    id: 'vidfast', 
+    label: 'VidFast', 
+    // "https://vidfast.pro/tv/"
+    key: "L3Z0L29ycC50c2FmZGl2Ly86c3B0dGg=" 
+  },
+  { 
+    id: 'bidsrc', 
+    label: 'BidSrc', 
+    // "https://bidsrc.pro/tv/"
+    key: "L3Z0L29ycC5jcnNkaWIvLzpwYXR0aA==" 
+  },
+  { 
+    id: 'vidly', 
+    label: 'Vidly', 
+    // "https://fmovies4u.com/embed/tmdb-tv-"
+    key: "LXZ0LWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
+  },
+  { 
     id: 'vidme', 
     label: 'Vidme', 
     // "https://www.vidking.net/embed/tv/"
@@ -25,14 +43,15 @@ const SERVERS = [
 ];
 
 // ⚙️ Configs (Suffixes with placeholders for season/episode)
+// Note: Some providers use slashes (standard), others might need different formats.
 const CONFIGS: Record<string, string> = {
+  vidfast: "/${season}/${episode}",
+  bidsrc: "/${season}/${episode}",
+  fmovies4u: "/${season}/${episode}?autoPlay=false",
   vidly: "/${season}/${episode}?autoPlay=true&hideTitle=true",
   cinezo: "/${season}/${episode}",
   vidme: "/${season}/${episode}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
   vidzy: "/${season}/${episode}?autoplay=true",
-  vidzee: "/${season}/${episode}", 
-  vidrock: "/${season}/${episode}",
-  vidon: "/${season}/${episode}?autoplay=true&autonext=true&nextbutton=true&poster=true&title=true&watchparty=false&chromecast=true&episodelist=true&servericon=true&setting=true&pip=true&hideprimarycolor=true&hidesecondarycolor=true&hideiconcolor=true&hideprogresscontrol=true&hideiconset=true&hideautonext=true&hideautoplay=true&hidenextbutton=true&hideposter=true&hidetitle=true&hidechromecast=true&hideepisodelist=true&hideservericon=true&hidepip=true&icons=netflix&primarycolor=6C63FF&secondarycolor=9F9BFF&iconcolor=FFFFFF&font=Roboto&fontcolor=FFFFFF&fontsize=20&opacity=0.5"
 };
 
 export function getTVEmbed(id: string | number, season: number = 1, episode: number = 1): TVEmbedResult {
