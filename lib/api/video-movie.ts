@@ -18,8 +18,9 @@ const SERVERS = [
     key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
-    id: 'vidly', 
-    label: 'Vidly', 
+    // Fixed: ID is now 'fmovies4u' to match logic
+    id: 'fmovies4u', 
+    label: 'Fmovies', 
     // "https://fmovies4u.com/embed/tmdb-movie-"
     key: "LWVpdm9tLWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   },
@@ -28,6 +29,12 @@ const SERVERS = [
     label: 'BidSrc', 
     // "https://bidsrc.pro/movie/"
     key: "L2Vpdm9tL29ycC5jcnNkaWIvLzpwYXR0aA==" 
+  },
+  { 
+    id: 'vidlink', 
+    label: 'VidLink', 
+    // "https://vidlink.pro/movie/"
+    key: "L2Vpdm9tL29ycC5rbmlsdmlkLy86c3B0dGg=" 
   },
   {
     id: 'vidzy',
@@ -39,9 +46,10 @@ const SERVERS = [
 
 // ⚙️ Configs (Suffixes)
 const CONFIGS: Record<string, string> = {
-  vidfast: "", // No suffix needed, just ID
+  vidfast: "", 
   bidsrc: "",  // No suffix needed, just ID
-  fmovies4u: "?autoPlay=false", // Append params after ID
+  fmovies4u: "?autoPlay=false", // Correct: ID is part of base URL, just add params
+  vidlink: "", // No suffix needed, just ID
   vidly: "?autoPlay=true&hideTitle=true",
   cinezo: "",
   vidme: "?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
