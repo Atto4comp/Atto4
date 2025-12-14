@@ -10,38 +10,38 @@ export interface TVEmbedResult {
 
 // 🔐 CORRECTED ENCRYPTED KEYS FOR TV
 const SERVERS = [
-  { 
-    id: 'vidme', 
-    label: 'Vidme', 
-    // "https://www.vidking.net/embed/tv/"
-    key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
+  {
+    id: 'vidme',
+    label: 'Vidme',
+    // https://www.vidking.net/embed/tv/
+    key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vc3B0dGg="
   },
-  { 
-    // Fixed: ID is now 'fmovies4u' to match logic
-    id: 'fmovies4u', 
-    label: 'Fmovies', 
-    // "https://fmovies4u.com/embed/tmdb-tv-"
-    key: "LXZ0LWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
+  {
+    id: 'fmovies4u',
+    label: 'Fmovies',
+    // https://fmovies4u.com/embed/tmdb-tv-
+    key: "LXZ0LWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vc3B0dGg="
   },
-  { 
-    id: 'bidsrc', 
-    label: 'BidSrc', 
-    // "https://bidsrc.pro/tv/"
-    key: "L3Z0L29ycC5jcnNkaWIvLzpwYXR0aA==" 
+  {
+    id: 'bidsrc',
+    label: 'BidSrc',
+    // https://bidsrc.pro/tv/
+    key: "L3Z0L29ycC5jcnNkaWIvc3B0dGg="
   },
-  { 
-    id: 'vidlink', 
-    label: 'VidLink', 
-    // "https://vidlink.pro/tv/"
-    key: "L3Z0L29ycC5rbmlsdmlkLy86c3B0dGg=" 
+  {
+    id: 'vidlink',
+    label: 'VidLink',
+    // https://vidlink.pro/tv/
+    key: "L3Z0L29ycC5rbmlsdmlkL3NwdHRo"
   },
   {
     id: 'vidzy',
     label: 'Vidzy',
-    // "https://player.vidzee.wtf/embed/tv/"
-    key: "L3Z0L2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwLy86c3B0dGg="
+    // https://player.vidzee.wtf/embed/tv/
+    key: "L3Z0L2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwL3NwdHRo"
   }
 ];
+
 
 // ⚙️ Configs (Suffixes with placeholders for season/episode)
 const CONFIGS: Record<string, string> = {
