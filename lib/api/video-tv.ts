@@ -17,8 +17,9 @@ const SERVERS = [
     key: "L3Z0L2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
-    id: 'vidly', 
-    label: 'Vidly', 
+    // Fixed: ID is now 'fmovies4u' to match logic
+    id: 'fmovies4u', 
+    label: 'Fmovies', 
     // "https://fmovies4u.com/embed/tmdb-tv-"
     key: "LXZ0LWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   },
@@ -27,6 +28,12 @@ const SERVERS = [
     label: 'BidSrc', 
     // "https://bidsrc.pro/tv/"
     key: "L3Z0L29ycC5jcnNkaWIvLzpwYXR0aA==" 
+  },
+  { 
+    id: 'vidlink', 
+    label: 'VidLink', 
+    // "https://vidlink.pro/tv/"
+    key: "L3Z0L29ycC5rbmlsdmlkLy86c3B0dGg=" 
   },
   {
     id: 'vidzy',
@@ -37,11 +44,11 @@ const SERVERS = [
 ];
 
 // ⚙️ Configs (Suffixes with placeholders for season/episode)
-// Note: Some providers use slashes (standard), others might need different formats.
 const CONFIGS: Record<string, string> = {
   vidfast: "/${season}/${episode}",
   bidsrc: "/${season}/${episode}",
-  fmovies4u: "/${season}/${episode}?autoPlay=false",
+  fmovies4u: "/${season}/${episode}?autoPlay=false", // Correct logic for TV
+  vidlink: "/${season}/${episode}", // Standard S/E format
   vidly: "/${season}/${episode}?autoPlay=true&hideTitle=true",
   cinezo: "/${season}/${episode}",
   vidme: "/${season}/${episode}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
