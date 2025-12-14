@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle } from 'lucide-react';
 
-// New Imports
 import HLSPlayer from '@/components/player/HLSPlayer';
-import { providers } from '@/lib/providers/base'; // Your scraper engine
-import { Stream } from '@p-stream/providers'; // Type definitions
+import { providers } from '@/lib/providers/base';
+import { Stream } from '@p-stream/providers';
 
 interface WatchPageClientProps {
   mediaType: 'movie' | 'tv';
@@ -15,7 +14,7 @@ interface WatchPageClientProps {
   season?: number;
   episode?: number;
   title: string;
-  mediaData: any; // Contains poster_path, backdrop_path, etc.
+  mediaData: any;
 }
 
 export default function WatchPageClient({
@@ -27,165 +26,102 @@ export default function WatchPageClient({
   mediaData,
 }: WatchPageClientProps) {
   const router = useRouter();
-  const trapInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Scraper State
   const [stream, setStream] = useState<Stream | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🛡️ AGGRESSIVE DEVTOOLS PROTECTION (Direct Implementation)
   useEffect(() => {
-    // 1. Disable Interactions
-    const preventInspect = (e: any) => {
-      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
-        e.preventDefault();
-        return false;
-      }
-    };
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', preventInspect);
+    let active = true;
 
-    // 2. The Trap Loop
-    const runTrap = () => {
-      const start = performance.now();
-      debugger; 
-      const end = performance.now();
-      
-      if (end - start > 100) {
-        document.body.innerHTML = '';
-        document.body.style.backgroundColor = 'black';
-        window.location.href = "about:blank";
-      }
-    };
-
-    trapInterval.current = setInterval(runTrap, 200);
-
-    return () => {
-      if (trapInterval.current) clearInterval(trapInterval.current);
-      document.removeEventListener('keydown', preventInspect);
-    };
-  }, []);
-
-  // 🎥 SCRAPING LOGIC
-  useEffect(() => {
-    let isMounted = true;
-
-    async function fetchStream() {
+    async function loadStream() {
       try {
         setLoading(true);
         setError(null);
 
-        // Run the scraper engine
-        const output = await providers.runAll({
+        const result = await providers.runAll({
           media: {
             type: mediaType,
-            title: title,
+            title,
             tmdbId: String(mediaId),
-            releaseYear: new Date(mediaData?.release_date || mediaData?.first_air_date || Date.now()).getFullYear(),
-            season: {
-              number: season,
-              tmdbId: String(season) // Placeholder if unknown
-            },
-            episode: {
-              number: episode,
-              tmdbId: String(episode) // Placeholder
-            }
-          }
+            season: { number: season },
+            episode: { number: episode },
+          },
         });
 
-        if (isMounted) {
-          if (output && output.stream) {
-            setStream(output.stream);
-          } else {
-            setError("No stream found for this title.");
-          }
+        if (!result?.stream) {
+          throw new Error('No stream available');
         }
-      } catch (err: any) {
-        if (isMounted) {
-          console.error("Scraping error:", err);
-          setError(err.message || "Failed to load stream.");
-        }
+
+        if (active) setStream(result.stream);
+      } catch (e: any) {
+        if (active) setError(e.message || 'Failed to load stream');
       } finally {
-        if (isMounted) setLoading(false);
+        if (active) setLoading(false);
       }
     }
 
-    fetchStream();
-
+    loadStream();
     return () => {
-      isMounted = false;
+      active = false;
     };
-  }, [mediaType, mediaId, season, episode, title, mediaData]);
+  }, [mediaType, mediaId, season, episode, title]);
 
-  // Lock body scroll
-  useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevOverflow || 'auto';
-    };
-  }, []);
+  const poster =
+    mediaData?.backdrop_path
+      ? `https://image.tmdb.org/t/p/original${mediaData.backdrop_path}`
+      : undefined;
 
-  const handleClose = () => {
-    router.back();
-  };
-
-  const posterUrl = mediaData?.backdrop_path 
-    ? `https://image.tmdb.org/t/p/original${mediaData.backdrop_path}`
-    : undefined;
-
-  // 1. Loading State
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center gap-4">
-        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-        <p className="text-white/70 font-medium animate-pulse">Searching best servers...</p>
+      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+        <p className="text-white/70">Finding best stream…</p>
       </div>
     );
   }
 
-  // 2. Error State
   if (error || !stream) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center gap-6 p-4">
-        <AlertCircle className="w-16 h-16 text-red-500" />
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Stream Unavailable</h2>
-          <p className="text-gray-400 mb-6">{error || "We couldn't find a source for this video."}</p>
-          <button 
-            onClick={handleClose}
-            className="px-8 py-3 bg-white text-black rounded-full font-bold hover:scale-105 transition-transform"
-          >
-            Go Back
-          </button>
-        </div>
+      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center text-center p-6">
+        <AlertCircle className="w-14 h-14 text-red-500 mb-4" />
+        <h2 className="text-white text-xl font-bold mb-2">
+          Stream unavailable
+        </h2>
+        <p className="text-gray-400 mb-6">{error}</p>
+        <button
+          onClick={() => router.back()}
+          className="px-6 py-3 bg-white text-black rounded-full font-bold"
+        >
+          Go back
+        </button>
       </div>
     );
   }
 
-  // 3. Success - Render HLS Player
-  // We extract the playlist URL. If it's HLS, it's stream.playlist. 
-  // If it's file, we check qualities.
-  let streamUrl = '';
-  
+  // Extract HLS URL
+  let src = '';
   if (stream.type === 'hls') {
-    streamUrl = stream.playlist;
-  } else if (stream.type === 'file') {
-    // Pick the best quality or 'unknown'
-    const qualities = stream.qualities;
-    streamUrl = qualities['1080']?.url || qualities['720']?.url || qualities['unknown']?.url || '';
+    src = stream.playlist;
+  } else {
+    const q = stream.qualities;
+    src =
+      q['1080']?.url ||
+      q['720']?.url ||
+      q['unknown']?.url ||
+      '';
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
-      <HLSPlayer 
-        src={streamUrl} 
-        headers={stream.headers} // Inject headers from scraper
-        title={mediaType === 'tv' ? `${title} - S${season} E${episode}` : title} 
-        poster={posterUrl}
-        onClose={handleClose}
-      />
-    </div>
+    <HLSPlayer
+      src={src}
+      poster={poster}
+      title={
+        mediaType === 'tv'
+          ? `${title} · S${season}E${episode}`
+          : title
+      }
+      onClose={() => router.back()}
+    />
   );
 }
