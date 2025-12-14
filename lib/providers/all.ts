@@ -1,14 +1,5 @@
-import { vidlinkSource } from './sources/vidlink';
-import { vidlinkEmbed } from './embeds/vidlink';
+import { vidlinkScraper } from './sources/vidlink';
 
 export function gatherAllSources() {
-  return [
-    vidlinkSource,
-  ];
-}
-
-export function gatherAllEmbeds() {
-  return [
-    vidlinkEmbed,
-  ];
+  return [vidlinkScraper];
 }
