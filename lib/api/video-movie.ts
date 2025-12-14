@@ -11,38 +11,38 @@ export interface MovieEmbedResult {
 // 🔐 CORRECTED ENCRYPTED KEYS
 // Format: Base64 of the REVERSED string of the base URL
 const SERVERS = [
-   { 
-    id: 'vidme', 
-    label: 'Vidme', 
-    // "https://www.vidking.net/embed/movie/"
-    key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
+  {
+    id: 'vidme',
+    label: 'Vidme',
+    // https://www.vidking.net/embed/movie/
+    key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vc3B0dGg="
   },
-  { 
-    // Fixed: ID is now 'fmovies4u' to match logic
-    id: 'fmovies4u', 
-    label: 'Fmovies', 
-    // "https://fmovies4u.com/embed/tmdb-movie-"
-    key: "LWVpdm9tLWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
+  {
+    id: 'fmovies4u',
+    label: 'Fmovies',
+    // https://fmovies4u.com/embed/tmdb-movie-
+    key: "LWVpdm9tLWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vc3B0dGg="
   },
-  { 
-    id: 'bidsrc', 
-    label: 'BidSrc', 
-    // "https://bidsrc.pro/movie/"
-    key: "L2Vpdm9tL29ycC5jcnNkaWIvLzpwYXR0aA==" 
+  {
+    id: 'bidsrc',
+    label: 'BidSrc',
+    // https://bidsrc.pro/movie/
+    key: "L2Vpdm9tL29ycC5jcnNkaWIvc3B0dGg="
   },
-  { 
-    id: 'vidlink', 
-    label: 'VidLink', 
-    // "https://vidlink.pro/movie/"
-    key: "L2Vpdm9tL29ycC5rbmlsdmlkLy86c3B0dGg=" 
+  {
+    id: 'vidlink',
+    label: 'VidLink',
+    // https://vidlink.pro/movie/
+    key: "L2Vpdm9tL29ycC5rbmlsdmlkL3NwdHRo"
   },
   {
     id: 'vidzy',
     label: 'Vidzy',
-    // "https://player.vidzee.wtf/embed/movie/"
-    key: "L2Vpdm9tL2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwLy86c3B0dGg="
+    // https://player.vidzee.wtf/embed/movie/
+    key: "L2Vpdm9tL2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwL3NwdHRo"
   }
 ];
+
 
 // ⚙️ Configs (Suffixes)
 const CONFIGS: Record<string, string> = {
