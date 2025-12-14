@@ -24,16 +24,6 @@ const SERVERS = [
     id: 'bidsrc', 
     label: 'BidSrc', 
     baseUrl: "https://bidsrc.pro/tv/"
-  },
-  { 
-    id: 'vidlink', 
-    label: 'VidLink', 
-    baseUrl: "https://vidlink.pro/tv/"
-  },
-  {
-    id: 'vidzy',
-    label: 'Vidzy',
-    baseUrl: "https://player.vidzee.wtf/embed/tv/"
   }
 ];
 
