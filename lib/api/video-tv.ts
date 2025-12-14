@@ -39,7 +39,7 @@ const SERVERS = [
 
 // ⚙️ Configs (Suffixes with placeholders)
 const CONFIGS: Record<string, string> = {
-  vidly: "/${season}/${episode}?autoPlay=false",
+  vidly: "/${season}/${episode}?autoPlay=true",
   bidsrc: "/${season}/${episode}",
   vidlink: "/${season}/${episode}",
   vidme: "/${season}/${episode}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
