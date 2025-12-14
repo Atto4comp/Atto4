@@ -39,7 +39,7 @@ const SERVERS = [
 
 // ⚙️ Configs (Suffixes)
 const CONFIGS: Record<string, string> = {
-  vidly: "?autoPlay=false", // Result: .../tmdb-movie-123?autoPlay=false
+  vidly: "?autoPlay=true", // Result: .../tmdb-movie-123?autoPlay=false
   bidsrc: "",               // Result: .../movie/123
   vidlink: "",              // Result: .../movie/123
   vidme: "?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
