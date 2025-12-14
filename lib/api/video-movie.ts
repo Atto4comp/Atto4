@@ -11,17 +11,11 @@ export interface MovieEmbedResult {
 // 🔐 CORRECTED ENCRYPTED KEYS
 // Format: Base64 of the REVERSED string of the base URL
 const SERVERS = [
-  { 
-    id: 'vidfast', 
-    label: 'VidFast', 
-    // "https://vidfast.pro/movie/"
-    key: "L2Vpdm9tL29ycC50c2FmZGl2Ly86c3B0dGg=" 
-  },
-  { 
-    id: 'bidsrc', 
-    label: 'BidSrc', 
-    // "https://bidsrc.pro/movie/"
-    key: "L2Vpdm9tL29ycC5jcnNkaWIvLzpwYXR0aA==" 
+   { 
+    id: 'vidme', 
+    label: 'Vidme', 
+    // "https://www.vidking.net/embed/movie/"
+    key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
   },
   { 
     id: 'vidly', 
@@ -30,10 +24,10 @@ const SERVERS = [
     key: "LWVpdm9tLWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vOnNwdHRo" 
   },
   { 
-    id: 'vidme', 
-    label: 'Vidme', 
-    // "https://www.vidking.net/embed/movie/"
-    key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vOnNwdHRo" 
+    id: 'bidsrc', 
+    label: 'BidSrc', 
+    // "https://bidsrc.pro/movie/"
+    key: "L2Vpdm9tL29ycC5jcnNkaWIvLzpwYXR0aA==" 
   },
   {
     id: 'vidzy',
