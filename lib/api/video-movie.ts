@@ -8,66 +8,59 @@ export interface MovieEmbedResult {
   allSources?: { url: string; label: string }[];
 }
 
-// 🔐 CORRECTED ENCRYPTED KEYS
-// Format: Base64 of the REVERSED string of the base URL
+// 🔓 DIRECT LINKS (No Encryption)
 const SERVERS = [
-  {
-    id: 'vidme',
-    label: 'Vidme',
-    // https://www.vidking.net/embed/movie/
-    key: "L2Vpdm9tL2RlYm1lL3Rlbi5nbmlrZGl2Lnd3dy8vc3B0dGg="
+  { 
+    id: 'vidme', 
+    label: 'Vidme', 
+    baseUrl: "https://www.vidking.net/embed/movie/"
   },
-  {
-    id: 'fmovies4u',
-    label: 'Fmovies',
-    // https://fmovies4u.com/embed/tmdb-movie-
-    key: "LWVpdm9tLWJkbXQvZWJtZWQvbW9jLnU0c2Vpdm9tZi8vc3B0dGg="
+  { 
+    id: 'vidly', 
+    label: 'Vidly', 
+    baseUrl: "https://fmovies4u.com/embed/tmdb-movie-"
   },
-  {
-    id: 'bidsrc',
-    label: 'BidSrc',
-    // https://bidsrc.pro/movie/
-    key: "L2Vpdm9tL29ycC5jcnNkaWIvc3B0dGg="
+  { 
+    id: 'bidsrc', 
+    label: 'BidSrc', 
+    baseUrl: "https://bidsrc.pro/movie/"
   },
-  {
-    id: 'vidlink',
-    label: 'VidLink',
-    // https://vidlink.pro/movie/
-    key: "L2Vpdm9tL29ycC5rbmlsdmlkL3NwdHRo"
+  { 
+    id: 'vidlink', 
+    label: 'VidLink', 
+    baseUrl: "https://vidlink.pro/movie/"
   },
   {
     id: 'vidzy',
     label: 'Vidzy',
-    // https://player.vidzee.wtf/embed/movie/
-    key: "L2Vpdm9tL2RlYm1lL2Z0dy5lZXpkaXYucmV5YWxwL3NwdHRo"
+    baseUrl: "https://player.vidzee.wtf/embed/movie/"
   }
 ];
 
-
 // ⚙️ Configs (Suffixes)
 const CONFIGS: Record<string, string> = {
-  vidfast: "", 
-  bidsrc: "",  // No suffix needed, just ID
-  fmovies4u: "?autoPlay=false", // Correct: ID is part of base URL, just add params
-  vidlink: "", // No suffix needed, just ID
-  vidly: "?autoPlay=true&hideTitle=true",
-  cinezo: "",
+  vidly: "?autoPlay=false", // Result: .../tmdb-movie-123?autoPlay=false
+  bidsrc: "",               // Result: .../movie/123
+  vidlink: "",              // Result: .../movie/123
   vidme: "?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
   vidzy: "?autoplay=true",
 };
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
-  const sources = SERVERS.map(s => ({
-    encryptedKey: s.key,
-    suffix: CONFIGS[s.id] || "",
-    mediaId: id,
-    label: s.label,
-    isEncrypted: true
-  }));
+  const sources = SERVERS.map(s => {
+    // Construct the full URL directly
+    const fullUrl = `${s.baseUrl}${id}${CONFIGS[s.id] || ""}`;
+    
+    return {
+      url: fullUrl,
+      label: s.label,
+      isEncrypted: false // Flag updated
+    };
+  });
 
   return {
     embedUrl: "",
-    provider: "Obfuscated",
+    provider: "Direct",
     allSources: sources as any
   };
 }
