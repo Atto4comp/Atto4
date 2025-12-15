@@ -34,7 +34,7 @@ const NOTIFICATIONS = [
     id: 3, 
     title: 'New Feature: Home Button', 
     desc: 'Added a dedicated Home button inside the player for easier navigation from embeds.', 
-    date: 'Dec 16', 
+    date: 'Dec 14', 
     type: 'feature' 
   },
 ];
