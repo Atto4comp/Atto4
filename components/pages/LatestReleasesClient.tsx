@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import { ArrowLeft, Filter, Grid, List, Loader2, Star, Eye, Calendar } from 'lucide-react';
 import { tmdbApi } from '@/lib/api/tmdb';
-import MediaGrid from '@/components/media/MediaGrid';
 
 interface LatestReleasesClientProps {
   initialMovieGenres: any[];
@@ -13,6 +14,12 @@ interface LatestReleasesClientProps {
   initialTotalPages: number;
 }
 
+const TMDB_IMAGE_SIZES = {
+  poster: 'w500',
+  posterSmall: 'w342',
+  posterTiny: 'w200',
+} as const;
+
 export default function LatestReleasesClient({
   initialMovieGenres,
   initialTVGenres,
@@ -20,139 +27,299 @@ export default function LatestReleasesClient({
   initialTotalPages,
 }: LatestReleasesClientProps) {
   const router = useRouter();
-  const observer = useRef<IntersectionObserver | null>(null);
-
+  
   const [mediaType, setMediaType] = useState<'movie' | 'tv'>('movie');
-  const [genreId, setGenreId] = useState<number | undefined>();
-  const [genres, setGenres] = useState(initialMovieGenres);
-
+  const [genreId, setGenreId] = useState<number | undefined>(undefined);
   const [items, setItems] = useState(initialItems);
+  const [genres, setGenres] = useState(initialMovieGenres);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalPages > 1);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  const observer = useRef<IntersectionObserver | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  /* ---------------- FETCH ---------------- */
+  const buildTmdbImage = (path: string | null, size: string = 'w500'): string => {
+    if (!path) return '/placeholder-movie.jpg';
+    return `https://image.tmdb.org/t/p/${size}${path}`;
+  };
 
-  const fetchData = useCallback(
-    async (pageNum: number, reset = false) => {
-      if (loading) return;
-      setLoading(true);
-
-      try {
-        const data = await tmdbApi.getLatestReleases(mediaType, pageNum, genreId);
-        if (!data?.results) return;
-
-        setItems(prev =>
-          reset ? data.results : [...prev, ...data.results]
-        );
-
-        setHasMore(pageNum < (data.total_pages || 1));
-      } catch (err) {
-        console.error('Latest releases fetch error:', err);
-        setHasMore(false);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [mediaType, genreId, loading]
-  );
-
-  /* ---------------- RESET ---------------- */
-
-  const resetAndFetch = useCallback(async () => {
-    observer.current?.disconnect();
-    setItems([]);
-    setPage(1);
-    setHasMore(true);
-    await fetchData(1, true);
-  }, [fetchData]);
-
-  /* ---------------- EFFECTS ---------------- */
+  const removeDuplicates = (itemsArray: any[]) => {
+    const seen = new Set();
+    return itemsArray.filter(item => {
+      const key = `${mediaType}-${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
 
   useEffect(() => {
     setGenres(mediaType === 'movie' ? initialMovieGenres : initialTVGenres);
-    resetAndFetch();
+  }, [mediaType, initialMovieGenres, initialTVGenres]);
+
+  const fetchData = useCallback(async (pageNum: number, isReset: boolean) => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    setLoading(true);
+    
+    try {
+      const data = await tmdbApi.getLatestReleases(mediaType, pageNum, genreId);
+      
+      if (controller.signal.aborted) return;
+
+      if (data?.results) {
+        let results = data.results.filter(item => item.poster_path && item.popularity > 0);
+
+        if (isReset) {
+          setItems(results);
+        } else {
+          setItems(prev => removeDuplicates([...prev, ...results]));
+        }
+        
+        setHasMore(pageNum < (data.total_pages || 1) && results.length > 0);
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') console.error('Error fetching latest releases:', error);
+      setHasMore(false);
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
+    }
   }, [mediaType, genreId]);
 
-  /* ---------------- INFINITE SCROLL ---------------- */
+  // Handle Filter Changes
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchData(1, true);
+    return () => abortControllerRef.current?.abort();
+  }, [mediaType, genreId, fetchData]);
 
-  const lastItemRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (loading || !hasMore) return;
-
-      observer.current?.disconnect();
-      observer.current = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting) {
-          const next = page + 1;
-          setPage(next);
-          fetchData(next);
-        }
-      });
-
-      if (node) observer.current.observe(node);
-    },
-    [loading, hasMore, page, fetchData]
-  );
-
-  /* ---------------- UI ---------------- */
+  const lastItemRef = useCallback((node: HTMLDivElement | null) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prevPage => {
+            const next = prevPage + 1;
+            fetchData(next, false);
+            return next;
+        });
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore, fetchData]);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-gray-400 hover:text-white mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-bold flex items-center gap-3">
+              <Calendar className="w-8 h-8 text-blue-500" />
+              Latest Releases
+            </h1>
+            <p className="text-gray-400 mt-1">
+              Recently released {mediaType === 'movie' ? 'movies' : 'TV shows'}
+            </p>
+          </div>
+        </div>
 
-      <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-        <Calendar className="w-7 h-7 text-blue-500" />
-        Latest Releases
-      </h1>
-
-      <p className="text-gray-400 mb-6">
-        Recently released {mediaType === 'movie' ? 'movies' : 'TV shows'}
-      </p>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-8">
-        <select
-          value={mediaType}
-          onChange={e => setMediaType(e.target.value as any)}
-          className="bg-gray-900 border border-gray-700 px-4 py-2 rounded"
-        >
-          <option value="movie">Movies</option>
-          <option value="tv">TV Shows</option>
-        </select>
-
-        <select
-          value={genreId || ''}
-          onChange={e =>
-            setGenreId(e.target.value ? Number(e.target.value) : undefined)
-          }
-          className="bg-gray-900 border border-gray-700 px-4 py-2 rounded"
-        >
-          <option value="">All Genres</option>
-          {genres.map(g => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-600' : 'bg-gray-800'} hover:bg-blue-600 transition-colors`}
+            aria-label="Grid view"
+          >
+            <Grid className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-600' : 'bg-gray-800'} hover:bg-blue-600 transition-colors`}
+            aria-label="List view"
+          >
+            <List className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <MediaGrid
-        items={items}
-        mediaType={mediaType}
-        loading={loading && page === 1}
-      />
+      {/* Filters */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 p-4 bg-gray-900/50 rounded-lg backdrop-blur-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <span className="text-sm text-gray-400">Media Type:</span>
+            <select
+              value={mediaType}
+              onChange={(e) => setMediaType(e.target.value as 'movie' | 'tv')}
+              className="bg-gray-800 text-white rounded px-3 py-1 text-sm border border-gray-600 focus:border-blue-500 outline-none"
+            >
+              <option value="movie">Movies</option>
+              <option value="tv">TV Shows</option>
+            </select>
+          </div>
 
-      <div ref={lastItemRef} className="h-16" />
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-400">Genre:</span>
+            <select
+              value={genreId || ''}
+              onChange={(e) => setGenreId(e.target.value ? Number(e.target.value) : undefined)}
+              className="bg-gray-800 text-white rounded px-3 py-1 text-sm border border-gray-600 focus:border-blue-500 outline-none"
+            >
+              <option value="">All Genres</option>
+              {genres.map(genre => (
+                <option key={genre.id} value={genre.id}>
+                  {genre.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-sm text-gray-400">
+          <div className="flex items-center gap-1">
+            <Eye className="w-4 h-4" />
+            <span>{items.length} results</span>
+          </div>
+          <div className="bg-blue-900/30 text-blue-300 px-3 py-1 rounded-full text-xs">
+            Latest First
+          </div>
+        </div>
+      </div>
+
+      {/* Content Grid */}
+      {viewMode === 'grid' && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          {items.map((item, index) => {
+            const isMovie = mediaType === 'movie';
+            const title = isMovie ? item.title : item.name;
+            const releaseDate = isMovie ? item.release_date : item.first_air_date;
+            const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
+
+            return (
+              <div
+                key={`${mediaType}-${item.id}`}
+                ref={index === items.length - 1 ? lastItemRef : null}
+              >
+                <Link
+                  href={`/${mediaType}/${item.id}`}
+                  className="group block transition-transform duration-300 hover:scale-105"
+                >
+                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-gray-800 shadow-lg group-hover:shadow-2xl transition-shadow duration-300">
+                    <Image
+                      src={buildTmdbImage(item.poster_path, TMDB_IMAGE_SIZES.poster)}
+                      alt={title || 'Poster'}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
+                    />
+                    
+                    {item.vote_average > 0 && (
+                      <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                        <span>{item.vote_average.toFixed(1)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-3">
+                    <h3 className="font-medium text-sm leading-tight line-clamp-2 mb-1">
+                      {title}
+                    </h3>
+                    <p className="text-gray-400 text-xs">
+                      {year || 'Unknown'}
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && (
+        <div className="space-y-4">
+          {items.map((item, index) => {
+            const isMovie = mediaType === 'movie';
+            const title = isMovie ? item.title : item.name;
+            const releaseDate = isMovie ? item.release_date : item.first_air_date;
+            const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
+            return (
+              <div
+                key={`${item.id}-list-${index}`}
+                ref={index === items.length - 1 ? lastItemRef : null}
+              >
+                <Link
+                  href={`/${mediaType}/${item.id}`}
+                  className="flex items-center gap-4 p-4 bg-gray-900/30 rounded-lg hover:bg-gray-900/50 transition-colors group"
+                >
+                  <div className="relative w-16 h-24 rounded overflow-hidden bg-gray-800 flex-shrink-0">
+                    <Image
+                      src={buildTmdbImage(item.poster_path, TMDB_IMAGE_SIZES.posterTiny)}
+                      alt={title || 'Poster'}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-blue-400 transition-colors">
+                      {title}
+                    </h3>
+                    <p className="text-gray-400 text-sm mb-2">{year}</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                        {item.vote_average?.toFixed(1) || 'N/A'}
+                      </span>
+                      <span>{Math.round(item.popularity || 0)} popularity</span>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Loading Indicator */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <span className="ml-3 text-gray-400">Loading latest releases...</span>
+        </div>
+      )}
 
       {!hasMore && items.length > 0 && (
-        <p className="text-center text-gray-500 mt-10">
-          🎬 You’ve reached the end
-        </p>
+        <div className="text-center py-8">
+          <p className="text-gray-400">You've reached the end! 🎬</p>
+          <p className="text-gray-500 text-sm mt-1">
+            Found {items.length} latest releases
+          </p>
+        </div>
+      )}
+
+      {!loading && items.length === 0 && (
+        <div className="text-center py-20">
+          <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <h2 className=\"text-xl font-semibold text-white mb-2\">No latest releases found</h2>
+          <p className=\"text-gray-400\">
+            Try adjusting your filters or check back later.
+          </p>
+        </div>
       )}
     </div>
   );
