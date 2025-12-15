@@ -201,7 +201,7 @@ export default function Header() {
                               <div className="flex gap-2 items-start">
                                  <Captions size={12} className="mt-0.5 text-yellow-400 shrink-0" />
                                  <p className="leading-relaxed">
-                                    <span className="text-white font-medium">Vidly Subtitles:</span> When using the Vidly server, the default subtitles might be out of sync. We strongly recommend selecting <span className="text-white underline decoration-yellow-400/50">External</span> subtitles in the player settings (CC menu) for the best experience.
+                                    <span className="text-white font-medium">Vidly Subtitles:</span> When using the Vidly server, the default subtitles might be out of sync. We strongly recommend selecting <span className="text-white underline decoration-yellow-400/50">External</span> subtitles in the player settings (Subtitles menu) for the best experience.
                                  </p>
                               </div>
                            </div>
