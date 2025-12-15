@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Filter, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Filter, ChevronDown, Loader2 } from 'lucide-react';
 import { tmdbApi } from '@/lib/api/tmdb';
 import MediaGrid from '@/components/media/MediaGrid';
 
@@ -32,13 +32,13 @@ export default function BrowsePageClient({
   const [sortBy, setSortBy] = useState('popularity');
   
   const observer = useRef<IntersectionObserver | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Helper to get display title
   const getCategoryTitle = (cat: string) => {
     return cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  // Deduplicate items
   const removeDuplicates = (itemsArray: any[]) => {
     const seen = new Set();
     return itemsArray.filter(item => {
@@ -49,12 +49,24 @@ export default function BrowsePageClient({
     });
   };
 
-  const fetchData = useCallback(async (pageNum: number, reset = false) => {
-    if (loading) return;
+  const fetchData = useCallback(async (pageNum: number, isReset: boolean) => {
+    // 1. Cancel previous request if it's still running
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
+
     try {
+      // Small delay to ensure UI updates first (optional but helps smoothness)
+      if (isReset) setItems([]); 
+
       let data;
-      // Simplified fetch logic logic re-implementing server side logic slightly
+      // Note: We can't easily pass 'signal' to tmdbApi unless you update that lib too.
+      // But we can check signal.aborted after await.
+
       if (mediaType === 'tv') {
         if (category === 'popular') data = await tmdbApi.getTVByCategory('popular', pageNum);
         else if (category === 'top-rated') data = await tmdbApi.getTVByCategory('top-rated', pageNum);
@@ -71,6 +83,9 @@ export default function BrowsePageClient({
         else data = await tmdbApi.getPopularMovies(pageNum);
       }
 
+      // 2. Check if this request was cancelled
+      if (controller.signal.aborted) return;
+
       if (data?.results) {
         const results = data.results.map((item: any) => ({ ...item, media_type: mediaType }));
         
@@ -85,36 +100,41 @@ export default function BrowsePageClient({
           });
         }
 
-        if (reset) setItems(results);
-        else setItems(prev => removeDuplicates([...prev, ...results]));
+        if (isReset) {
+          setItems(results);
+        } else {
+          setItems(prev => removeDuplicates([...prev, ...results]));
+        }
         
         setHasMore(pageNum < (data.total_pages || 1) && results.length > 0);
       }
     } catch (error) {
-      console.error(error);
+      if (error.name !== 'AbortError') console.error(error);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  }, [category, mediaType, sortBy, genreId, loading]);
+  }, [category, mediaType, sortBy, genreId]);
 
-  // Watch for filter changes
+  // Watch for filter changes (Reset & Refetch)
   useEffect(() => {
-    if (mediaType !== defaultMediaType || genreId || sortBy !== 'popularity') {
-      setItems([]);
-      setPage(1);
-      setHasMore(true);
-      fetchData(1, true);
-    }
-  }, [mediaType, sortBy, genreId, defaultMediaType, fetchData]);
+    setPage(1);
+    setHasMore(true);
+    fetchData(1, true);
+    
+    // Cleanup on unmount
+    return () => abortControllerRef.current?.abort();
+  }, [mediaType, sortBy, genreId, fetchData]); // Explicit dependencies
 
   // Update genres on media toggle
   useEffect(() => {
+    let active = true;
     const loadGenres = async () => {
       const g = mediaType === 'movie' ? await tmdbApi.getMovieGenres() : await tmdbApi.getTVGenres();
-      setGenres(g);
+      if (active) setGenres(g);
     };
-    if (mediaType !== defaultMediaType) loadGenres();
-  }, [mediaType, defaultMediaType]);
+    loadGenres();
+    return () => { active = false; };
+  }, [mediaType]);
 
   // Infinite Scroll
   const lastItemRef = useCallback((node: HTMLDivElement | null) => {
@@ -122,16 +142,18 @@ export default function BrowsePageClient({
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
-        setPage(prev => prev + 1);
-        fetchData(page + 1);
+        setPage(prev => {
+            const nextPage = prev + 1;
+            fetchData(nextPage, false); // Fetch next page
+            return nextPage;
+        });
       }
     });
     if (node) observer.current.observe(node);
-  }, [loading, hasMore, page, fetchData]);
+  }, [loading, hasMore, fetchData]);
 
   return (
     <div className="min-h-screen bg-black pb-20 pt-24 relative">
-      {/* Ambient Background */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 blur-[120px] rounded-full" />
@@ -139,7 +161,6 @@ export default function BrowsePageClient({
       </div>
 
       <div className="max-w-[1800px] mx-auto px-4 md:px-8">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
             <button 
@@ -156,9 +177,7 @@ export default function BrowsePageClient({
             </p>
           </div>
 
-          {/* Glassmorphism Filters */}
           <div className="flex flex-wrap gap-3">
-            {/* Media Type Select */}
             <div className="relative">
               <select
                 value={mediaType}
@@ -171,7 +190,6 @@ export default function BrowsePageClient({
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
             </div>
 
-            {/* Genre Select */}
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
               <select
@@ -187,7 +205,6 @@ export default function BrowsePageClient({
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
             </div>
 
-            {/* Sort Select */}
             <div className="relative">
               <select
                 value={sortBy}
@@ -203,10 +220,8 @@ export default function BrowsePageClient({
           </div>
         </div>
 
-        {/* Media Grid */}
         <MediaGrid items={items} mediaType={mediaType} loading={loading && items.length === 0} />
 
-        {/* Infinite Scroll Trigger */}
         <div ref={lastItemRef} className="h-20 flex items-center justify-center mt-8">
           {loading && items.length > 0 && (
             <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
