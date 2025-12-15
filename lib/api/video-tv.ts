@@ -17,7 +17,7 @@ const SERVERS = [
   },
   { 
     id: 'vidzy', 
-    label: 'vidzy', 
+    label: 'Vidzy', 
     baseUrl: "https://bidsrc.pro/tv/"
   },
     { 
