@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, Menu, Home, Film, Tv, Grid3X3, X, History, Bell, BookOpen, ChevronRight } from 'lucide-react'; 
+import { Search, Menu, Home, Film, Tv, Grid3X3, X, History, Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw } from 'lucide-react'; 
 import SearchBar from '@/components/common/SearchBar';
 
 const navigationItems = [
@@ -14,18 +14,36 @@ const navigationItems = [
   { href: '/genres', label: 'Genres', icon: Grid3X3 },
 ];
 
-// Mock Data for Notifications
+// ✅ UPDATED NOTIFICATIONS (Intro & Version)
 const NOTIFICATIONS = [
-  { id: 1, title: 'New Server Added', desc: 'Added "VidFast" server for faster playback.', date: '2h ago', type: 'update' },
-  { id: 2, title: 'UI Refresh', desc: 'The navigation bar has a new glassmorphic look.', date: '1d ago', type: 'feature' },
-  { id: 3, title: 'Mobile Fixes', desc: 'Fixed scrolling issues on iOS devices.', date: '2d ago', type: 'fix' },
+  { 
+    id: 1, 
+    title: 'Welcome to Atto4', 
+    desc: 'The next-gen streaming platform. Ad-free, high-speed, and fully customizable.', 
+    date: 'Now', 
+    type: 'info' 
+  },
+  { 
+    id: 2, 
+    title: 'Version v1.0.2 (Beta)', 
+    desc: 'Current stable build. Includes new player controls and glassmorphic UI.', 
+    date: 'Dec 15', 
+    type: 'version' 
+  },
+  { 
+    id: 3, 
+    title: 'New Feature: Home Button', 
+    desc: 'Added a dedicated Home button inside the player for easier navigation from embeds.', 
+    date: 'Dec 14', 
+    type: 'feature' 
+  },
 ];
 
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false); // New State
-  const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates'); // Tab State
+  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false); 
+  const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates'); 
   
   const [scrolled, setScrolled] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -39,7 +57,6 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close panel when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
@@ -118,7 +135,7 @@ export default function Header() {
               <History size={18} />
             </button>
 
-            {/* ✅ NEW: Info / Notification Dropdown Trigger */}
+            {/* Notification Trigger */}
             <div className="relative" ref={panelRef}>
               <button
                 onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)}
@@ -127,15 +144,14 @@ export default function Header() {
                 title="Updates & Guide"
               >
                 <Bell size={18} />
-                {/* Notification Dot */}
                 <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#0a0a0a]" />
               </button>
 
-              {/* 🟢 THE DROPDOWN PANEL */}
+              {/* DROPDOWN PANEL */}
               {isInfoPanelOpen && (
                 <div className="absolute top-full right-0 mt-4 w-[320px] sm:w-[380px] bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
                   
-                  {/* Tabs Header */}
+                  {/* Tabs */}
                   <div className="flex border-b border-white/5 p-1">
                     <button
                       onClick={() => setInfoTab('updates')}
@@ -155,7 +171,7 @@ export default function Header() {
                     </button>
                   </div>
 
-                  {/* Content Area */}
+                  {/* Content */}
                   <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
                     
                     {/* UPDATES TAB */}
@@ -165,9 +181,9 @@ export default function Header() {
                           <div key={note.id} className="p-3 hover:bg-white/5 rounded-xl transition-colors group cursor-default">
                             <div className="flex justify-between items-start mb-1">
                               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                                note.type === 'update' ? 'bg-green-500/20 text-green-400' :
-                                note.type === 'feature' ? 'bg-blue-500/20 text-blue-400' :
-                                'bg-orange-500/20 text-orange-400'
+                                note.type === 'info' ? 'bg-blue-500/20 text-blue-400' :
+                                note.type === 'version' ? 'bg-green-500/20 text-green-400' :
+                                'bg-purple-500/20 text-purple-400'
                               }`}>
                                 {note.type}
                               </span>
@@ -181,43 +197,45 @@ export default function Header() {
                             </p>
                           </div>
                         ))}
-                         <div className="p-3 text-center border-t border-white/5 mt-2">
-                            <Link href="/changelog" className="text-xs text-blue-400 hover:text-blue-300 flex items-center justify-center gap-1">
-                               View Full Changelog <ChevronRight size={12} />
-                            </Link>
-                         </div>
                       </div>
                     )}
 
-                    {/* GUIDE TAB */}
+                    {/* ✅ GUIDE TAB (Reorganized) */}
                     {infoTab === 'guide' && (
-                      <div className="p-4 space-y-4">
-                        <div className="space-y-2">
-                           <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Getting Started</h4>
-                           <div className="text-sm text-gray-300 space-y-3">
-                              <div className="flex gap-3">
-                                 <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold shrink-0">1</div>
-                                 <p className="text-xs leading-relaxed"><span className="text-white font-medium">Search:</span> Use the search icon to find movies or TV shows by title.</p>
+                      <div className="p-4 space-y-5">
+                        
+                        {/* 1. Basic Usage */}
+                        <div className="space-y-3">
+                           <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                             <PlayCircle size={12} /> Basic Usage
+                           </h4>
+                           <div className="text-xs text-gray-300 space-y-3 pl-1">
+                              <p className="leading-relaxed">
+                                 <span className="text-white font-medium">Getting Started:</span> Use the <Search className="inline w-3 h-3" /> Search bar to find your favorite movies or TV shows.
+                              </p>
+                              <p className="leading-relaxed">
+                                 <span className="text-white font-medium">History:</span> Click the <History className="inline w-3 h-3" /> button to resume where you left off or manage your watchlist.
+                              </p>
+                           </div>
+                        </div>
+
+                        {/* 2. Troubleshooting & Player Guide */}
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl space-y-3">
+                           <h4 className="text-[11px] font-bold text-red-300 uppercase tracking-wider flex items-center gap-2">
+                             <AlertCircle size={12} /> Player Troubleshooting
+                           </h4>
+                           <div className="text-xs text-gray-300 space-y-2.5">
+                              <div className="flex gap-2 items-start">
+                                 <RefreshCw size={12} className="mt-0.5 text-red-400 shrink-0" />
+                                 <p className="leading-relaxed"><span className="text-white font-medium">Auto Fix:</span> If the video doesn't load or buffers, click "Auto Fix" or manually switch the server.</p>
                               </div>
-                              <div className="flex gap-3">
-                                 <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold shrink-0">2</div>
-                                 <p className="text-xs leading-relaxed"><span className="text-white font-medium">Player:</span> If a video buffers, try switching servers using the <Server className="inline w-3 h-3 mx-0.5" /> icon.</p>
-                              </div>
-                              <div className="flex gap-3">
-                                 <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold shrink-0">3</div>
-                                 <p className="text-xs leading-relaxed"><span className="text-white font-medium">Watchlist:</span> Click the <span className="text-white font-bold">+</span> icon on any card to save it for later.</p>
+                              <div className="flex gap-2 items-start">
+                                 <Home size={12} className="mt-0.5 text-blue-400 shrink-0" />
+                                 <p className="leading-relaxed"><span className="text-white font-medium">Home Button:</span> Some servers (like Vidzy) trap you in an iframe where the "Back" button might not work. We added a dedicated "Home" button in the player to ensure you can always exit safely.</p>
                               </div>
                            </div>
                         </div>
 
-                        <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                           <h5 className="text-xs font-bold text-blue-300 mb-1 flex items-center gap-2">
-                              <Tv size={12} /> Pro Tip
-                           </h5>
-                           <p className="text-[11px] text-blue-200/80 leading-relaxed">
-                              On mobile, you can swipe left/right on the player to seek 10 seconds.
-                           </p>
-                        </div>
                       </div>
                     )}
 
@@ -226,7 +244,6 @@ export default function Header() {
               )}
             </div>
 
-            {/* Donate Orb (Hidden on mobile) */}
             <button
               onClick={() => router.push('/donate')}
               className="action-orb primary hidden sm:flex bg-yellow-400/10 hover:bg-yellow-400/20 border-yellow-400/20 transition-colors p-2"
@@ -252,7 +269,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ... (Search Curtain, Mobile Menu etc. keep existing logic) ... */}
+      {/* ... (Search & Mobile Menu remain unchanged) ... */}
        <div 
         className={`search-curtain ${isSearchOpen ? 'open' : ''}`}
         onClick={() => setIsSearchOpen(false)}
@@ -293,7 +310,6 @@ export default function Header() {
             );
           })}
           
-          {/* ✅ Mobile Menu Item for Activity */}
           <button 
             onClick={() => {
               setIsMobileMenuOpen(false);
