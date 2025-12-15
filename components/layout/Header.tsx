@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, Menu, Home, Film, Tv, Grid3X3, X, History, Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw } from 'lucide-react'; 
+import { Search, Menu, Home, Film, Tv, Grid3X3, X, History, Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw, Captions } from 'lucide-react'; 
 import SearchBar from '@/components/common/SearchBar';
 
 const navigationItems = [
@@ -146,19 +146,19 @@ export default function Header() {
               </button>
 
               {/* 
-                 ✅ UPDATED DROPDOWN STYLING FOR MOBILE PERFECTION 
-                 - Mobile: Fixed position, inset-x-4 (margin from sides), top-20 (below header)
-                 - Desktop (sm+): Absolute position, right-0, mt-4
+                 ✅ UPDATED: WIDER MOBILE LAYOUT
+                 - Changed from `left-4 right-4` to `left-2 right-2` (Wider on mobile)
+                 - Adjusted top positioning for better fit
               */}
               {isInfoPanelOpen && (
-                <div className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[70px] sm:top-full sm:mt-4 w-auto sm:w-[380px] bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
+                <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[65px] sm:top-full sm:mt-4 w-auto sm:w-[380px] bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
                   
                   <div className="flex border-b border-white/5 p-1">
                     <button onClick={() => setInfoTab('updates')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'updates' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <Bell size={14} /> Updates </button>
                     <button onClick={() => setInfoTab('guide')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'guide' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <BookOpen size={14} /> Guide </button>
                   </div>
 
-                  <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                  <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
                     {infoTab === 'updates' && (
                       <div className="p-2 space-y-1">
                         {NOTIFICATIONS.map((note) => (
@@ -186,7 +186,7 @@ export default function Header() {
 
                         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl space-y-3">
                            <h4 className="text-[11px] font-bold text-red-300 uppercase tracking-wider flex items-center gap-2"><AlertCircle size={12} /> Player Troubleshooting</h4>
-                           <div className="text-xs text-gray-300 space-y-2.5">
+                           <div className="text-xs text-gray-300 space-y-3">
                               <div className="flex gap-2 items-start">
                                  <RefreshCw size={12} className="mt-0.5 text-red-400 shrink-0" />
                                  <p className="leading-relaxed"><span className="text-white font-medium">Auto Fix:</span> If the video doesn't load or buffers, click "Auto Fix" or manually switch the server.</p>
@@ -195,6 +195,13 @@ export default function Header() {
                                  <Home size={12} className="mt-0.5 text-blue-400 shrink-0" />
                                  <p className="leading-relaxed">
                                     <span className="text-white font-medium">Home Button:</span> Some video servers may prevent the "Back" button from working correctly. We added a dedicated "Home" button inside the player so you can always exit safely to the main menu.
+                                 </p>
+                              </div>
+                              {/* ✅ NEW: Vidly Subtitles Tip */}
+                              <div className="flex gap-2 items-start">
+                                 <Captions size={12} className="mt-0.5 text-yellow-400 shrink-0" />
+                                 <p className="leading-relaxed">
+                                    <span className="text-white font-medium">Vidly Subtitles:</span> When using the Vidly server, the default subtitles might be out of sync. We strongly recommend selecting <span className="text-white underline decoration-yellow-400/50">External</span> subtitles in the player settings (CC menu) for the best experience.
                                  </p>
                               </div>
                            </div>
