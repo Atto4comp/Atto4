@@ -16,8 +16,8 @@ const SERVERS = [
     baseUrl: "https://fmovies4u.com/embed/tmdb-movie-"
   },
   { 
-    id: 'bidsrc', 
-    label: 'BidSrc', 
+    id: 'vidzy', 
+    label: 'Vidzy', 
     baseUrl: "https://bidsrc.pro/movie/"
   },
   { 
