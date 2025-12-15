@@ -231,7 +231,7 @@ export default function Header() {
                               </div>
                               <div className="flex gap-2 items-start">
                                  <Home size={12} className="mt-0.5 text-blue-400 shrink-0" />
-                                 <p className="leading-relaxed"><span className="text-white font-medium">Home Button:</span> Some servers (like Vidly) trap you in an iframe where the "Back" button might not work. We added a dedicated "Home" button in the player to ensure you can always exit safely.</p>
+                                 <p className="leading-relaxed"><span className="text-white font-medium">Home Button:</span> Some video servers may prevent the "Back" button from working correctly. We added a dedicated "Home" button inside the player so you can always exit safely to the main menu.</p>
                               </div>
                            </div>
                         </div>
