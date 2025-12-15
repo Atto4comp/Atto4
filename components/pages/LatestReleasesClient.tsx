@@ -1,4 +1,3 @@
-// components/pages/LatestReleasesClient.tsx
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -15,7 +14,6 @@ interface LatestReleasesClientProps {
   initialTotalPages: number;
 }
 
-// ✅ TMDB Image constants
 const TMDB_IMAGE_SIZES = {
   poster: 'w500',
   posterSmall: 'w342',
@@ -40,14 +38,13 @@ export default function LatestReleasesClient({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   const observer = useRef<IntersectionObserver | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // ✅ Build TMDB image URLs
   const buildTmdbImage = (path: string | null, size: string = 'w500'): string => {
     if (!path) return '/placeholder-movie.jpg';
     return `https://image.tmdb.org/t/p/${size}${path}`;
   };
 
-  // Remove duplicates
   const removeDuplicates = (itemsArray: any[]) => {
     const seen = new Set();
     return itemsArray.filter(item => {
@@ -58,25 +55,26 @@ export default function LatestReleasesClient({
     });
   };
 
-  // Update genres when media type changes
   useEffect(() => {
     setGenres(mediaType === 'movie' ? initialMovieGenres : initialTVGenres);
   }, [mediaType, initialMovieGenres, initialTVGenres]);
 
-  // Fetch data function
-  const fetchData = useCallback(async (pageNum: number, reset = false) => {
-    if (loading) return;
-    
+  const fetchData = useCallback(async (pageNum: number, isReset: boolean) => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
+    
     try {
       const data = await tmdbApi.getLatestReleases(mediaType, pageNum, genreId);
       
-      if (data?.results) {
-        let results = data.results.filter(item => 
-          item.poster_path && item.popularity > 0
-        );
+      if (controller.signal.aborted) return;
 
-        if (reset) {
+      if (data?.results) {
+        let results = data.results.filter(item => item.poster_path && item.popularity > 0);
+
+        if (isReset) {
           setItems(results);
         } else {
           setItems(prev => removeDuplicates([...prev, ...results]));
@@ -85,43 +83,35 @@ export default function LatestReleasesClient({
         setHasMore(pageNum < (data.total_pages || 1) && results.length > 0);
       }
     } catch (error) {
-      console.error('Error fetching latest releases:', error);
+      if (error.name !== 'AbortError') console.error('Error fetching latest releases:', error);
       setHasMore(false);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  }, [mediaType, genreId, loading]);
+  }, [mediaType, genreId]);
 
-  // Reset data when filters change
+  // Handle Filter Changes
   useEffect(() => {
-    if (mediaType !== 'movie' || genreId) {
-      setItems([]);
-      setPage(1);
-      setHasMore(true);
-      fetchData(1, true);
-    }
+    setPage(1);
+    setHasMore(true);
+    fetchData(1, true);
+    return () => abortControllerRef.current?.abort();
   }, [mediaType, genreId, fetchData]);
 
-  // Load more data
-  useEffect(() => {
-    if (page > 1) {
-      fetchData(page);
-    }
-  }, [page, fetchData]);
-
-  // Infinite scroll
   const lastItemRef = useCallback((node: HTMLDivElement | null) => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
-    
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
-        setPage(prevPage => prevPage + 1);
+        setPage(prevPage => {
+            const next = prevPage + 1;
+            fetchData(next, false);
+            return next;
+        });
       }
     });
-    
     if (node) observer.current.observe(node);
-  }, [loading, hasMore]);
+  }, [loading, hasMore, fetchData]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -146,7 +136,6 @@ export default function LatestReleasesClient({
           </div>
         </div>
 
-        {/* View Mode Toggle */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode('grid')}
@@ -267,7 +256,6 @@ export default function LatestReleasesClient({
             const title = isMovie ? item.title : item.name;
             const releaseDate = isMovie ? item.release_date : item.first_air_date;
             const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
-
             return (
               <div
                 key={`${item.id}-list-${index}`}
@@ -315,7 +303,6 @@ export default function LatestReleasesClient({
         </div>
       )}
 
-      {/* No More Results */}
       {!hasMore && items.length > 0 && (
         <div className="text-center py-8">
           <p className="text-gray-400">You've reached the end! 🎬</p>
@@ -325,12 +312,11 @@ export default function LatestReleasesClient({
         </div>
       )}
 
-      {/* No Results */}
       {!loading && items.length === 0 && (
         <div className="text-center py-20">
           <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">No latest releases found</h2>
-          <p className="text-gray-400">
+          <h2 className=\"text-xl font-semibold text-white mb-2\">No latest releases found</h2>
+          <p className=\"text-gray-400\">
             Try adjusting your filters or check back later.
           </p>
         </div>
