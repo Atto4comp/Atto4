@@ -20,7 +20,7 @@ const SERVERS = [
     label: 'Vidzy', 
     baseUrl: "https://bidsrc.pro/tv/"
   },
-    { 
+  { 
     id: 'vidme', 
     label: 'Vidme', 
     baseUrl: "https://www.vidking.net/embed/tv/"
