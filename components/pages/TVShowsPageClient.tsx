@@ -1,7 +1,6 @@
-// components/pages/TVShowsPageClient.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { tmdbApi } from '@/lib/api/tmdb';
 import MediaGrid from '@/components/media/MediaGrid';
 
@@ -17,60 +16,72 @@ export default function TVShowsPageClient({
   initialTotalPages 
 }: TVShowsPageClientProps) {
   const [tvShows, setTvShows] = useState(initialShows);
-  const [genres] = useState(initialGenres); // Genres are static
+  const [genres] = useState(initialGenres);
   const [selectedGenre, setSelectedGenre] = useState('');
   const [sortOrder, setSortOrder] = useState('popular');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [canLoadMore, setCanLoadMore] = useState(initialTotalPages > 1);
 
-  // Reset and fetch when filters change
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
-    if (selectedGenre || sortOrder !== 'popular') {
-      resetAndFetch();
-    }
+    const fetchData = async () => {
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      setIsLoading(true);
+      setTvShows([]); // Clear current to avoid visual mismatch
+      setCurrentPage(1);
+
+      try {
+        let data;
+        if (selectedGenre) {
+          data = await tmdbApi.getTVShowsByGenre(parseInt(selectedGenre), 1);
+        } else {
+          switch (sortOrder) {
+            case 'airing_today': data = await tmdbApi.getAiringTodayTVShows(1); break;
+            case 'on_the_air': data = await tmdbApi.getOnTheAirTVShows(1); break;
+            case 'top_rated': data = await tmdbApi.getTopRatedTVShows(1); break;
+            default: data = await tmdbApi.getPopularTVShows(1);
+          }
+        }
+
+        if (controller.signal.aborted) return;
+
+        setTvShows(data?.results || []);
+        setCanLoadMore(data?.total_pages > 1);
+
+      } catch (error) {
+        if (error.name !== 'AbortError') console.error('Failed to fetch TV shows:', error);
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => abortControllerRef.current?.abort();
   }, [selectedGenre, sortOrder]);
-
-  const resetAndFetch = async () => {
-    setCurrentPage(1);
-    setIsLoading(true);
-    try {
-      const data = await fetchTVData(1);
-      setTvShows(data?.results || []);
-      setCanLoadMore(data?.total_pages > 1);
-    } catch (error) {
-      console.error('Failed to fetch TV shows:', error);
-      setTvShows([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchTVData = async (page: number) => {
-    if (selectedGenre) {
-      return await tmdbApi.getTVShowsByGenre(parseInt(selectedGenre), page);
-    }
-    
-    switch (sortOrder) {
-      case 'airing_today':
-        return await tmdbApi.getAiringTodayTVShows(page);
-      case 'on_the_air':
-        return await tmdbApi.getOnTheAirTVShows(page);
-      case 'top_rated':
-        return await tmdbApi.getTopRatedTVShows(page);
-      default:
-        return await tmdbApi.getPopularTVShows(page);
-    }
-  };
 
   const loadMoreShows = async () => {
     if (isLoading || !canLoadMore) return;
-    
     setIsLoading(true);
     const nextPage = currentPage + 1;
     
     try {
-      const data = await fetchTVData(nextPage);
+      let data;
+      if (selectedGenre) {
+        data = await tmdbApi.getTVShowsByGenre(parseInt(selectedGenre), nextPage);
+      } else {
+        switch (sortOrder) {
+          case 'airing_today': data = await tmdbApi.getAiringTodayTVShows(nextPage); break;
+          case 'on_the_air': data = await tmdbApi.getOnTheAirTVShows(nextPage); break;
+          case 'top_rated': data = await tmdbApi.getTopRatedTVShows(nextPage); break;
+          default: data = await tmdbApi.getPopularTVShows(nextPage);
+        }
+      }
+
       if (data?.results?.length) {
         setTvShows(prev => [...prev, ...data.results]);
         setCurrentPage(nextPage);
@@ -88,18 +99,13 @@ export default function TVShowsPageClient({
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      
-      {/* Page Header */}
       <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 tracking-tight">
-          TV Shows
-        </h1>
+        <h1 className="text-3xl font-bold mb-2 tracking-tight">TV Shows</h1>
         <p className="text-gray-400 text-base">
           Discover amazing series and documentaries
         </p>
       </header>
 
-      {/* Control Panel */}
       <div className="mb-8 flex flex-wrap gap-4">
         <div className="space-y-1">
           <label className="block text-sm text-gray-300">Filter by Genre</label>
@@ -121,8 +127,12 @@ export default function TVShowsPageClient({
           <label className="block text-sm text-gray-300">Sort By</label>
           <select
             value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[150px] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(e) => {
+              setSortOrder(e.target.value);
+              setSelectedGenre(''); // Clear genre logic if desired
+            }}
+            disabled={!!selectedGenre}
+            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[150px] focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           >
             <option value="popular">Popular</option>
             <option value="airing_today">Airing Today</option>
@@ -132,23 +142,14 @@ export default function TVShowsPageClient({
         </div>
       </div>
 
-      {/* Results Counter */}
       {tvShows.length > 0 && !isLoading && (
         <div className="mb-6">
-          <p className="text-gray-400 text-sm">
-            {tvShows.length} shows found
-          </p>
+          <p className="text-gray-400 text-sm">{tvShows.length} shows found</p>
         </div>
       )}
 
-      {/* TV Shows Grid */}
-      <MediaGrid 
-        items={tvShows} 
-        mediaType="tv" 
-        loading={isLoading && currentPage === 1} 
-      />
+      <MediaGrid items={tvShows} mediaType="tv" loading={isLoading && currentPage === 1} />
 
-      {/* Load More Button */}
       {tvShows.length > 0 && canLoadMore && (
         <div className="mt-12 text-center">
           <button
@@ -164,27 +165,18 @@ export default function TVShowsPageClient({
             ) : (
               <div className="flex items-center gap-2">
                 <span>Show More</span>
-                <div className="w-5 h-5 transition-transform group-hover:translate-y-1">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                </div>
               </div>
             )}
           </button>
         </div>
       )}
 
-      {/* End of Results */}
       {!canLoadMore && tvShows.length > 0 && (
         <div className="mt-12 text-center">
-          <p className="text-gray-500 text-sm">
-            ✨ You've seen all available shows
-          </p>
+          <p className="text-gray-500 text-sm">✨ You've seen all available shows</p>
         </div>
       )}
 
-      {/* No Results */}
       {!isLoading && tvShows.length === 0 && (
         <div className="text-center py-20">
           <div className="text-6xl mb-4">📺</div>
@@ -192,7 +184,6 @@ export default function TVShowsPageClient({
           <p className="text-gray-400">Try adjusting your filters or check back later</p>
         </div>
       )}
-
     </div>
   );
 }
