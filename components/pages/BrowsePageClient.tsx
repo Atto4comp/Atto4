@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Filter, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Filter, ChevronDown, Loader2 } from 'lucide-react';
 import { tmdbApi } from '@/lib/api/tmdb';
 import MediaGrid from '@/components/media/MediaGrid';
 
@@ -22,151 +22,211 @@ export default function BrowsePageClient({
   initialTotalPages,
 }: BrowsePageClientProps) {
   const router = useRouter();
-  const observer = useRef<IntersectionObserver | null>(null);
-
   const [mediaType, setMediaType] = useState<'movie' | 'tv'>(defaultMediaType);
-  const [genreId, setGenreId] = useState<number | undefined>();
-  const [sortBy, setSortBy] = useState<'popularity' | 'rating' | 'release_date'>('popularity');
-
+  const [genreId, setGenreId] = useState<number | undefined>(undefined);
   const [genres, setGenres] = useState(initialGenres);
   const [items, setItems] = useState(initialItems);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTotalPages > 1);
+  const [sortBy, setSortBy] = useState('popularity');
+  
+  const observer = useRef<IntersectionObserver | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const getCategoryTitle = (cat: string) =>
-    cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  // Helper to get display title
+  const getCategoryTitle = (cat: string) => {
+    return cat.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
-  const removeDuplicates = (arr: any[]) => {
+  const removeDuplicates = (itemsArray: any[]) => {
     const seen = new Set();
-    return arr.filter(i => {
-      if (seen.has(i.id)) return false;
-      seen.add(i.id);
+    return itemsArray.filter(item => {
+      const key = `${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
   };
 
-  const fetchData = useCallback(async (pageNum: number, reset = false) => {
-    if (loading) return;
+  const fetchData = useCallback(async (pageNum: number, isReset: boolean) => {
+    // 1. Cancel previous request if it's still running
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
 
     try {
+      // Small delay to ensure UI updates first (optional but helps smoothness)
+      if (isReset) setItems([]); 
+
       let data;
+      // Note: We can't easily pass 'signal' to tmdbApi unless you update that lib too.
+      // But we can check signal.aborted after await.
 
       if (mediaType === 'tv') {
         if (category === 'popular') data = await tmdbApi.getTVByCategory('popular', pageNum);
         else if (category === 'top-rated') data = await tmdbApi.getTVByCategory('top-rated', pageNum);
         else if (category === 'on-the-air') data = await tmdbApi.getTVByCategory('on-the-air', pageNum);
         else if (category === 'airing-today') data = await tmdbApi.getTVByCategory('airing-today', pageNum);
+        else if (category === 'latest') data = await tmdbApi.getLatestReleases('tv', pageNum, genreId);
         else data = await tmdbApi.discoverTVShows({ page: pageNum, genreId });
       } else {
         if (category === 'popular') data = await tmdbApi.getPopularMovies(pageNum);
         else if (category === 'top-rated') data = await tmdbApi.getTopRatedMovies(pageNum);
         else if (category === 'upcoming') data = await tmdbApi.getUpcomingMovies(pageNum);
         else if (category === 'now-playing') data = await tmdbApi.getNowPlayingMovies(pageNum);
+        else if (category === 'latest') data = await tmdbApi.getLatestReleases('movie', pageNum, genreId);
         else data = await tmdbApi.getPopularMovies(pageNum);
       }
 
-      if (!data?.results) return;
+      // 2. Check if this request was cancelled
+      if (controller.signal.aborted) return;
 
-      let results = data.results.map((i: any) => ({
-        ...i,
-        media_type: mediaType,
-      }));
+      if (data?.results) {
+        const results = data.results.map((item: any) => ({ ...item, media_type: mediaType }));
+        
+        // Client-side sort
+        if (sortBy === 'rating') {
+          results.sort((a: any, b: any) => (b.vote_average || 0) - (a.vote_average || 0));
+        } else if (sortBy === 'release_date') {
+          results.sort((a: any, b: any) => {
+            const dateA = new Date(a.release_date || a.first_air_date || 0).getTime();
+            const dateB = new Date(b.release_date || b.first_air_date || 0).getTime();
+            return dateB - dateA;
+          });
+        }
 
-      if (sortBy === 'rating') {
-        results.sort((a: any, b: any) => (b.vote_average || 0) - (a.vote_average || 0));
+        if (isReset) {
+          setItems(results);
+        } else {
+          setItems(prev => removeDuplicates([...prev, ...results]));
+        }
+        
+        setHasMore(pageNum < (data.total_pages || 1) && results.length > 0);
       }
-
-      if (sortBy === 'release_date') {
-        results.sort((a: any, b: any) => {
-          const da = new Date(a.release_date || a.first_air_date || 0).getTime();
-          const db = new Date(b.release_date || b.first_air_date || 0).getTime();
-          return db - da;
-        });
-      }
-
-      setItems(prev =>
-        reset ? results : removeDuplicates([...prev, ...results])
-      );
-
-      setHasMore(pageNum < (data.total_pages || 1));
+    } catch (error) {
+      if (error.name !== 'AbortError') console.error(error);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  }, [mediaType, category, genreId, sortBy, loading]);
+  }, [category, mediaType, sortBy, genreId]);
 
-  const resetAndFetch = useCallback(async () => {
-    observer.current?.disconnect();
-    setItems([]);
+  // Watch for filter changes (Reset & Refetch)
+  useEffect(() => {
     setPage(1);
     setHasMore(true);
-    await fetchData(1, true);
-  }, [fetchData]);
+    fetchData(1, true);
+    
+    // Cleanup on unmount
+    return () => abortControllerRef.current?.abort();
+  }, [mediaType, sortBy, genreId, fetchData]); // Explicit dependencies
 
+  // Update genres on media toggle
   useEffect(() => {
-    resetAndFetch();
-  }, [mediaType, genreId, sortBy]);
+    let active = true;
+    const loadGenres = async () => {
+      const g = mediaType === 'movie' ? await tmdbApi.getMovieGenres() : await tmdbApi.getTVGenres();
+      if (active) setGenres(g);
+    };
+    loadGenres();
+    return () => { active = false; };
+  }, [mediaType]);
 
-  useEffect(() => {
-    if (mediaType !== defaultMediaType) {
-      (async () => {
-        const g = mediaType === 'movie'
-          ? await tmdbApi.getMovieGenres()
-          : await tmdbApi.getTVGenres();
-        setGenres(g);
-      })();
-    }
-  }, [mediaType, defaultMediaType]);
-
+  // Infinite Scroll
   const lastItemRef = useCallback((node: HTMLDivElement | null) => {
-    if (loading || !hasMore) return;
-
-    observer.current?.disconnect();
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        const next = page + 1;
-        setPage(next);
-        fetchData(next);
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prev => {
+            const nextPage = prev + 1;
+            fetchData(nextPage, false); // Fetch next page
+            return nextPage;
+        });
       }
     });
-
     if (node) observer.current.observe(node);
-  }, [loading, hasMore, page, fetchData]);
+  }, [loading, hasMore, fetchData]);
 
   return (
-    <div className="min-h-screen bg-black pt-24 pb-20">
-      <div className="max-w-[1800px] mx-auto px-6">
+    <div className="min-h-screen bg-black pb-20 pt-24 relative">
+      <div className="fixed inset-0 -z-10 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
+      </div>
 
-        <button onClick={() => router.back()} className="mb-6 flex items-center gap-2 text-white/60 hover:text-white">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
+      <div className="max-w-[1800px] mx-auto px-4 md:px-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <button 
+              onClick={() => router.back()} 
+              className="flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-4"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
+            <h1 className="text-4xl md:text-6xl font-bold font-chillax text-white">
+              {getCategoryTitle(category)}
+            </h1>
+            <p className="text-white/60 mt-2 text-lg">
+              Discover the {mediaType === 'movie' ? 'movies' : 'TV shows'} everyone is watching.
+            </p>
+          </div>
 
-        <h1 className="text-5xl font-bold text-white mb-2">
-          {getCategoryTitle(category)}
-        </h1>
+          <div className="flex flex-wrap gap-3">
+            <div className="relative">
+              <select
+                value={mediaType}
+                onChange={(e) => setMediaType(e.target.value as 'movie' | 'tv')}
+                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-4 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20"
+              >
+                <option value="movie" className="bg-black text-gray-300">Movies</option>
+                <option value="tv" className="bg-black text-gray-300">TV Shows</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+            </div>
 
-        <div className="flex flex-wrap gap-3 mt-6">
-          <select value={mediaType} onChange={e => setMediaType(e.target.value as any)}>
-            <option value="movie">Movies</option>
-            <option value="tv">TV Shows</option>
-          </select>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+              <select
+                value={genreId || ''}
+                onChange={(e) => setGenreId(e.target.value ? Number(e.target.value) : undefined)}
+                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-10 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20 min-w-[160px]"
+              >
+                <option value="" className="bg-black text-gray-300">All Genres</option>
+                {genres.map(g => (
+                  <option key={g.id} value={g.id} className="bg-black text-gray-300">{g.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+            </div>
 
-          <select value={genreId || ''} onChange={e => setGenreId(e.target.value ? Number(e.target.value) : undefined)}>
-            <option value="">All Genres</option>
-            {genres.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-          </select>
-
-          <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}>
-            <option value="popularity">Popular</option>
-            <option value="rating">Top Rated</option>
-            <option value="release_date">Newest</option>
-          </select>
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-4 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20"
+              >
+                <option value="popularity" className="bg-black text-gray-300">Most Popular</option>
+                <option value="rating" className="bg-black text-gray-300">Highest Rated</option>
+                <option value="release_date" className="bg-black text-gray-300">Newest</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+            </div>
+          </div>
         </div>
 
-        <MediaGrid items={items} mediaType={mediaType} loading={loading && page === 1} />
+        <MediaGrid items={items} mediaType={mediaType} loading={loading && items.length === 0} />
 
-        <div ref={lastItemRef} className="h-16" />
+        <div ref={lastItemRef} className="h-20 flex items-center justify-center mt-8">
+          {loading && items.length > 0 && (
+            <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          )}
+        </div>
       </div>
     </div>
   );
