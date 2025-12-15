@@ -55,7 +55,7 @@ export default function Footer() {
 
               {/* Instagram */}
               <a 
-                href="https://instagram.com/YOUR_USERNAME"
+                href="https://instagram.com/_.atto/"
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-gray-400 hover:text-pink-500 transition-all border border-white/5 hover:border-pink-500/20"
