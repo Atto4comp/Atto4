@@ -34,7 +34,7 @@ const NOTIFICATIONS = [
     id: 3, 
     title: 'New Feature: Home Button', 
     desc: 'Added a dedicated Home button inside the player for easier navigation from embeds.', 
-    date: 'Dec 14', 
+    date: 'Dec 16', 
     type: 'feature' 
   },
 ];
@@ -231,7 +231,7 @@ export default function Header() {
                               </div>
                               <div className="flex gap-2 items-start">
                                  <Home size={12} className="mt-0.5 text-blue-400 shrink-0" />
-                                 <p className="leading-relaxed"><span className="text-white font-medium">Home Button:</span> Some servers (like Vidzy) trap you in an iframe where the "Back" button might not work. We added a dedicated "Home" button in the player to ensure you can always exit safely.</p>
+                                 <p className="leading-relaxed"><span className="text-white font-medium">Home Button:</span> Some servers (like Vidly) trap you in an iframe where the "Back" button might not work. We added a dedicated "Home" button in the player to ensure you can always exit safely.</p>
                               </div>
                            </div>
                         </div>
