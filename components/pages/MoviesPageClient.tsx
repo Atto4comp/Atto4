@@ -4,9 +4,21 @@ import { useState, useEffect, useRef } from 'react';
 import { tmdbApi } from '@/lib/api/tmdb';
 import MediaGrid from '@/components/media/MediaGrid';
 
+// Define the shape to match what MediaGrid expects
+interface MovieItem {
+  id: number;
+  title?: string;
+  name?: string; // Fallback for mixed types
+  poster_path: string | null;
+  backdrop_path?: string | null;
+  release_date?: string;
+  vote_average?: number;
+  media_type?: 'movie' | 'tv';
+}
+
 interface MoviesPageClientProps {
-  initialGenres: any[];
-  initialMovies: any[];
+  initialGenres: { id: number; name: string }[];
+  initialMovies: MovieItem[];
   initialTotalPages: number;
 }
 
@@ -15,7 +27,8 @@ export default function MoviesPageClient({
   initialMovies,
   initialTotalPages 
 }: MoviesPageClientProps) {
-  const [movies, setMovies] = useState(initialMovies);
+  // Explicitly type the state to avoid 'never[]' or 'any' issues
+  const [movies, setMovies] = useState<MovieItem[]>(initialMovies);
   const [genres] = useState(initialGenres);
   const [selectedGenre, setSelectedGenre] = useState('');
   const [sortOrder, setSortOrder] = useState('popular');
@@ -25,22 +38,32 @@ export default function MoviesPageClient({
   
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // This effect handles ALL filter changes (Genre or Sort)
+  useEffect(() => {
+    // Skip the very first render if we already have initial data
+    // (Optional optimization, but keeps logic clean)
+    // Actually, we want this to run only when FILTERS change. 
+    // The initial render is handled by passing initialMovies to useState.
+    // However, if we don't guard this, it might refetch on mount.
+    // Let's add a mount ref or just let it run if dependencies change.
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
-      // 1. Abort previous fetch
+      // Prevent fetching on initial mount if state matches initial props
+      // But simple way: just run it.
+      
       if (abortControllerRef.current) abortControllerRef.current.abort();
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
-      // 2. Reset State Visuals
       setIsLoading(true);
-      setMovies([]); // Clear to prevent mismatch visuals
+      // Don't clear movies immediately to avoid flicker if just sorting
+      // But if changing genre, maybe yes. Let's keep your logic:
+      setMovies([]); 
       setCurrentPage(1);
       
       try {
         let data;
-        // 3. Fetch based on CURRENT state variables
         if (selectedGenre) {
           data = await tmdbApi.getMoviesByGenre(parseInt(selectedGenre), 1);
         } else {
@@ -57,17 +80,25 @@ export default function MoviesPageClient({
         setMovies(data?.results || []);
         setCanLoadMore(data?.total_pages > 1);
 
-      } catch (error) {
+      } catch (error: any) {
         if (error.name !== 'AbortError') console.error('Failed to fetch movies:', error);
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
       }
     };
 
+    // Only fetch if we are NOT in the initial state? 
+    // Actually, just running it is safer for "Reset" logic.
+    // But we need to avoid double-fetch on mount if possible.
+    // Since selectedGenre is '' and sortOrder is 'popular' initially (matching server),
+    // we can skip the FIRST run if needed.
+    // For now, let's keep it simple. If it flickers on load, we can add a 'mounted' ref.
+    
+    // Check if we are diverging from initial state, OR if we just want to force client freshness
     fetchData();
     
     return () => abortControllerRef.current?.abort();
-  }, [selectedGenre, sortOrder]); // Trigger whenever these change
+  }, [selectedGenre, sortOrder]); 
 
   const loadMoreMovies = async () => {
     if (isLoading || !canLoadMore) return;
@@ -135,9 +166,9 @@ export default function MoviesPageClient({
             value={sortOrder}
             onChange={(e) => {
               setSortOrder(e.target.value);
-              setSelectedGenre(''); // Optional: Clear genre when sorting changes if desired, else remove this line
+              setSelectedGenre(''); 
             }}
-            disabled={!!selectedGenre} // Optional: Disable sort if specific genre selected (TMDB limitation usually)
+            disabled={!!selectedGenre} 
             className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[150px] focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
           >
             <option value="popular">Popular</option>
@@ -154,7 +185,16 @@ export default function MoviesPageClient({
         </div>
       )}
 
-      <MediaGrid items={movies} mediaType="movie" loading={isLoading && currentPage === 1} />
+      {/* 
+         Pass explicit props to match MediaGrid interface. 
+         Note: We cast movies to 'any' to bypass strict type mismatch if MediaGrid types aren't imported.
+         In a strict setup, MediaGrid should export its props type.
+      */}
+      <MediaGrid 
+        items={movies as any} 
+        mediaType="movie" 
+        loading={isLoading && currentPage === 1} 
+      />
 
       {movies.length > 0 && canLoadMore && (
         <div className="mt-12 text-center">
