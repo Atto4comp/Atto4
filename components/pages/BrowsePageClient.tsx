@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation'; // Added useSearchParams
 import { ArrowLeft, Filter, ChevronDown, Loader2 } from 'lucide-react';
 import { tmdbApi } from '@/lib/api/tmdb';
 import MediaGrid from '@/components/media/MediaGrid';
@@ -22,7 +22,14 @@ export default function BrowsePageClient({
   initialTotalPages,
 }: BrowsePageClientProps) {
   const router = useRouter();
-  const [mediaType, setMediaType] = useState<'movie' | 'tv'>(defaultMediaType);
+  const searchParams = useSearchParams();
+  
+  // 1. Check URL for 'type' param (e.g., /browse/top-rated?type=tv)
+  // If present, use it. Otherwise, fallback to defaultMediaType prop.
+  const urlType = searchParams.get('type') as 'movie' | 'tv' | null;
+  const initialType = urlType === 'movie' || urlType === 'tv' ? urlType : defaultMediaType;
+
+  const [mediaType, setMediaType] = useState<'movie' | 'tv'>(initialType);
   const [genreId, setGenreId] = useState<number | undefined>(undefined);
   const [genres, setGenres] = useState(initialGenres);
   const [items, setItems] = useState(initialItems);
@@ -33,6 +40,9 @@ export default function BrowsePageClient({
   
   const observer = useRef<IntersectionObserver | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // Ref to track if this is the first render
+  const isFirstRender = useRef(true);
 
   // Helper to get display title
   const getCategoryTitle = (cat: string) => {
@@ -50,7 +60,6 @@ export default function BrowsePageClient({
   };
 
   const fetchData = useCallback(async (pageNum: number, isReset: boolean) => {
-    // 1. Cancel previous request if it's still running
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -60,12 +69,9 @@ export default function BrowsePageClient({
     setLoading(true);
 
     try {
-      // Small delay to ensure UI updates first (optional but helps smoothness)
       if (isReset) setItems([]); 
 
       let data;
-      // Note: We can't easily pass 'signal' to tmdbApi unless you update that lib too.
-      // But we can check signal.aborted after await.
 
       if (mediaType === 'tv') {
         if (category === 'popular') data = await tmdbApi.getTVByCategory('popular', pageNum);
@@ -83,13 +89,11 @@ export default function BrowsePageClient({
         else data = await tmdbApi.getPopularMovies(pageNum);
       }
 
-      // 2. Check if this request was cancelled
       if (controller.signal.aborted) return;
 
       if (data?.results) {
         const results = data.results.map((item: any) => ({ ...item, media_type: mediaType }));
         
-        // Client-side sort
         if (sortBy === 'rating') {
           results.sort((a: any, b: any) => (b.vote_average || 0) - (a.vote_average || 0));
         } else if (sortBy === 'release_date') {
@@ -108,22 +112,47 @@ export default function BrowsePageClient({
         
         setHasMore(pageNum < (data.total_pages || 1) && results.length > 0);
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.name !== 'AbortError') console.error(error);
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
   }, [category, mediaType, sortBy, genreId]);
 
-  // Watch for filter changes (Reset & Refetch)
+  // Initial Fetch & Filter Change Handler
   useEffect(() => {
+    // If it's the first render AND the initial props match our state (including URL override),
+    // we MIGHT want to skip fetching if items are already populated.
+    // BUT if the URL param forced a switch (e.g. props said movie, URL said tv),
+    // we MUST fetch because initialItems are likely wrong (movies).
+    
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      // If the mediaType derived from URL differs from the prop default,
+      // the initialItems passed from server (based on defaultMediaType) are WRONG.
+      // We must refetch immediately.
+      if (mediaType !== defaultMediaType) {
+        setPage(1);
+        setHasMore(true);
+        fetchData(1, true);
+      }
+      return;
+    }
+
     setPage(1);
     setHasMore(true);
     fetchData(1, true);
     
-    // Cleanup on unmount
     return () => abortControllerRef.current?.abort();
-  }, [mediaType, sortBy, genreId, fetchData]); // Explicit dependencies
+  }, [mediaType, sortBy, genreId, fetchData, defaultMediaType]);
+
+  // Update URL when mediaType changes (Optional but good UX)
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('type', mediaType);
+    // update URL without full reload
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [mediaType, router, searchParams]);
 
   // Update genres on media toggle
   useEffect(() => {
@@ -136,7 +165,6 @@ export default function BrowsePageClient({
     return () => { active = false; };
   }, [mediaType]);
 
-  // Infinite Scroll
   const lastItemRef = useCallback((node: HTMLDivElement | null) => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
@@ -144,7 +172,7 @@ export default function BrowsePageClient({
       if (entries[0].isIntersecting && hasMore) {
         setPage(prev => {
             const nextPage = prev + 1;
-            fetchData(nextPage, false); // Fetch next page
+            fetchData(nextPage, false);
             return nextPage;
         });
       }
@@ -220,6 +248,11 @@ export default function BrowsePageClient({
           </div>
         </div>
 
+        {/* 
+           Using your specific MediaGrid (make sure it handles 'items' correctly).
+           If you used my previous typed version, you may need 'as any' if initialItems 
+           coming from server are strictly typed differently.
+        */}
         <MediaGrid items={items} mediaType={mediaType} loading={loading && items.length === 0} />
 
         <div ref={lastItemRef} className="h-20 flex items-center justify-center mt-8">
