@@ -11,11 +11,6 @@ export interface MovieEmbedResult {
 // 🔓 DIRECT LINKS (No Encryption)
 const SERVERS = [
   { 
-    id: 'vidme', 
-    label: 'Vidme', 
-    baseUrl: "https://www.vidking.net/embed/movie/"
-  },
-  { 
     id: 'vidly', 
     label: 'Vidly', 
     baseUrl: "https://fmovies4u.com/embed/tmdb-movie-"
@@ -24,6 +19,11 @@ const SERVERS = [
     id: 'bidsrc', 
     label: 'BidSrc', 
     baseUrl: "https://bidsrc.pro/movie/"
+  },
+  { 
+    id: 'vidme', 
+    label: 'Vidme', 
+    baseUrl: "https://www.vidking.net/embed/movie/"
   }
 ];
 
