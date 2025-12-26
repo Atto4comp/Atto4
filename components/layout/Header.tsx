@@ -180,7 +180,7 @@ export default function Header() {
                            <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2"><PlayCircle size={12} /> Basic Usage</h4>
                            <div className="text-xs text-gray-300 space-y-3 pl-1">
                               <p className="leading-relaxed"><span className="text-white font-medium">Getting Started:</span> Use the <Search className="inline w-3 h-3" /> Search bar to find your favorite movies or TV shows.</p>
-                              <p className="leading-relaxed"><span className="text-white font-medium">History:</span> Click the <History className="inline w-3 h-3" /> button to resume where you left off or manage your watchlist.</p>
+                              <p className="leading-relaxed"><span className="text-white font-medium">History:</span> Click the <History className="inline w-3 h-3" /> button to resume where you left off.</p>
                            </div>
                         </div>
 
