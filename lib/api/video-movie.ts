@@ -33,7 +33,7 @@ const CONFIGS: Record<string, string> = {
   bidsrc: "",               // Result: .../movie/123
   vidlink: "",              // Result: .../movie/123
   vidme: "?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
-  vidzy: "?autoplay=true",
+  vidzy: "?autoplay=1",
 };
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
