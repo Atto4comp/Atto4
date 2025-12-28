@@ -33,7 +33,7 @@ const CONFIGS: Record<string, string> = {
   bidsrc: "/${season}/${episode}",
   vidlink: "/${season}/${episode}",
   vidme: "/${season}/${episode}?color=5865f2&autoPlay=true&nextEpisode=true&episodeSelector=true",
-  vidzy: "/${season}/${episode}?autoplay=true",
+  vidzy: "/${season}/${episode}?autoplay=1",
 };
 
 export function getTVEmbed(id: string | number, season: number = 1, episode: number = 1): TVEmbedResult {
