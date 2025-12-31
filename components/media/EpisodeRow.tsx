@@ -16,11 +16,12 @@ interface Episode {
 interface EpisodeRowProps {
   episodes: Episode[];
   onPlay: (episode: Episode) => void;
+  mediaId: number | string; // TMDB ID of the TV show
+  season: number; // Current season number
+  mediaType: 'tv' | 'movie'; // 'tv' for TV shows, 'movie' for movies
 }
 
-const checkFileAvailability = (episodeId: number) => Math.random() > 0.5;
-
-export default function EpisodeRow({ episodes, onPlay }: EpisodeRowProps) {
+export default function EpisodeRow({ episodes, onPlay, mediaId, season, mediaType }: EpisodeRowProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState<Record<number, 'idle' | 'checking' | 'available' | 'unavailable'>>({});
 
@@ -31,104 +32,152 @@ export default function EpisodeRow({ episodes, onPlay }: EpisodeRowProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleDownloadClick = (e: React.MouseEvent, episodeId: number) => {
+  // Generate download URL based on media type
+  const getDownloadUrl = (episodeNumber: number) => {
+    if (mediaType === 'tv') {
+      return `https://dl.vidsrc.vip/tv/${mediaId}/${season}/${episodeNumber}`;
+    } else {
+      // For movies, typically no season/episode needed, just the ID
+      return `https://dl.vidsrc.vip/movie/${mediaId}`;
+    }
+  };
+
+  const handleDownloadClick = async (e: React.MouseEvent, episode: Episode) => {
     e.stopPropagation();
+    
+    const episodeId = episode.id;
+    
+    // If already available, open download link
     if (downloadStatus[episodeId] === 'available') {
-      alert('Starting download...');
+      const downloadUrl = getDownloadUrl(episode.episode_number);
+      window.open(downloadUrl, '_blank');
       return;
     }
+
+    // Check availability
     setDownloadStatus(prev => ({ ...prev, [episodeId]: 'checking' }));
-    setTimeout(() => {
-      const exists = checkFileAvailability(episodeId);
-      setDownloadStatus(prev => ({ 
-        ...prev, 
-        [episodeId]: exists ? 'available' : 'unavailable' 
-      }));
-      if (!exists) setTimeout(() => setDownloadStatus(prev => ({ ...prev, [episodeId]: 'idle' })), 2000);
-    }, 1000);
+    
+    try {
+      // Simple HEAD request to check if the download endpoint exists
+      const downloadUrl = getDownloadUrl(episode.episode_number);
+      const response = await fetch(downloadUrl, { method: 'HEAD' });
+      
+      if (response.ok) {
+        setDownloadStatus(prev => ({ ...prev, [episodeId]: 'available' }));
+        // Auto-open the download link
+        window.open(downloadUrl, '_blank');
+      } else {
+        setDownloadStatus(prev => ({ ...prev, [episodeId]: 'unavailable' }));
+        setTimeout(() => setDownloadStatus(prev => ({ ...prev, [episodeId]: 'idle' })), 2000);
+      }
+    } catch (error) {
+      // On error, assume available and let user try (CORS might block HEAD request)
+      setDownloadStatus(prev => ({ ...prev, [episodeId]: 'available' }));
+      const downloadUrl = getDownloadUrl(episode.episode_number);
+      window.open(downloadUrl, '_blank');
+    }
   };
 
   if (!episodes?.length) return null;
 
-  const EpisodeCard = ({ episode }: { episode: Episode }) => (
-    <div 
-      className="group relative flex-shrink-0 cursor-pointer w-full"
-      onClick={() => onPlay(episode)}
-    >
-      <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 border border-white/10 transition-all duration-300 group-hover:border-white/30 group-hover:shadow-lg">
-        <Image
-          src={episode.still_path 
-            ? `https://image.tmdb.org/t/p/w500${episode.still_path}`
-            : '/placeholder-backdrop.jpg'
-          }
-          alt={episode.name}
-          fill
-          className={`object-cover transition-all duration-500 ${
-            downloadStatus[episode.id] && downloadStatus[episode.id] !== 'idle' 
-              ? 'blur-sm scale-105 opacity-50' 
-              : 'group-hover:scale-105'
-          }`}
-          unoptimized
-        />
+  const EpisodeCard = ({ episode }: { episode: Episode }) => {
+    const status = downloadStatus[episode.id] || 'idle';
+    
+    return (
+      <div 
+        className="group relative flex-shrink-0 cursor-pointer w-full"
+        onClick={() => onPlay(episode)}
+      >
+        <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 border border-white/10 transition-all duration-300 group-hover:border-white/30 group-hover:shadow-lg">
+          <Image
+            src={episode.still_path 
+              ? `https://image.tmdb.org/t/p/w500${episode.still_path}`
+              : '/placeholder-backdrop.jpg'
+            }
+            alt={episode.name}
+            fill
+            className={`object-cover transition-all duration-500 ${
+              status !== 'idle' 
+                ? 'blur-sm scale-105 opacity-50' 
+                : 'group-hover:scale-105'
+            }`}
+            unoptimized
+          />
 
-        <div className={`absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-          downloadStatus[episode.id] && downloadStatus[episode.id] !== 'idle' ? 'hidden' : ''
-        }`}>
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-            <Play className="w-5 h-5 fill-black ml-1" />
+          {/* Play Button Overlay */}
+          <div className={`absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+            status !== 'idle' ? 'hidden' : ''
+          }`}>
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+              <Play className="w-5 h-5 fill-black ml-1" />
+            </div>
+          </div>
+
+          {/* Download Button */}
+          <button
+            onClick={(e) => handleDownloadClick(e, episode)}
+            className={`absolute top-2 right-2 z-20 p-2 rounded-full backdrop-blur-md transition-all duration-300 ${
+              status === 'available'
+                ? 'bg-green-500 text-white hover:bg-green-600'
+                : status === 'unavailable'
+                ? 'bg-red-500 text-white'
+                : status === 'checking'
+                ? 'bg-blue-500 text-white'
+                : 'bg-black/50 text-white hover:bg-white hover:text-black'
+            }`}
+            title={status === 'available' ? 'Download' : status === 'checking' ? 'Checking...' : 'Check availability'}
+          >
+            {status === 'checking' ? (
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : status === 'available' ? (
+              <Check className="w-4 h-4" />
+            ) : status === 'unavailable' ? (
+              <Lock className="w-4 h-4" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+          </button>
+
+          {/* Status Overlay Messages */}
+          {status === 'available' && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+              <span className="font-bold font-chillax text-white text-lg drop-shadow-lg">
+                Click to Download
+              </span>
+            </div>
+          )}
+          
+          {status === 'unavailable' && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+              <span className="font-bold font-chillax text-white text-lg drop-shadow-lg">
+                Not Available
+              </span>
+            </div>
+          )}
+
+          {/* Episode Number Badge */}
+          <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-white border border-white/10">
+            EP {episode.episode_number}
           </div>
         </div>
 
-        {/* Download Button */}
-        <button
-          onClick={(e) => handleDownloadClick(e, episode.id)}
-          className={`absolute top-2 right-2 z-20 p-2 rounded-full backdrop-blur-md transition-all duration-300 ${
-            downloadStatus[episode.id] === 'available'
-              ? 'bg-green-500 text-white'
-              : downloadStatus[episode.id] === 'unavailable'
-              ? 'bg-red-500 text-white'
-              : 'bg-black/50 text-white hover:bg-white hover:text-black'
-          }`}
-        >
-          {downloadStatus[episode.id] === 'checking' ? (
-            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-          ) : downloadStatus[episode.id] === 'available' ? (
-            <Check className="w-4 h-4" />
-          ) : downloadStatus[episode.id] === 'unavailable' ? (
-            <Lock className="w-4 h-4" />
-          ) : (
-            <Download className="w-4 h-4" />
-          )}
-        </button>
-
-        {(downloadStatus[episode.id] === 'available' || downloadStatus[episode.id] === 'unavailable') && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <span className="font-bold font-chillax text-white text-lg drop-shadow-lg">
-              {downloadStatus[episode.id] === 'available' ? 'Download Ready' : 'Not Available'}
-            </span>
+        {/* Episode Info */}
+        <div className="mt-3 px-1">
+          <div className="flex justify-between items-start gap-2">
+            <h4 className="text-white font-bold leading-tight line-clamp-1 group-hover:text-blue-400 transition-colors text-sm md:text-base">
+              {episode.episode_number}. {episode.name}
+            </h4>
+            {episode.runtime && (
+              <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{episode.runtime}m</span>
+            )}
           </div>
-        )}
-
-        <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-white border border-white/10">
-          EP {episode.episode_number}
+          <p className="text-gray-400 text-xs mt-1 line-clamp-2 leading-relaxed">
+            {episode.overview || 'No description available.'}
+          </p>
         </div>
       </div>
-
-      <div className="mt-3 px-1">
-        <div className="flex justify-between items-start gap-2">
-          <h4 className="text-white font-bold leading-tight line-clamp-1 group-hover:text-blue-400 transition-colors text-sm md:text-base">
-            {episode.episode_number}. {episode.name}
-          </h4>
-          {episode.runtime && (
-            <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{episode.runtime}m</span>
-          )}
-        </div>
-        <p className="text-gray-400 text-xs mt-1 line-clamp-2 leading-relaxed">
-          {episode.overview || 'No description available.'}
-        </p>
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Mobile: Horizontal Scroll
   if (isMobile) {
@@ -145,7 +194,7 @@ export default function EpisodeRow({ episodes, onPlay }: EpisodeRowProps) {
     );
   }
 
-  // Desktop: Responsive Grid (Fixes overflow issue)
+  // Desktop: Responsive Grid
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full pb-10">
       {episodes.map(ep => (
