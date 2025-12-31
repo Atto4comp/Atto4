@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Plus, Heart, Star, Download, Share2, ChevronLeft, Clock, Calendar } from 'lucide-react';
+import { Play, Plus, Heart, Star, Download, Share2, ChevronLeft, Clock, Calendar, X, Loader2 } from 'lucide-react';
 import { MediaDetails, Genre } from '@/lib/api/types';
 import { watchlistStorage, likedStorage } from '@/lib/storage/watchlist';
 import CastList from './CastList';
@@ -14,16 +14,14 @@ interface MovieDetailsClientProps {
   cast?: any[];
 }
 
-const TMDB_IMAGE_SIZES = {
-  backdrop: 'original',
-  poster: 'w780',
-  posterSmall: 'w500',
-} as const;
-
 export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDetailsClientProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
+  
+  // 🔽 NEW: State for Download Modal
+  const [showDownload, setShowDownload] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState('');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -62,24 +60,58 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
-  // ✅ New Download Handler
-  const handleDownload = () => {
-    const downloadUrl = `https://dl.vidsrc.vip/movie/${movie.id}`;
-    
-    // Create hidden iframe to trigger download without navigation
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = downloadUrl;
-    document.body.appendChild(iframe);
-    
-    // Optional: Clean up iframe after a delay
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-    }, 60000); // Remove after 1 minute
+  // ✅ UPDATED: Open Modal instead of hidden iframe
+  const handleDownloadOpen = () => {
+    setDownloadUrl(`https://dl.vidsrc.vip/movie/${movie.id}`);
+    setShowDownload(true);
   };
 
   const formatYear = (date?: string) => date ? new Date(date).getFullYear() : 'N/A';
   const formatRuntime = (min?: number) => min ? `${Math.floor(min / 60)}h ${min % 60}m` : 'N/A';
+
+  // ========================
+  // SHARED: DOWNLOAD MODAL
+  // ========================
+  const DownloadModal = () => (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl h-[80vh] bg-[#1a1a1a] rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col">
+        
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#0f0f0f]">
+          <div className="flex items-center gap-3">
+            <Download className="w-5 h-5 text-blue-400" />
+            <h3 className="font-bold text-white text-lg">Download Manager</h3>
+          </div>
+          <button 
+            onClick={() => setShowDownload(false)}
+            className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Iframe Container */}
+        <div className="flex-1 relative bg-black">
+          <div className="absolute inset-0 flex items-center justify-center">
+             <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          </div>
+          <iframe 
+            src={downloadUrl}
+            className="relative z-10 w-full h-full border-0"
+            allow="autoplay; encrypted-media"
+            title="Download Frame"
+          />
+        </div>
+
+         {/* Modal Footer */}
+         <div className="px-6 py-3 bg-[#0f0f0f] border-t border-white/5 text-center">
+           <p className="text-xs text-gray-500">
+             If the download doesn't start automatically, please interact with the window above.
+           </p>
+         </div>
+      </div>
+    </div>
+  );
 
   // ========================
   // MOBILE LAYOUT
@@ -87,47 +119,34 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
   if (isMobile) {
     return (
       <div className="min-h-screen bg-[#050505] pb-20 overflow-hidden">
-        {/* Back Button */}
+        {showDownload && <DownloadModal />}
+        
         <div className="fixed top-4 left-4 z-50">
           <Link href="/" className="p-2 bg-black/30 backdrop-blur-md rounded-full text-white border border-white/10">
             <ChevronLeft className="w-6 h-6" />
           </Link>
         </div>
 
-        {/* Vibrant Ambient Background */}
+        {/* ... (Background Logic same as before) ... */}
         <div className="fixed inset-0 -z-10 h-screen w-full">
-          {/* Primary Color Source: Massive Blur of Poster */}
-          <Image 
-            src={buildImage(movie.poster_path, 'w780')} 
-            alt="bg" 
-            fill 
-            className="object-cover opacity-60 blur-[80px] scale-150" 
-            priority 
-          />
-          {/* Gradient Overlays for Readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-[#050505]/60 to-[#050505]" />
-          <div className="absolute inset-0 bg-black/20" />
+           <Image src={buildImage(movie.poster_path, 'w780')} alt="bg" fill className="object-cover opacity-60 blur-[80px] scale-150" priority />
+           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-[#050505]/60 to-[#050505]" />
+           <div className="absolute inset-0 bg-black/20" />
         </div>
 
-        {/* Main Content */}
         <div className="relative z-10 flex flex-col items-center px-6 pt-24">
-          
-          {/* Vertical Poster Card */}
           <div className="relative w-[200px] aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/10 mb-8 transform">
             <Image src={buildImage(movie.poster_path, 'w780')} alt={movie.title} fill className="object-cover" priority />
           </div>
 
-          {/* Title */}
           <h1 className="text-3xl font-bold text-white text-center font-chillax mb-3 leading-tight drop-shadow-lg">{movie.title}</h1>
           
-          {/* Meta Row */}
           <div className="flex items-center justify-center flex-wrap gap-3 text-xs text-gray-200 font-medium mb-8">
             <span className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm"><Calendar className="w-3 h-3" /> {formatYear(movie.release_date)}</span>
             <span className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm"><Clock className="w-3 h-3" /> {formatRuntime(movie.runtime)}</span>
             <span className="flex items-center gap-1 text-yellow-400 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm"><Star className="w-3 h-3 fill-current" /> {movie.vote_average.toFixed(1)}</span>
           </div>
 
-          {/* Primary Actions */}
           <div className="grid grid-cols-4 gap-4 w-full max-w-sm mb-8">
             <Link href={`/watch/movie/${movie.id}`} className="col-span-4 bg-white text-black h-12 rounded-xl flex items-center justify-center gap-2 font-bold shadow-lg hover:bg-gray-200 active:scale-95 transition-all">
               <Play className="w-5 h-5 fill-black" />
@@ -142,9 +161,10 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
               <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
             </button>
 
+            {/* ✅ Updated Download Button */}
             <button 
-              onClick={handleDownload}
-              className="col-span-1 h-12 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 text-white active:scale-95"
+              onClick={handleDownloadOpen}
+              className="col-span-1 h-12 rounded-xl flex items-center justify-center bg-blue-600/20 backdrop-blur-md border border-blue-500/50 text-blue-400 hover:bg-blue-600/30 active:scale-95 transition-all"
             >
               <Download className="w-5 h-5" />
             </button>
@@ -154,12 +174,10 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
             </button>
           </div>
 
-          {/* Overview */}
           <p className="text-gray-200 text-sm leading-relaxed text-center line-clamp-4 mb-8 max-w-md font-light drop-shadow-md">
             {movie.overview}
           </p>
 
-          {/* Cast List */}
           <div className="w-full max-w-md overflow-hidden">
             <CastList cast={cast} />
           </div>
@@ -173,53 +191,26 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
   // ========================
   return (
     <div className="relative min-h-screen bg-[#050505] text-white pt-20">
-      
-      {/* Vibrant Ambient Background Layer */}
-      <div className="fixed inset-0 h-screen w-full -z-10 overflow-hidden">
-        {/* 1. Base Image scaled & heavily blurred to extract colors */}
-        <Image 
-          src={buildImage(movie.backdrop_path, 'original')} 
-          alt="backdrop color source" 
-          fill 
-          className="object-cover opacity-50 blur-[100px] scale-110" 
-          priority 
-        />
-        
-        {/* 2. Sharp Overlay for Texture (Optional, kept subtle) */}
-        <Image 
-          src={buildImage(movie.backdrop_path, 'original')} 
-          alt="texture" 
-          fill 
-          className="object-cover opacity-20 blur-md mix-blend-overlay" 
-        />
+      {showDownload && <DownloadModal />}
 
-        {/* 3. Gradient Masks to ensure text readability */}
+      {/* ... (Background Logic same as before) ... */}
+      <div className="fixed inset-0 h-screen w-full -z-10 overflow-hidden">
+        <Image src={buildImage(movie.backdrop_path, 'original')} alt="backdrop" fill className="object-cover opacity-50 blur-[100px] scale-110" priority />
+        <Image src={buildImage(movie.backdrop_path, 'original')} alt="texture" fill className="object-cover opacity-20 blur-md mix-blend-overlay" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/80 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
-        
-        {/* 4. Vignette to focus center */}
         <div className="absolute inset-0 bg-radial-gradient from-transparent to-[#050505]/80" />
       </div>
 
-      {/* Main Content Container */}
       <div className="relative z-10 w-full max-w-[1600px] mx-auto px-8 md:px-16 pt-8 flex gap-12 items-start min-h-screen pb-20">
         
-        {/* Left: Floating Vertical Poster Card */}
         <div className="hidden md:block w-[320px] lg:w-[380px] flex-shrink-0 sticky top-28 h-fit">
           <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10 group bg-black/20 backdrop-blur-sm">
-            <Image 
-              src={buildImage(movie.poster_path, 'w780')} 
-              alt={movie.title} 
-              fill 
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              priority 
-            />
-            {/* Shine Effect */}
+            <Image src={buildImage(movie.poster_path, 'w780')} alt={movie.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" priority />
             <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
         </div>
 
-        {/* Right: Info & Actions */}
         <div className="flex-1 pb-20 min-w-0">
           <Link href="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 text-sm font-medium bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/5">
             <ChevronLeft className="w-4 h-4" /> Back to Home
@@ -248,9 +239,10 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
               Play Now
             </Link>
 
+            {/* ✅ Updated Download Button */}
             <button 
-              onClick={handleDownload}
-              className="h-14 px-8 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl flex items-center gap-3 font-semibold hover:bg-white/10 transition-all"
+              onClick={handleDownloadOpen}
+              className="h-14 px-8 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl flex items-center gap-3 font-semibold hover:bg-white/10 transition-all hover:border-blue-500/50 hover:text-blue-400"
             >
               <Download className="w-5 h-5" />
               <span>Download</span>
