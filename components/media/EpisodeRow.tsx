@@ -46,11 +46,11 @@ export default function EpisodeRow({ episodes, onPlay, mediaId, season, mediaTyp
     e.stopPropagation();
     
     const episodeId = episode.id;
-    
-    // If already available, open download link
+    const downloadUrl = getDownloadUrl(episode.episode_number);
+
+    // If already marked available, trigger download immediately
     if (downloadStatus[episodeId] === 'available') {
-      const downloadUrl = getDownloadUrl(episode.episode_number);
-      window.open(downloadUrl, '_blank');
+      triggerHiddenDownload(downloadUrl);
       return;
     }
 
@@ -59,23 +59,33 @@ export default function EpisodeRow({ episodes, onPlay, mediaId, season, mediaTyp
     
     try {
       // Simple HEAD request to check if the download endpoint exists
-      const downloadUrl = getDownloadUrl(episode.episode_number);
       const response = await fetch(downloadUrl, { method: 'HEAD' });
       
       if (response.ok) {
         setDownloadStatus(prev => ({ ...prev, [episodeId]: 'available' }));
-        // Auto-open the download link
-        window.open(downloadUrl, '_blank');
+        triggerHiddenDownload(downloadUrl);
       } else {
         setDownloadStatus(prev => ({ ...prev, [episodeId]: 'unavailable' }));
         setTimeout(() => setDownloadStatus(prev => ({ ...prev, [episodeId]: 'idle' })), 2000);
       }
     } catch (error) {
-      // On error, assume available and let user try (CORS might block HEAD request)
+      // On error (likely CORS), assume available and try downloading anyway
       setDownloadStatus(prev => ({ ...prev, [episodeId]: 'available' }));
-      const downloadUrl = getDownloadUrl(episode.episode_number);
-      window.open(downloadUrl, '_blank');
+      triggerHiddenDownload(downloadUrl);
     }
+  };
+
+  // ✅ New Helper: Trigger download via hidden iframe
+  const triggerHiddenDownload = (url: string) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+    
+    // Clean up iframe after a delay
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 60000); // Remove after 1 minute
   };
 
   if (!episodes?.length) return null;
@@ -142,7 +152,7 @@ export default function EpisodeRow({ episodes, onPlay, mediaId, season, mediaTyp
           {status === 'available' && (
             <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
               <span className="font-bold font-chillax text-white text-lg drop-shadow-lg">
-                Click to Download
+                Downloading...
               </span>
             </div>
           )}
