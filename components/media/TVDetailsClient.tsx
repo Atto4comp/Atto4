@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Plus, Heart, Star, ChevronLeft, Download } from 'lucide-react';
+import { Play, Plus, Heart, Star, ChevronLeft, Download, ArrowDown } from 'lucide-react';
 import { MediaDetails, Genre } from '@/lib/api/types';
 import { tmdbApi } from '@/lib/api/tmdb';
 import { watchlistStorage, likedStorage } from '@/lib/storage/watchlist';
@@ -31,6 +31,9 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState(1);
   const [currentEpisodes, setCurrentEpisodes] = useState<any[]>([]);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
+
+  // Ref for scrolling to episodes
+  const episodesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -83,6 +86,10 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
     else likedStorage.addToLiked({ id: tv.id, name: tv.name, poster_path: tv.poster_path, media_type: 'tv', vote_average: tv.vote_average || 0, first_air_date: tv.first_air_date });
     setIsLiked(!isLiked);
     window.dispatchEvent(new CustomEvent('liked-updated'));
+  };
+
+  const scrollToEpisodes = () => {
+    episodesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const buildImage = (path: string | null, size: string) => 
@@ -141,7 +148,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
             </button>
           </div>
 
-          <div className="w-full flex items-center justify-between mb-4 px-2">
+          <div className="w-full flex items-center justify-between mb-4 px-2" ref={episodesRef}>
             <h3 className="text-lg font-bold text-white font-chillax">Episodes</h3>
             <SeasonSelector seasons={seasons} currentSeason={selectedSeasonNumber} onSelect={handleSeasonChange} />
           </div>
@@ -152,7 +159,14 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
                 {[1,2].map(i => <div key={i} className="w-[280px] aspect-video bg-white/10 rounded-xl animate-pulse flex-shrink-0" />)}
               </div>
             ) : (
-              <EpisodeRow episodes={currentEpisodes} onPlay={(ep) => window.location.href = `/watch/tv/${tv.id}?season=${selectedSeasonNumber}&episode=${ep.episode_number}`} />
+              // ✅ Updated EpisodeRow with required props for download
+              <EpisodeRow 
+                episodes={currentEpisodes} 
+                onPlay={(ep) => window.location.href = `/watch/tv/${tv.id}?season=${selectedSeasonNumber}&episode=${ep.episode_number}`} 
+                mediaId={tv.id}
+                season={selectedSeasonNumber}
+                mediaType="tv"
+              />
             )}
           </div>
 
@@ -172,24 +186,8 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
       
       {/* Vibrant Ambient Background Layer */}
       <div className="fixed inset-0 h-screen w-full -z-10 overflow-hidden">
-        {/* 1. Base Image scaled & blurred for COLOR */}
-        <Image 
-          src={buildImage(tv.backdrop_path, 'original')} 
-          alt="backdrop color source" 
-          fill 
-          className="object-cover opacity-50 blur-[100px] scale-110" 
-          priority 
-        />
-        
-        {/* 2. Texture/Detail Overlay (subtle) */}
-        <Image 
-          src={buildImage(tv.backdrop_path, 'original')} 
-          alt="backdrop texture" 
-          fill 
-          className="object-cover opacity-20 blur-md mix-blend-overlay" 
-        />
-
-        {/* 3. Gradients for Readability */}
+        <Image src={buildImage(tv.backdrop_path, 'original')} alt="backdrop color source" fill className="object-cover opacity-50 blur-[100px] scale-110" priority />
+        <Image src={buildImage(tv.backdrop_path, 'original')} alt="backdrop texture" fill className="object-cover opacity-20 blur-md mix-blend-overlay" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/80 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
         <div className="absolute inset-0 bg-radial-gradient from-transparent to-[#050505]/70" />
@@ -237,9 +235,14 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
               Start Watching
             </Link>
 
-            <button className="h-14 px-8 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl flex items-center gap-3 font-semibold hover:bg-white/10 transition-all">
+            {/* ✅ Main Download Button now scrolls to Episodes list */}
+            <button 
+              onClick={scrollToEpisodes}
+              className="h-14 px-8 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl flex items-center gap-3 font-semibold hover:bg-white/10 transition-all"
+            >
               <Download className="w-5 h-5" />
-              <span>Download</span>
+              <span>Episodes</span>
+              <ArrowDown className="w-4 h-4 ml-1 opacity-50" />
             </button>
 
             <div className="flex gap-3">
@@ -264,7 +267,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
           </div>
 
           {/* Episodes Section */}
-          <div className="w-full pb-12">
+          <div className="w-full pb-12" ref={episodesRef}>
             <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
               <h3 className="text-2xl font-bold text-white font-chillax drop-shadow-md">Episodes</h3>
               <SeasonSelector seasons={seasons} currentSeason={selectedSeasonNumber} onSelect={handleSeasonChange} />
@@ -276,7 +279,14 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
                   {[1,2,3,4].map(i => <div key={i} className="aspect-video bg-white/10 rounded-xl animate-pulse" />)}
                 </div>
               ) : (
-                <EpisodeRow episodes={currentEpisodes} onPlay={(ep) => window.location.href = `/watch/tv/${tv.id}?season=${selectedSeasonNumber}&episode=${ep.episode_number}`} />
+                // ✅ Updated EpisodeRow with required props
+                <EpisodeRow 
+                  episodes={currentEpisodes} 
+                  onPlay={(ep) => window.location.href = `/watch/tv/${tv.id}?season=${selectedSeasonNumber}&episode=${ep.episode_number}`} 
+                  mediaId={tv.id}
+                  season={selectedSeasonNumber}
+                  mediaType="tv"
+                />
               )}
             </div>
           </div>
