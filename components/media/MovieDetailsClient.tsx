@@ -62,6 +62,22 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
+  // ✅ New Download Handler
+  const handleDownload = () => {
+    const downloadUrl = `https://dl.vidsrc.vip/movie/${movie.id}`;
+    
+    // Create hidden iframe to trigger download without navigation
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = downloadUrl;
+    document.body.appendChild(iframe);
+    
+    // Optional: Clean up iframe after a delay
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 60000); // Remove after 1 minute
+  };
+
   const formatYear = (date?: string) => date ? new Date(date).getFullYear() : 'N/A';
   const formatRuntime = (min?: number) => min ? `${Math.floor(min / 60)}h ${min % 60}m` : 'N/A';
 
@@ -126,7 +142,10 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
               <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
             </button>
 
-            <button className="col-span-1 h-12 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 text-white active:scale-95">
+            <button 
+              onClick={handleDownload}
+              className="col-span-1 h-12 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 text-white active:scale-95"
+            >
               <Download className="w-5 h-5" />
             </button>
 
@@ -229,7 +248,10 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
               Play Now
             </Link>
 
-            <button className="h-14 px-8 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl flex items-center gap-3 font-semibold hover:bg-white/10 transition-all">
+            <button 
+              onClick={handleDownload}
+              className="h-14 px-8 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-xl flex items-center gap-3 font-semibold hover:bg-white/10 transition-all"
+            >
               <Download className="w-5 h-5" />
               <span>Download</span>
             </button>
