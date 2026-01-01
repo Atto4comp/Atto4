@@ -11,14 +11,14 @@ export interface TVEmbedResult {
 // 🔓 DIRECT LINKS (No Encryption)
 const SERVERS = [
   { 
-    id: 'vidly', 
-    label: 'Vidly', 
-    baseUrl: "https://fmovies4u.com/embed/tmdb-tv-"
-  },
-  { 
     id: 'vidzy', 
     label: 'Vidzy', 
     baseUrl: "https://bidsrc.pro/tv/"
+  },
+  { 
+    id: 'vidly', 
+    label: 'Vidly', 
+    baseUrl: "https://fmovies4u.com/embed/tmdb-tv-"
   },
   { 
     id: 'vidme', 
