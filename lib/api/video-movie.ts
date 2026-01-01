@@ -9,16 +9,16 @@ export interface MovieEmbedResult {
 }
 
 // 🔓 DIRECT LINKS (No Encryption)
-const SERVERS = [
-  { 
-    id: 'vidly', 
-    label: 'Vidly', 
-    baseUrl: "https://fmovies4u.com/embed/tmdb-movie-"
-  },
+const SERVERS = [  
   { 
     id: 'vidzy', 
     label: 'Vidzy', 
     baseUrl: "https://bidsrc.pro/movie/"
+  },
+  { 
+    id: 'vidly', 
+    label: 'Vidly', 
+    baseUrl: "https://fmovies4u.com/embed/tmdb-movie-"
   },
   { 
     id: 'vidme', 
