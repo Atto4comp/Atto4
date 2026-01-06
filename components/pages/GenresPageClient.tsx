@@ -72,7 +72,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
   const [thumbsLoading, setThumbsLoading] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
-  const thumbsFetchedRef = useRef(false); // ✅ Track if we've already loaded thumbnails
+  const thumbsFetchedRef = useRef(false);
 
   const filteredGenres = useMemo(() => {
     const q = genreQuery.trim().toLowerCase();
@@ -174,7 +174,6 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
     if (selectedGenre) fetchInitialContent(selectedGenre, newSort);
   };
 
-  // ✅ Load thumbnails ONCE on mount
   useEffect(() => {
     if (thumbsFetchedRef.current) return;
     thumbsFetchedRef.current = true;
@@ -207,11 +206,12 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
   }, [allGenres]);
 
   return (
-    <div className="min-h-screen bg-[#09090b] pb-24 pt-28 -mt-24 px-6 md:px-12 selection:bg-blue-500/30">
+    // ✅ Added: pt-32 -mt-24 to remove black gap (matches Movies/TV pages)
+    <div className="min-h-screen bg-[#09090b] pb-24 pt-32 -mt-24 px-6 md:px-12 selection:bg-purple-500/30 relative z-0">
       <div className="max-w-[1800px] mx-auto">
         {/* Header */}
-        <header className="relative mb-10 flex flex-col items-center text-center">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[320px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+        <header className="relative mb-12 flex flex-col items-center text-center">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[320px] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none -z-10" />
 
           {selectedGenre ? (
             <div className="w-full flex flex-col items-center">
@@ -251,7 +251,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                 value={genreQuery}
                 onChange={(e) => setGenreQuery(e.target.value)}
                 placeholder="Search genres…"
-                className="w-full bg-[#0F0F0F] hover:bg-[#151515] border border-white/10 rounded-full pl-11 pr-4 py-3.5 text-sm text-gray-200 outline-none focus:ring-2 focus:ring-blue-500/40 transition-all shadow-lg shadow-black/20"
+                className="w-full bg-[#0F0F0F] hover:bg-[#151515] border border-white/10 rounded-full pl-11 pr-4 py-3.5 text-sm text-gray-200 outline-none focus:ring-2 focus:ring-purple-500/40 transition-all shadow-lg shadow-black/20"
               />
             </div>
           ) : (
@@ -260,7 +260,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                 <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value as any)}
-                  className="appearance-none bg-[#0F0F0F] hover:bg-[#151515] border border-white/10 rounded-full pl-4 pr-10 py-3.5 text-sm text-gray-200 outline-none focus:ring-2 focus:ring-blue-500/40 transition-all shadow-lg shadow-black/20"
+                  className="appearance-none bg-[#0F0F0F] hover:bg-[#151515] border border-white/10 rounded-full pl-4 pr-10 py-3.5 text-sm text-gray-200 outline-none focus:ring-2 focus:ring-purple-500/40 transition-all shadow-lg shadow-black/20"
                 >
                   <option value="popular">Most Popular</option>
                   <option value="latest">Latest Releases</option>
@@ -270,7 +270,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
 
               {mixedContent.length > 0 && !isLoading && (
                 <div className="hidden md:flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-widest px-4 py-2 rounded-full border border-white/5 bg-white/[0.02]">
-                  <Sparkles className="w-3 h-3 text-blue-500" />
+                  <Sparkles className="w-3 h-3 text-purple-500" />
                   <span>{mixedContent.length} Titles</span>
                 </div>
               )}
@@ -289,7 +289,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                 <button
                   key={genre.id}
                   onClick={() => selectGenre(genre)}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.03] transition-all duration-300 hover:-translate-y-1"
+                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.03] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
                   {/* Thumbnail */}
                   {thumb ? (
@@ -313,7 +313,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                       {genre.name}
                     </h3>
                     <div className="mt-2 h-[2px] w-10 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full w-0 bg-blue-500/70 transition-all duration-500 group-hover:w-full" />
+                      <div className="h-full w-0 bg-purple-500/70 transition-all duration-500 group-hover:w-full" />
                     </div>
                   </div>
                 </button>
