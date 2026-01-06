@@ -3,12 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { tmdbApi } from '@/lib/api/tmdb';
 import MediaGrid from '@/components/media/MediaGrid';
+import { Filter, ChevronDown, SortAsc } from 'lucide-react';
 
-// Define the shape to match what MediaGrid expects
 interface MovieItem {
   id: number;
   title?: string;
-  name?: string; // Fallback for mixed types
+  name?: string; 
   poster_path: string | null;
   backdrop_path?: string | null;
   release_date?: string;
@@ -27,7 +27,6 @@ export default function MoviesPageClient({
   initialMovies,
   initialTotalPages 
 }: MoviesPageClientProps) {
-  // Explicitly type the state to avoid 'never[]' or 'any' issues
   const [movies, setMovies] = useState<MovieItem[]>(initialMovies);
   const [genres] = useState(initialGenres);
   const [selectedGenre, setSelectedGenre] = useState('');
@@ -39,26 +38,12 @@ export default function MoviesPageClient({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    // Skip the very first render if we already have initial data
-    // (Optional optimization, but keeps logic clean)
-    // Actually, we want this to run only when FILTERS change. 
-    // The initial render is handled by passing initialMovies to useState.
-    // However, if we don't guard this, it might refetch on mount.
-    // Let's add a mount ref or just let it run if dependencies change.
-  }, []);
-
-  useEffect(() => {
     const fetchData = async () => {
-      // Prevent fetching on initial mount if state matches initial props
-      // But simple way: just run it.
-      
       if (abortControllerRef.current) abortControllerRef.current.abort();
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
       setIsLoading(true);
-      // Don't clear movies immediately to avoid flicker if just sorting
-      // But if changing genre, maybe yes. Let's keep your logic:
       setMovies([]); 
       setCurrentPage(1);
       
@@ -87,22 +72,12 @@ export default function MoviesPageClient({
       }
     };
 
-    // Only fetch if we are NOT in the initial state? 
-    // Actually, just running it is safer for "Reset" logic.
-    // But we need to avoid double-fetch on mount if possible.
-    // Since selectedGenre is '' and sortOrder is 'popular' initially (matching server),
-    // we can skip the FIRST run if needed.
-    // For now, let's keep it simple. If it flickers on load, we can add a 'mounted' ref.
-    
-    // Check if we are diverging from initial state, OR if we just want to force client freshness
     fetchData();
-    
     return () => abortControllerRef.current?.abort();
   }, [selectedGenre, sortOrder]); 
 
   const loadMoreMovies = async () => {
     if (isLoading || !canLoadMore) return;
-    
     setIsLoading(true);
     const nextPage = currentPage + 1;
     
@@ -135,101 +110,121 @@ export default function MoviesPageClient({
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 tracking-tight">Movies</h1>
-        <p className="text-gray-400 text-base">
-          Discover blockbusters, indie films and cinema classics
+    // ✅ Updated Background: Darker #050505
+    <div className="min-h-screen bg-[#050505] pb-20 pt-24 px-6 md:px-12">
+      
+      {/* Header Section with Glow */}
+      <header className="relative mb-12 max-w-7xl mx-auto">
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
+        
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight text-white font-chillax relative z-10">
+          Movies
+        </h1>
+        <p className="text-gray-400 text-lg max-w-2xl relative z-10">
+          Explore a vast library of blockbusters, indie gems, and timeless cinema classics in stunning quality.
         </p>
       </header>
 
-      <div className="mb-8 flex flex-wrap gap-4">
-        <div className="space-y-1">
-          <label className="block text-sm text-gray-300">Filter by Genre</label>
-          <select
-            value={selectedGenre}
-            onChange={(e) => setSelectedGenre(e.target.value)}
-            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[180px] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">All Genres</option>
-            {genres.map((genre) => (
-              <option key={genre.id} value={genre.id}>
-                {genre.name}
-              </option>
-            ))}
-          </select>
+      {/* Modern Filter Bar */}
+      <div className="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row gap-5 items-start md:items-center justify-between bg-white/5 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
+        
+        <div className="flex flex-wrap gap-4 w-full md:w-auto">
+          {/* Genre Filter */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+              <Filter className="w-4 h-4" />
+            </div>
+            <select
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="appearance-none bg-[#0a0a0a] border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all hover:bg-white/5 cursor-pointer min-w-[200px]"
+            >
+              <option value="">All Genres</option>
+              {genres.map((genre) => (
+                <option key={genre.id} value={genre.id}>{genre.name}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Sort Filter */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+              <SortAsc className="w-4 h-4" />
+            </div>
+            <select
+              value={sortOrder}
+              onChange={(e) => {
+                setSortOrder(e.target.value);
+                setSelectedGenre(''); 
+              }}
+              disabled={!!selectedGenre} 
+              className="appearance-none bg-[#0a0a0a] border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all hover:bg-white/5 cursor-pointer min-w-[180px] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="popular">Popular</option>
+              <option value="now_playing">Now Playing</option>
+              <option value="latest">Upcoming</option>
+              <option value="top_rated">Top Rated</option>
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="block text-sm text-gray-300">Sort By</label>
-          <select
-            value={sortOrder}
-            onChange={(e) => {
-              setSortOrder(e.target.value);
-              setSelectedGenre(''); 
-            }}
-            disabled={!!selectedGenre} 
-            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[150px] focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-          >
-            <option value="popular">Popular</option>
-            <option value="now_playing">Now Playing</option>
-            <option value="latest">Upcoming</option>
-            <option value="top_rated">Top Rated</option>
-          </select>
-        </div>
+        {movies.length > 0 && !isLoading && (
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+            {movies.length} Results
+          </span>
+        )}
       </div>
 
-      {movies.length > 0 && !isLoading && (
-        <div className="mb-6">
-          <p className="text-gray-400 text-sm">{movies.length} movies found</p>
-        </div>
-      )}
+      <div className="max-w-7xl mx-auto">
+        <MediaGrid 
+          items={movies as any} 
+          mediaType="movie" 
+          loading={isLoading && currentPage === 1} 
+        />
 
-      {/* 
-         Pass explicit props to match MediaGrid interface. 
-         Note: We cast movies to 'any' to bypass strict type mismatch if MediaGrid types aren't imported.
-         In a strict setup, MediaGrid should export its props type.
-      */}
-      <MediaGrid 
-        items={movies as any} 
-        mediaType="movie" 
-        loading={isLoading && currentPage === 1} 
-      />
+        {movies.length > 0 && canLoadMore && (
+          <div className="mt-16 text-center">
+            <button
+              onClick={loadMoreMovies}
+              disabled={isLoading}
+              className="group relative bg-white text-black font-bold py-4 px-12 rounded-full transition-all duration-300 hover:bg-gray-200 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <span>Load More Movies</span>
+              )}
+            </button>
+          </div>
+        )}
 
-      {movies.length > 0 && canLoadMore && (
-        <div className="mt-12 text-center">
-          <button
-            onClick={loadMoreMovies}
-            disabled={isLoading}
-            className="group relative bg-white text-black font-semibold py-4 px-10 rounded-full transition-all duration-200 hover:bg-gray-100 hover:scale-110 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <div className="flex items-center gap-3">
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                <span>Loading more...</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span>Show More</span>
-              </div>
-            )}
-          </button>
-        </div>
-      )}
+        {!canLoadMore && movies.length > 0 && (
+          <div className="mt-16 text-center border-t border-white/5 pt-8">
+            <p className="text-gray-500 text-sm">You've reached the end of the list.</p>
+          </div>
+        )}
 
-      {!canLoadMore && movies.length > 0 && (
-        <div className="mt-12 text-center">
-          <p className="text-gray-500 text-sm">✨ You've seen all available movies</p>
-        </div>
-      )}
-
-      {!isLoading && movies.length === 0 && (
-        <div className="text-center py-20">
-          <div className="text-6xl mb-4">🎬</div>
-          <h3 className="text-xl font-semibold mb-2">No movies found</h3>
-          <p className="text-gray-400">Try adjusting your filters or check back later</p>
-        </div>
-      )}
+        {!isLoading && movies.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-32 text-center">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+              <span className="text-4xl">🎬</span>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">No movies found</h3>
+            <p className="text-gray-400 max-w-md">
+              We couldn't find any movies matching your filters. Try adjusting your selection or check back later.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
