@@ -99,11 +99,11 @@ export default function TVShowsPageClient({
   };
 
   return (
-    // ✅ BG: Rich dark charcoal (#09090b)
-    <div className="min-h-screen bg-[#09090b] pb-24 pt-32 px-6 md:px-12 selection:bg-purple-500/30">
+    // ✅ Updated: Reduced top padding (pt-24) to remove the "overlay" gap
+    <div className="min-h-screen bg-[#09090b] pb-24 pt-24 px-6 md:px-12 selection:bg-purple-500/30">
       
-      {/* Header: Centered & Minimal */}
       <header className="relative mb-16 max-w-[1800px] mx-auto flex flex-col items-center text-center">
+        {/* Glow Orb */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-900/20 rounded-full blur-[120px] pointer-events-none -z-10" />
         
         <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white font-chillax">
@@ -114,7 +114,7 @@ export default function TVShowsPageClient({
         </p>
       </header>
 
-      {/* Filter Bar: Clean & Modern */}
+      {/* Filter Bar */}
       <div className="max-w-[1800px] mx-auto mb-12 flex flex-col md:flex-row gap-6 items-center justify-between sticky top-24 z-30 transition-all">
         
         <div className="flex flex-wrap gap-4 justify-center w-full md:w-auto">
@@ -123,7 +123,6 @@ export default function TVShowsPageClient({
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 group-hover:text-white transition-colors">
               <Filter className="w-4 h-4" />
             </div>
-            {/* ✅ Dropdown: Dark (#0F0F0F) */}
             <select
               value={selectedGenre}
               onChange={(e) => setSelectedGenre(e.target.value)}
