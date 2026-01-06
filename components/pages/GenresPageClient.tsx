@@ -174,6 +174,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
     if (selectedGenre) fetchInitialContent(selectedGenre, newSort);
   };
 
+  // ✅ Enhanced thumbnail fetcher: fetches from BOTH movies & TV, picks randomly for diversity
   useEffect(() => {
     if (thumbsFetchedRef.current) return;
     thumbsFetchedRef.current = true;
@@ -183,8 +184,28 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
 
       const tasks = allGenres.map((genre) => async () => {
         try {
-          const res = await tmdbApi.getMoviesByGenre(genre.id, 1);
-          const pick = (res?.results || []).find((x: any) => x?.backdrop_path || x?.poster_path);
+          // Fetch from BOTH movies and TV shows for better variety
+          const [movieRes, tvRes] = await Promise.all([
+            tmdbApi.getMoviesByGenre(genre.id, 1).catch(() => null),
+            tmdbApi.getTVShowsByGenre(genre.id, 1).catch(() => null),
+          ]);
+
+          // Combine results
+          const combined = [
+            ...(movieRes?.results || []),
+            ...(tvRes?.results || []),
+          ];
+
+          // Filter items with good backdrops (prefer backdrop over poster for landscape look)
+          const withBackdrops = combined.filter((x: any) => x?.backdrop_path && x?.vote_average > 6);
+          const withPosters = combined.filter((x: any) => x?.poster_path && x?.vote_average > 6);
+          
+          // Pick a random high-quality backdrop (or fallback to poster)
+          const pool = withBackdrops.length > 0 ? withBackdrops : withPosters;
+          const pick = pool.length > 0 
+            ? pool[Math.floor(Math.random() * Math.min(pool.length, 5))] // Random from top 5
+            : null;
+
           const url = buildTmdbImage(pick?.backdrop_path || pick?.poster_path, 'w780');
           return { id: genre.id, url: url ?? null };
         } catch {
@@ -206,7 +227,6 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
   }, [allGenres]);
 
   return (
-    // ✅ Added: pt-32 -mt-24 to remove black gap (matches Movies/TV pages)
     <div className="min-h-screen bg-[#09090b] pb-24 pt-32 -mt-24 px-6 md:px-12 selection:bg-purple-500/30 relative z-0">
       <div className="max-w-[1800px] mx-auto">
         {/* Header */}
