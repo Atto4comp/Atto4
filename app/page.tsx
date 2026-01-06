@@ -125,7 +125,8 @@ export default async function HomePage() {
   } = await getHomePageData();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black to-gray-900">
+    // ✅ Updated Background: Solid #121212, no gradient
+    <main className="min-h-screen bg-[#121212]">
       {(isDemo || error) && (
         <div className="bg-yellow-500 text-black text-center py-3 text-sm font-medium">
           {error
@@ -147,7 +148,8 @@ export default async function HomePage() {
       {/* Banner Ad */}
       <BannerAd />
 
-      <div className="relative z-10 pt-16 pb-20 bg-gradient-to-b from-black via-gray-900 to-black space-y-16">
+      {/* ✅ Updated Section Background: Solid #121212, removed gradients */}
+      <div className="relative z-10 pt-16 pb-20 bg-[#121212] space-y-16">
         <MediaRow title="Trending Movies" items={trending} genres={genres} category="trending" mediaType="movie" priority />
         <MediaRow title="Popular Movies" items={popular} genres={genres} category="popular" mediaType="movie" />
         <MediaRow title="Top-Rated Movies" items={topRated} genres={genres} category="top-rated" mediaType="movie" />
