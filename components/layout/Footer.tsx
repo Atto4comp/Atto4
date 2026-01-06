@@ -1,4 +1,3 @@
-// components/layout/Footer.tsx
 'use client';
 
 import Image from 'next/image';
@@ -9,16 +8,15 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-black border-t border-white/5 pt-16 pb-8 relative overflow-hidden">
+    // ✅ Updated: #0B0B0C background
+    <footer className="w-full bg-[#0B0B0C] border-t border-white/5 pt-16 pb-8 relative overflow-hidden">
       
-      {/* Ambient Glow (Subtle) */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-blue-900/5 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-[1800px] mx-auto px-6 sm:px-8 relative z-10">
         
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-10">
           
-          {/* Branding Section */}
           <div className="flex flex-col items-center md:items-start gap-4">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative w-10 h-10 transition-transform duration-300 group-hover:scale-110">
@@ -40,9 +38,7 @@ export default function Footer() {
               Discover, watch, and enjoy in HD.
             </p>
             
-            {/* ✅ Social Media Links */}
             <div className="flex items-center gap-4 mt-2">
-              {/* GitHub */}
               <a 
                 href="https://github.com/Atto4comp/Atto4"
                 target="_blank" 
@@ -53,7 +49,6 @@ export default function Footer() {
                 <Github size={18} />
               </a>
 
-              {/* Instagram */}
               <a 
                 href="https://instagram.com/_.atto/"
                 target="_blank" 
@@ -64,7 +59,6 @@ export default function Footer() {
                 <Instagram size={18} />
               </a>
               
-              {/* Discord (Using Public SVG) */}
               <a 
                 href="https://discord.gg/YOUR_INVITE_CODE" 
                 target="_blank" 
@@ -74,7 +68,7 @@ export default function Footer() {
               >
                 <div className="relative w-[18px] h-[18px] opacity-70 hover:opacity-100 transition-opacity">
                   <Image 
-                    src="/discord.svg" // ✅ Rename your file to this in public folder
+                    src="/discord.svg"
                     alt="Discord"
                     fill
                     className="object-contain"
@@ -84,7 +78,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Disclaimer Section */}
           <div className="max-w-lg text-center md:text-right space-y-2">
             <h3 className="text-white font-semibold text-sm uppercase tracking-wider opacity-80">
               Legal Disclaimer
@@ -96,10 +89,8 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Separator */}
         <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-8" />
 
-        {/* Bottom Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
           <p>
             &copy; {currentYear} Atto4. All rights reserved.
