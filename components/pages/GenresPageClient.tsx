@@ -8,8 +8,8 @@ import { ArrowLeft, ChevronDown, Search, Sparkles } from 'lucide-react';
 
 interface GenresPageClientProps {
   initialGenres: any[];
-  movieGenres: any[]; // kept for compatibility, not required in this client
-  tvGenres: any[]; // kept for compatibility, not required in this client
+  movieGenres: any[];
+  tvGenres: any[];
 }
 
 type ThumbMap = Record<number, string | null>;
@@ -41,7 +41,6 @@ function buildTmdbImage(path: string | null, size: 'w780' | 'w500' | 'original' 
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
-// simple concurrency limiter (keeps UI responsive + avoids blasting TMDB)
 async function runLimited<T>(tasks: (() => Promise<T>)[], limit = 6) {
   const results: T[] = [];
   let i = 0;
@@ -73,6 +72,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
   const [thumbsLoading, setThumbsLoading] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
+  const thumbsFetchedRef = useRef(false); // ✅ Track if we've already loaded thumbnails
 
   const filteredGenres = useMemo(() => {
     const q = genreQuery.trim().toLowerCase();
@@ -107,7 +107,6 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
   };
 
   const fetchInitialContent = async (genre: any, sort: 'popular' | 'latest') => {
-    // cancel in-flight request to avoid flicker / state races
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -175,52 +174,40 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
     if (selectedGenre) fetchInitialContent(selectedGenre, newSort);
   };
 
-  // Genre thumbnails (1 representative backdrop per genre)
+  // ✅ Load thumbnails ONCE on mount
   useEffect(() => {
-    let cancelled = false;
+    if (thumbsFetchedRef.current) return;
+    thumbsFetchedRef.current = true;
 
     const loadThumbs = async () => {
-      if (!showGenreGrid) return;
       setThumbsLoading(true);
 
-      const missing = allGenres
-        .map((g) => g?.id)
-        .filter((id: number) => typeof id === 'number' && thumbs[id] === undefined);
-
-      const tasks = missing.map((id) => async () => {
+      const tasks = allGenres.map((genre) => async () => {
         try {
-          const res = await tmdbApi.getMoviesByGenre(id, 1);
+          const res = await tmdbApi.getMoviesByGenre(genre.id, 1);
           const pick = (res?.results || []).find((x: any) => x?.backdrop_path || x?.poster_path);
           const url = buildTmdbImage(pick?.backdrop_path || pick?.poster_path, 'w780');
-          return { id, url: url ?? null };
+          return { id: genre.id, url: url ?? null };
         } catch {
-          return { id, url: null };
+          return { id: genre.id, url: null };
         }
       });
 
       try {
         const results = await runLimited(tasks, 6);
-        if (cancelled) return;
-
-        setThumbs((prev) => {
-          const next = { ...prev };
-          results.forEach((r) => (next[r.id] = r.url));
-          return next;
-        });
+        const thumbMap: ThumbMap = {};
+        results.forEach((r) => (thumbMap[r.id] = r.url));
+        setThumbs(thumbMap);
       } finally {
-        if (!cancelled) setThumbsLoading(false);
+        setThumbsLoading(false);
       }
     };
 
     loadThumbs();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showGenreGrid, allGenres]);
+  }, [allGenres]);
 
   return (
-    <div className="min-h-screen bg-[#09090b] pb-24 pt-28 px-6 md:px-12 selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#09090b] pb-24 pt-28 -mt-24 px-6 md:px-12 selection:bg-blue-500/30">
       <div className="max-w-[1800px] mx-auto">
         {/* Header */}
         <header className="relative mb-10 flex flex-col items-center text-center">
@@ -256,7 +243,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
         </header>
 
         {/* Sticky bar */}
-        <div className="mb-10 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-24 z-30">
+        <div className="mb-10 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-28 z-30">
           {showGenreGrid ? (
             <div className="w-full md:w-[420px] relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -368,7 +355,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
             {!canLoadMore && mixedContent.length > 0 && (
               <div className="mt-20 text-center border-t border-white/5 pt-10">
                 <p className="text-gray-500 text-sm font-light tracking-wide">
-                  You’ve reached the end of {selectedGenre.name}.
+                  You've reached the end of {selectedGenre.name}.
                 </p>
               </div>
             )}
