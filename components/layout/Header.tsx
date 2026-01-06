@@ -142,16 +142,12 @@ export default function Header() {
                 title="Updates & Guide"
               >
                 <Bell size={18} />
-                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#0a0a0a]" />
+                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#0B0B0C]" />
               </button>
 
-              {/* 
-                 ✅ UPDATED: WIDER MOBILE LAYOUT
-                 - Changed from `left-4 right-4` to `left-2 right-2` (Wider on mobile)
-                 - Adjusted top positioning for better fit
-              */}
+              {/* ✅ Updated dropdown background: #0B0B0C */}
               {isInfoPanelOpen && (
-                <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[65px] sm:top-full sm:mt-4 w-auto sm:w-[380px] bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
+                <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[65px] sm:top-full sm:mt-4 w-auto sm:w-[380px] bg-[#0B0B0C]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
                   
                   <div className="flex border-b border-white/5 p-1">
                     <button onClick={() => setInfoTab('updates')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'updates' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <Bell size={14} /> Updates </button>
@@ -197,7 +193,6 @@ export default function Header() {
                                     <span className="text-white font-medium">Home Button:</span> Some video servers may prevent the "Back" button from working correctly. We added a dedicated "Home" button inside the player so you can always exit safely to the main menu.
                                  </p>
                               </div>
-                              {/* ✅ NEW: Vidly Subtitles Tip */}
                               <div className="flex gap-2 items-start">
                                  <Captions size={12} className="mt-0.5 text-yellow-400 shrink-0" />
                                  <p className="leading-relaxed">
@@ -225,7 +220,8 @@ export default function Header() {
       </header>
 
       <div className={`search-curtain ${isSearchOpen ? 'open' : ''}`} onClick={() => setIsSearchOpen(false)} />
-      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>{isSearchOpen && (<div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-2 shadow-2xl"><SearchBar onClose={() => setIsSearchOpen(false)} /></div>)}</div>
+      {/* ✅ Updated SearchBar wrapper background */}
+      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>{isSearchOpen && (<div className="bg-[#0B0B0C] border border-white/10 rounded-3xl p-2 shadow-2xl"><SearchBar onClose={() => setIsSearchOpen(false)} /></div>)}</div>
       <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="flex justify-between items-center mb-6 px-2"><span className="text-white font-chillax text-lg">Menu</span><button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full"><X size={16} /></button></div>
         <div className="mobile-grid">
