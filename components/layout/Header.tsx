@@ -44,6 +44,7 @@ export default function Header() {
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false); 
   const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates'); 
   
+  // Use scroll state for "compacting" the capsule if desired, but NOT for adding a background bar
   const [scrolled, setScrolled] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   
@@ -78,28 +79,36 @@ export default function Header() {
 
   return (
     <>
-      <header className={`modern-header-wrapper ${scrolled ? 'scrolled' : ''}`}>
+      {/* 
+         ✅ MAIN UPDATE: 
+         - Changed main wrapper to `fixed` + `bg-transparent`.
+         - Removed "modern-header-wrapper" class to ensure no external CSS adds a black background.
+         - The header is now just a transparent flex container holding the glass capsule.
+      */}
+      <header className={`fixed top-0 left-0 right-0 z-50 flex justify-center py-4 transition-all duration-300 pointer-events-none ${scrolled ? 'py-2' : 'py-6'}`}>
         
-        <div className="glass-capsule relative">
+        {/* The Capsule: Floating Glass UI */}
+        <div className="glass-capsule relative pointer-events-auto bg-[#09090b]/80 backdrop-blur-xl border border-white/10 rounded-full px-2 py-2 flex items-center shadow-2xl">
           
-          <Link href="/" className="flex items-center group">
-            <div className="logo-circle">
+          <Link href="/" className="flex items-center group px-4">
+            <div className="relative w-8 h-8 mr-3 transition-transform duration-300 group-hover:scale-110">
               <Image 
                 src="/logo.png" 
                 alt="Atto4" 
-                width={24} 
-                height={24} 
+                width={32} 
+                height={32} 
                 className="object-contain"
                 priority
               />
             </div>
-            <div className="logo-text-wrapper">
-              <span className="brand-title font-chillax">Atto4</span>
-              <span className="brand-subtitle">STREAM</span>
+            <div className="flex flex-col">
+              <span className="font-chillax font-bold text-lg text-white tracking-tight">Atto4</span>
+              <span className="text-[10px] text-gray-400 font-medium tracking-widest -mt-1">STREAM</span>
             </div>
           </Link>
 
-          <nav className="nav-island mx-4">
+          {/* Nav Items */}
+          <nav className="hidden md:flex items-center bg-white/5 rounded-full px-2 py-1 mx-2 border border-white/5">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -107,47 +116,50 @@ export default function Header() {
                 <Link 
                   key={item.href} 
                   href={item.href}
-                  className={`nav-pill ${isActive ? 'active' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-white text-black shadow-lg shadow-white/10 scale-105' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/10'
+                  }`}
                 >
-                  <Icon className={`nav-icon-sm ${isActive ? 'text-black' : 'text-white'}`} />
+                  <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
                   <span>{item.label}</span>
                 </Link>
               );
             })}
           </nav>
 
-          <div className="action-group">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1 pl-2">
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="action-orb"
+              className="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all"
               aria-label="Search"
             >
-              {isSearchOpen ? <X size={18} /> : <Search size={18} />}
+              {isSearchOpen ? <X size={20} /> : <Search size={20} />}
             </button>
 
             <button
               onClick={toggleActivity}
-              className="action-orb hover:bg-blue-500/20 hover:text-blue-400 transition-colors"
+              className="p-2.5 rounded-full text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all"
               aria-label="Activity"
               title="Continue Watching"
             >
-              <History size={18} />
+              <History size={20} />
             </button>
 
             <div className="relative" ref={panelRef}>
               <button
                 onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)}
-                className={`action-orb transition-colors ${isInfoPanelOpen ? 'bg-white/20 text-white' : 'hover:bg-purple-500/20 hover:text-purple-400'}`}
+                className={`p-2.5 rounded-full transition-all relative ${isInfoPanelOpen ? 'text-white bg-white/10' : 'text-gray-400 hover:text-purple-400 hover:bg-purple-500/10'}`}
                 aria-label="Updates & Guide"
-                title="Updates & Guide"
               >
-                <Bell size={18} />
-                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#050505]" />
+                <Bell size={20} />
+                <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-[#09090b]" />
               </button>
 
-              {/* ✅ Updated: #050505 Background */}
               {isInfoPanelOpen && (
-                <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[65px] sm:top-full sm:mt-4 w-auto sm:w-[380px] bg-[#050505]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
+                <div className="absolute top-full right-0 mt-4 w-[380px] bg-[#09090b]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                   
                   <div className="flex border-b border-white/5 p-1">
                     <button onClick={() => setInfoTab('updates')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'updates' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <Bell size={14} /> Updates </button>
@@ -208,23 +220,21 @@ export default function Header() {
               )}
             </div>
 
-            <button onClick={() => router.push('/donate')} className="action-orb primary hidden sm:flex bg-yellow-400/10 hover:bg-yellow-400/20 border-yellow-400/20 transition-colors p-2" aria-label="Donate">
+            <button onClick={() => router.push('/donate')} className="hidden sm:flex ml-2 p-2 rounded-full bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/20 text-yellow-400 transition-colors" aria-label="Donate">
               <Image src="/donation.svg" alt="Donate" width={20} height={20} className="w-5 h-5 object-contain" />
             </button>
 
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="action-orb sm:hidden" aria-label="Menu">
-              {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="sm:hidden p-2.5 text-white" aria-label="Menu">
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
       </header>
 
       <div className={`search-curtain ${isSearchOpen ? 'open' : ''}`} onClick={() => setIsSearchOpen(false)} />
-      {/* ✅ Updated: #050505 Background */}
-      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>{isSearchOpen && (<div className="bg-[#050505] border border-white/10 rounded-3xl p-2 shadow-2xl"><SearchBar onClose={() => setIsSearchOpen(false)} /></div>)}</div>
+      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>{isSearchOpen && (<div className="bg-[#09090b] border border-white/10 rounded-3xl p-2 shadow-2xl"><SearchBar onClose={() => setIsSearchOpen(false)} /></div>)}</div>
       
-      {/* ✅ Updated: #050505 Background for Mobile Menu */}
-      <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`} style={{ backgroundColor: '#050505' }}>
+      <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`} style={{ backgroundColor: '#09090b' }}>
         <div className="flex justify-between items-center mb-6 px-2"><span className="text-white font-chillax text-lg">Menu</span><button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full"><X size={16} /></button></div>
         <div className="mobile-grid">
           {navigationItems.map((item) => { const Icon = item.icon; const isActive = pathname === item.href; return ( <Link key={item.href} href={item.href} className={`mobile-item ${isActive ? 'active' : ''}`}><Icon className="mobile-icon" /><span className="mobile-label">{item.label}</span></Link> ); })}
