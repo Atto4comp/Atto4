@@ -99,14 +99,15 @@ export default function TVShowsPageClient({
   };
 
   return (
-    // ✅ Updated: Reduced top padding (pt-24) to remove the "overlay" gap
-    <div className="min-h-screen bg-[#09090b] pb-24 pt-24 px-6 md:px-12 selection:bg-purple-500/30">
+    // ✅ FIXED: Added negative margin (-mt-24) to pull background up over the layout gap
+    // ✅ ADJUSTED: Increased padding (pt-32)
+    <div className="min-h-screen bg-[#09090b] pb-24 pt-32 -mt-24 px-6 md:px-12 selection:bg-purple-500/30 relative z-0">
       
-      <header className="relative mb-16 max-w-[1800px] mx-auto flex flex-col items-center text-center">
+      <header className="relative mb-12 max-w-[1800px] mx-auto flex flex-col items-center text-center">
         {/* Glow Orb */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-900/20 rounded-full blur-[120px] pointer-events-none -z-10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none -z-10" />
         
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white font-chillax">
+        <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight text-white font-chillax">
           TV Shows
         </h1>
         <p className="text-gray-400 text-lg md:text-xl font-light max-w-2xl leading-relaxed">
@@ -115,7 +116,7 @@ export default function TVShowsPageClient({
       </header>
 
       {/* Filter Bar */}
-      <div className="max-w-[1800px] mx-auto mb-12 flex flex-col md:flex-row gap-6 items-center justify-between sticky top-24 z-30 transition-all">
+      <div className="max-w-[1800px] mx-auto mb-10 flex flex-col md:flex-row gap-6 items-center justify-between sticky top-28 z-30 transition-all">
         
         <div className="flex flex-wrap gap-4 justify-center w-full md:w-auto">
           {/* Genre Filter */}
