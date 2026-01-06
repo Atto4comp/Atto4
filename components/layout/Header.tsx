@@ -78,29 +78,28 @@ export default function Header() {
 
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-50 flex justify-center py-4 transition-all duration-300 pointer-events-none ${scrolled ? 'py-2' : 'py-6'}`}>
+      {/* ✅ ULTRA MINIMAL HEADER: Transparent with subtle blur only on scroll */}
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 pointer-events-none ${scrolled ? 'bg-black/20 backdrop-blur-md' : ''}`}>
         
-        {/* ✅ Minimal Capsule: Removed extra borders and shadow for a cleaner look */}
-        <div className="glass-capsule relative pointer-events-auto bg-[#09090b]/90 backdrop-blur-xl border border-white/5 rounded-full px-2 py-2 flex items-center shadow-2xl">
+        <div className="max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between pointer-events-auto">
           
-          <Link href="/" className="flex items-center group px-4">
-            <div className="relative w-8 h-8 mr-3 transition-transform duration-300 group-hover:scale-110">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="relative w-7 h-7 transition-transform duration-300 group-hover:scale-110">
               <Image 
                 src="/logo.png" 
                 alt="Atto4" 
-                width={32} 
-                height={32} 
+                width={28} 
+                height={28} 
                 className="object-contain"
                 priority
               />
             </div>
-            <div className="flex flex-col">
-              <span className="font-chillax font-bold text-lg text-white tracking-tight">Atto4</span>
-              <span className="text-[10px] text-gray-400 font-medium tracking-widest -mt-1">STREAM</span>
-            </div>
+            <span className="font-chillax font-bold text-lg text-white tracking-tight">Atto4</span>
           </Link>
 
-          <nav className="hidden md:flex items-center bg-white/[0.03] rounded-full px-2 py-1 mx-2 border border-white/[0.02]">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-1">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -110,8 +109,8 @@ export default function Header() {
                   href={item.href}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                     isActive 
-                      ? 'bg-white text-black shadow-lg shadow-white/5 scale-105' 
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-white text-black shadow-md' 
+                      : 'text-gray-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
@@ -121,10 +120,11 @@ export default function Header() {
             })}
           </nav>
 
-          <div className="flex items-center gap-1 pl-2">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+              className="p-2 rounded-full text-gray-300 hover:text-white hover:bg-white/5 transition-all"
               aria-label="Search"
             >
               {isSearchOpen ? <X size={20} /> : <Search size={20} />}
@@ -132,7 +132,7 @@ export default function Header() {
 
             <button
               onClick={toggleActivity}
-              className="p-2.5 rounded-full text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all"
+              className="p-2 rounded-full text-gray-300 hover:text-blue-400 hover:bg-blue-500/10 transition-all"
               aria-label="Activity"
               title="Continue Watching"
             >
@@ -142,19 +142,19 @@ export default function Header() {
             <div className="relative" ref={panelRef}>
               <button
                 onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)}
-                className={`p-2.5 rounded-full transition-all relative ${isInfoPanelOpen ? 'text-white bg-white/10' : 'text-gray-400 hover:text-purple-400 hover:bg-purple-500/10'}`}
+                className={`p-2 rounded-full transition-all relative ${isInfoPanelOpen ? 'text-white bg-white/10' : 'text-gray-300 hover:text-purple-400 hover:bg-purple-500/10'}`}
                 aria-label="Updates & Guide"
               >
                 <Bell size={20} />
-                <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-[#09090b]" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
               </button>
 
               {isInfoPanelOpen && (
-                <div className="absolute top-full right-0 mt-4 w-[380px] bg-[#09090b]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                <div className="absolute top-full right-0 mt-3 w-[380px] bg-[#0a0a0a]/98 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                   
                   <div className="flex border-b border-white/5 p-1">
-                    <button onClick={() => setInfoTab('updates')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'updates' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <Bell size={14} /> Updates </button>
-                    <button onClick={() => setInfoTab('guide')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'guide' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <BookOpen size={14} /> Guide </button>
+                    <button onClick={() => setInfoTab('updates')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'updates' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <Bell size={14} /> Updates </button>
+                    <button onClick={() => setInfoTab('guide')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'guide' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <BookOpen size={14} /> Guide </button>
                   </div>
 
                   <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
@@ -205,11 +205,11 @@ export default function Header() {
               )}
             </div>
 
-            <button onClick={() => router.push('/donate')} className="hidden sm:flex ml-2 p-2 rounded-full bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/20 text-yellow-400 transition-colors" aria-label="Donate">
-              <Image src="/donation.svg" alt="Donate" width={20} height={20} className="w-5 h-5 object-contain" />
+            <button onClick={() => router.push('/donate')} className="hidden sm:flex p-2 rounded-full bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/20 text-yellow-400 transition-all" aria-label="Donate">
+              <Image src="/donation.svg" alt="Donate" width={18} height={18} className="w-[18px] h-[18px] object-contain" />
             </button>
 
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="sm:hidden p-2.5 text-white" aria-label="Menu">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="sm:hidden p-2 text-white" aria-label="Menu">
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
@@ -217,7 +217,7 @@ export default function Header() {
       </header>
 
       <div className={`search-curtain ${isSearchOpen ? 'open' : ''}`} onClick={() => setIsSearchOpen(false)} />
-      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>{isSearchOpen && (<div className="bg-[#09090b] border border-white/10 rounded-3xl p-2 shadow-2xl"><SearchBar onClose={() => setIsSearchOpen(false)} /></div>)}</div>
+      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>{isSearchOpen && (<div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-2 shadow-2xl"><SearchBar onClose={() => setIsSearchOpen(false)} /></div>)}</div>
       
       <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`} style={{ backgroundColor: '#09090b' }}>
         <div className="flex justify-between items-center mb-6 px-2"><span className="text-white font-chillax text-lg">Menu</span><button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full"><X size={16} /></button></div>
