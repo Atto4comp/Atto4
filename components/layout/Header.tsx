@@ -1,13 +1,21 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, Menu, Home, Film, Tv, Grid3X3, X, History, Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw, Captions } from 'lucide-react'; 
+import { 
+  Search, Menu, Home, Film, Tv, Grid3X3, X, History, 
+  Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw, 
+  ChevronRight, ExternalLink 
+} from 'lucide-react'; 
 import SearchBar from '@/components/common/SearchBar';
 
-const navigationItems = [
+// --- Types & Constants ---
+
+type NavItem = { href: string; label: string; icon: any };
+
+const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/movies', label: 'Movies', icon: Film },
   { href: '/tvshows', label: 'TV Shows', icon: Tv },
@@ -29,33 +37,79 @@ const NOTIFICATIONS = [
     date: 'Dec 15', 
     type: 'version' 
   },
-  { 
-    id: 3, 
-    title: 'New Feature: Home Button', 
-    desc: 'Added a dedicated Home button inside the player for easier navigation from embeds.', 
-    date: 'Dec 14', 
-    type: 'feature' 
-  },
 ];
+
+// --- Sub-Components (Clean Architecture) ---
+
+const NavPill = memo(({ item, isActive }: { item: NavItem; isActive: boolean }) => (
+  <Link 
+    href={item.href}
+    className={`
+      group relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-out
+      ${isActive 
+        ? 'text-black bg-white shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-105' 
+        : 'text-gray-400 hover:text-white hover:bg-white/10'
+      }
+    `}
+  >
+    <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
+    <span className="relative z-10">{item.label}</span>
+  </Link>
+));
+NavPill.displayName = 'NavPill';
+
+const IconButton = ({ 
+  icon: Icon, onClick, active, badge 
+}: { 
+  icon: any; onClick: () => void; active?: boolean; badge?: boolean 
+}) => (
+  <button
+    onClick={onClick}
+    className={`
+      relative p-2.5 rounded-full transition-all duration-300 group
+      ${active 
+        ? 'bg-white text-black shadow-lg scale-110' 
+        : 'text-gray-400 hover:text-white hover:bg-white/10'
+      }
+    `}
+  >
+    <Icon size={20} strokeWidth={2} />
+    {badge && (
+      <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-rose-500 rounded-full ring-2 ring-black/50" />
+    )}
+  </button>
+);
+
+// --- Main Component ---
 
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false); 
   const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates'); 
-  
   const [scrolled, setScrolled] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
   
+  const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
 
+  // Optimized Scroll Handler
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Click Outside Handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
@@ -66,6 +120,7 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isInfoPanelOpen]);
 
+  // Route Change Cleanup
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsSearchOpen(false);
@@ -78,202 +133,235 @@ export default function Header() {
 
   return (
     <>
-      {/* ✅ MINIMAL FLOATING CAPSULE: Light glass, no heavy black */}
-      <header className={`fixed top-0 left-0 right-0 z-50 flex justify-center py-4 transition-all duration-300 pointer-events-none ${scrolled ? 'py-2' : 'py-6'}`}>
-        
-        {/* ✅ Ultra-light Glass Capsule */}
-        <div className="glass-capsule relative pointer-events-auto bg-black/10 backdrop-blur-xl border border-white/10 rounded-full px-2 py-2 flex items-center shadow-2xl shadow-black/20">
-          
-          <Link href="/" className="flex items-center group px-4">
-            <div className="relative w-8 h-8 mr-3 transition-transform duration-300 group-hover:scale-110">
+      {/* --- Floating Capsule Header --- */}
+      <header 
+        className={`
+          fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+          ${scrolled ? 'py-3' : 'py-6'}
+        `}
+      >
+        <div 
+          className={`
+            relative flex items-center px-2 py-2 rounded-full border border-white/10 shadow-2xl backdrop-blur-xl transition-all duration-500
+            ${scrolled 
+              ? 'bg-black/40 shadow-black/20 supports-[backdrop-filter]:bg-black/20' 
+              : 'bg-white/5 shadow-black/10 supports-[backdrop-filter]:bg-white/5'
+            }
+          `}
+        >
+          {/* Logo Section */}
+          <Link href="/" className="flex items-center group px-4 pl-5">
+            <div className="relative w-8 h-8 mr-3 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
               <Image 
                 src="/logo.png" 
                 alt="Atto4" 
                 width={32} 
                 height={32} 
-                className="object-contain"
+                className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                 priority
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-chillax font-bold text-lg text-white tracking-tight">Atto4</span>
-              <span className="text-[10px] text-gray-300 font-medium tracking-widest -mt-1">STREAM</span>
+              <span className="font-chillax font-bold text-lg text-white tracking-tight leading-none">Atto4</span>
+              <span className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase leading-none mt-1 group-hover:text-blue-400 transition-colors">Stream</span>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center bg-white/[0.02] rounded-full px-2 py-1 mx-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link 
-                  key={item.href} 
-                  href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-white text-black shadow-lg shadow-white/5 scale-105' 
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center bg-white/5 rounded-full px-1.5 py-1.5 mx-2 border border-white/5">
+            {NAV_ITEMS.map((item) => (
+              <NavPill key={item.href} item={item} isActive={pathname === item.href} />
+            ))}
           </nav>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1 pl-2">
-            <button
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition-all"
-              aria-label="Search"
-            >
-              {isSearchOpen ? <X size={20} /> : <Search size={20} />}
-            </button>
+          {/* Controls */}
+          <div className="flex items-center gap-1 pl-2 pr-1">
+            <IconButton 
+              icon={isSearchOpen ? X : Search} 
+              onClick={() => setIsSearchOpen(!isSearchOpen)} 
+              active={isSearchOpen}
+            />
+            
+            <IconButton 
+              icon={History} 
+              onClick={toggleActivity} 
+            />
 
-            <button
-              onClick={toggleActivity}
-              className="p-2.5 rounded-full text-gray-300 hover:text-blue-400 hover:bg-blue-500/10 transition-all"
-              aria-label="Activity"
-              title="Continue Watching"
-            >
-              <History size={20} />
-            </button>
-
+            {/* Notification Panel Wrapper */}
             <div className="relative" ref={panelRef}>
-              <button
-                onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)}
-                className={`p-2.5 rounded-full transition-all relative ${isInfoPanelOpen ? 'text-white bg-white/10' : 'text-gray-300 hover:text-purple-400 hover:bg-purple-500/10'}`}
-                aria-label="Updates & Guide"
+              <IconButton 
+                icon={Bell} 
+                onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)} 
+                active={isInfoPanelOpen}
+                badge={true}
+              />
+
+              {/* Dropdown Panel */}
+              <div 
+                className={`
+                  absolute top-full right-0 mt-6 w-[360px] 
+                  bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden origin-top-right transition-all duration-300
+                  ${isInfoPanelOpen 
+                    ? 'opacity-100 scale-100 translate-y-0 visible' 
+                    : 'opacity-0 scale-95 -translate-y-4 invisible'
+                  }
+                `}
               >
-                <Bell size={20} />
-                <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-black/50" />
-              </button>
-
-              {isInfoPanelOpen && (
-                <div className="absolute top-full right-0 mt-4 w-[380px] bg-black/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                  
-                  <div className="flex border-b border-white/5 p-1">
-                    <button onClick={() => setInfoTab('updates')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'updates' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <Bell size={14} /> Updates </button>
-                    <button onClick={() => setInfoTab('guide')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'guide' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <BookOpen size={14} /> Guide </button>
-                  </div>
-
-                  <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
-                    {infoTab === 'updates' && (
-                      <div className="p-2 space-y-1">
-                        {NOTIFICATIONS.map((note) => (
-                          <div key={note.id} className="p-3 hover:bg-white/5 rounded-xl transition-colors group cursor-default">
-                            <div className="flex justify-between items-start mb-1">
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${note.type === 'info' ? 'bg-blue-500/20 text-blue-400' : note.type === 'version' ? 'bg-green-500/20 text-green-400' : 'bg-purple-500/20 text-purple-400'}`}>{note.type}</span>
-                              <span className="text-[10px] text-gray-500">{note.date}</span>
-                            </div>
-                            <h4 className="text-sm font-medium text-white mb-0.5 group-hover:text-blue-300 transition-colors">{note.title}</h4>
-                            <p className="text-xs text-gray-400 leading-relaxed">{note.desc}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {infoTab === 'guide' && (
-                      <div className="p-4 space-y-5">
-                        <div className="space-y-3">
-                           <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2"><PlayCircle size={12} /> Basic Usage</h4>
-                           <div className="text-xs text-gray-300 space-y-3 pl-1">
-                              <p className="leading-relaxed"><span className="text-white font-medium">Getting Started:</span> Use the <Search className="inline w-3 h-3" /> Search bar to find your favorite movies or TV shows.</p>
-                              <p className="leading-relaxed"><span className="text-white font-medium">History:</span> Click the <History className="inline w-3 h-3" /> button to resume where you left off.</p>
-                           </div>
-                        </div>
-
-                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl space-y-3">
-                           <h4 className="text-[11px] font-bold text-red-300 uppercase tracking-wider flex items-center gap-2"><AlertCircle size={12} /> Player Troubleshooting</h4>
-                           <div className="text-xs text-gray-300 space-y-3">
-                              <div className="flex gap-2 items-start">
-                                 <RefreshCw size={12} className="mt-0.5 text-red-400 shrink-0" />
-                                 <p className="leading-relaxed"><span className="text-white font-medium">Auto Fix:</span> If the video doesn't load or buffers, click "Auto Fix" or manually switch the server.</p>
-                              </div>
-                              <div className="flex gap-2 items-start">
-                                 <Home size={12} className="mt-0.5 text-blue-400 shrink-0" />
-                                 <p className="leading-relaxed">
-                                    <span className="text-white font-medium">Home Button:</span> Some video servers may prevent the "Back" button from working correctly. We added a dedicated "Home" button inside the player so you can always exit safely to the main menu.
-                                 </p>
-                              </div>
-                           </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {/* Panel Header */}
+                <div className="flex border-b border-white/5 p-1.5 bg-white/[0.02]">
+                  {(['updates', 'guide'] as const).map((tab) => (
+                    <button 
+                      key={tab}
+                      onClick={() => setInfoTab(tab)} 
+                      className={`
+                        flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wide rounded-xl transition-all
+                        ${infoTab === tab 
+                          ? 'bg-white/10 text-white shadow-inner' 
+                          : 'text-gray-500 hover:text-white hover:bg-white/5'
+                        }
+                      `}
+                    > 
+                      {tab === 'updates' ? <Bell size={14} /> : <BookOpen size={14} />} 
+                      {tab} 
+                    </button>
+                  ))}
                 </div>
-              )}
+
+                {/* Panel Content */}
+                <div className="max-h-[60vh] overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                  {infoTab === 'updates' ? (
+                    NOTIFICATIONS.map((note) => (
+                      <div key={note.id} className="p-4 hover:bg-white/5 rounded-2xl transition-colors group border border-transparent hover:border-white/5">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className={`
+                            text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider
+                            ${note.type === 'info' ? 'bg-blue-500/10 text-blue-400' : 'bg-green-500/10 text-green-400'}
+                          `}>
+                            {note.type}
+                          </span>
+                          <span className="text-[10px] text-gray-500 font-mono">{note.date}</span>
+                        </div>
+                        <h4 className="text-sm font-medium text-white mb-1 group-hover:text-blue-300 transition-colors">{note.title}</h4>
+                        <p className="text-xs text-gray-400 leading-relaxed">{note.desc}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 space-y-6">
+                      <div className="space-y-3">
+                        <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                          <PlayCircle size={12} /> Playback
+                        </h4>
+                        <div className="text-xs text-gray-400 space-y-2 pl-4 border-l border-white/10">
+                          <p>Use <span className="text-white">Auto Fix</span> if video buffers.</p>
+                          <p>The <span className="text-white">Home Button</span> inside player ensures safe exit.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
-            {/* ✅ Light Donation Button */}
+            {/* Donation Button (Desktop) */}
             <button 
               onClick={() => router.push('/donate')} 
-              className="hidden sm:flex ml-2 p-2 rounded-full bg-yellow-400/5 hover:bg-yellow-400/10 border border-yellow-400/10 text-yellow-400 transition-all" 
+              className="hidden sm:flex ml-2 p-2 rounded-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 transition-all border border-yellow-500/10 hover:border-yellow-500/30" 
               aria-label="Donate"
             >
               <Image src="/donation.svg" alt="Donate" width={20} height={20} className="w-5 h-5 object-contain" />
             </button>
 
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="sm:hidden p-2.5 text-white" aria-label="Menu">
+            {/* Mobile Menu Toggle */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              className="sm:hidden ml-1 p-2.5 text-white hover:bg-white/10 rounded-full transition-colors"
+              aria-label="Menu"
+            >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
       </header>
 
-      <div className={`search-curtain ${isSearchOpen ? 'open' : ''}`} onClick={() => setIsSearchOpen(false)} />
-      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>
-        {isSearchOpen && (
-          <div className="bg-black/95 border border-white/10 rounded-3xl p-2 shadow-2xl backdrop-blur-2xl">
-            <SearchBar onClose={() => setIsSearchOpen(false)} />
-          </div>
-        )}
-      </div>
-      
-      {/* ✅ Mobile Menu: Light transparent background instead of charcoal */}
+      {/* --- Search Curtain --- */}
       <div 
-        className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`} 
-        style={{ 
-          background: 'rgba(0, 0, 0, 0.85)',
-          backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)'
-        }}
+        className={`
+          fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300
+          ${isSearchOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}
+        `}
+        onClick={() => setIsSearchOpen(false)}
+      />
+      <div 
+        className={`
+          fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl z-50 transition-all duration-300 ease-out origin-top
+          ${isSearchOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 -translate-y-4 pointer-events-none'}
+        `}
       >
-        <div className="flex justify-between items-center mb-6 px-2">
-          <span className="text-white font-chillax text-lg">Menu</span>
-          <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
-            <X size={16} />
-          </button>
-        </div>
-        
-        <div className="mobile-grid">
-          {navigationItems.map((item) => { 
-            const Icon = item.icon; 
-            const isActive = pathname === item.href; 
-            return ( 
-              <Link key={item.href} href={item.href} className={`mobile-item ${isActive ? 'active' : ''}`}>
-                <Icon className="mobile-icon" />
-                <span className="mobile-label">{item.label}</span>
-              </Link> 
-            ); 
-          })}
-          <button onClick={() => { setIsMobileMenuOpen(false); toggleActivity(); }} className="mobile-item">
-            <History className="mobile-icon" />
-            <span className="mobile-label">Activity</span>
-          </button>
-        </div>
-        
-        <div className="mt-6">
-          <button 
-            onClick={() => router.push('/donate')} 
-            className="w-full py-4 bg-yellow-500 text-black rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-transform shadow-lg shadow-yellow-500/20"
-          >
-            <Image src="/donation.svg" alt="Donate" width={24} height={24} className="w-6 h-6 object-contain" />
-            Donate
-          </button>
+         <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-2 shadow-2xl overflow-hidden ring-1 ring-white/5">
+            {isSearchOpen && <SearchBar onClose={() => setIsSearchOpen(false)} />}
+         </div>
+      </div>
+
+      {/* --- Mobile Menu (Full Screen Glass) --- */}
+      <div 
+        className={`
+          fixed inset-0 z-[60] bg-black/90 backdrop-blur-3xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+          ${isMobileMenuOpen ? 'translate-y-0' : 'translate-y-full'}
+        `}
+      >
+        <div className="flex flex-col h-full p-6">
+          <div className="flex justify-between items-center mb-8">
+            <span className="text-white font-chillax text-2xl font-bold tracking-tight">Menu</span>
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)} 
+              className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors border border-white/5"
+            >
+              <X size={20} className="text-white" />
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {NAV_ITEMS.map((item) => { 
+              const isActive = pathname === item.href; 
+              return ( 
+                <Link 
+                  key={item.href} 
+                  href={item.href} 
+                  className={`
+                    flex flex-col items-center justify-center gap-3 py-6 rounded-3xl border transition-all duration-300
+                    ${isActive 
+                      ? 'bg-white text-black border-white shadow-xl' 
+                      : 'bg-white/5 text-gray-400 border-transparent hover:bg-white/10 hover:border-white/10'
+                    }
+                  `}
+                >
+                  <item.icon size={28} strokeWidth={isActive ? 2 : 1.5} />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link> 
+              ); 
+            })}
+            
+            <button 
+              onClick={() => { setIsMobileMenuOpen(false); toggleActivity(); }} 
+              className="col-span-2 flex items-center justify-between px-8 py-6 bg-white/5 rounded-3xl border border-white/5 text-gray-300 hover:bg-white/10 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <History size={24} />
+                <span className="font-medium">Watch History</span>
+              </div>
+              <ChevronRight size={20} className="opacity-50" />
+            </button>
+          </div>
+          
+          <div className="mt-auto">
+            <button 
+              onClick={() => router.push('/donate')} 
+              className="w-full py-5 bg-[#F59E0B] text-black rounded-3xl font-bold text-lg flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(245,158,11,0.2)]"
+            >
+              <Image src="/donation.svg" alt="Donate" width={24} height={24} />
+              Support Project
+            </button>
+          </div>
         </div>
       </div>
     </>
