@@ -123,12 +123,9 @@ export default async function HomePage() {
   } = await getHomePageData();
 
   return (
-    // ✅ Updated Background: #050505
-    <main className="min-h-screen bg-[#050505] relative selection:bg-blue-500/30">
+    // ✅ Unified BG: #09090b
+    <main className="min-h-screen bg-[#09090b] relative selection:bg-blue-500/30">
       
-      {/* Subtle Top Spotlight Glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] bg-blue-900/10 blur-[120px] rounded-full pointer-events-none -z-0 mix-blend-screen opacity-50" />
-
       {(isDemo || error) && (
         <div className="bg-yellow-500/90 backdrop-blur-sm text-black text-center py-3 text-sm font-medium sticky top-0 z-50">
           {error
