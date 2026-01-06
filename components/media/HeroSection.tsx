@@ -1,5 +1,3 @@
-// components/media/HeroSection.tsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -72,11 +70,12 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   const movieGenres = getMovieGenres(currentMovie.genre_ids || []);
 
   // ==========================================
-  // MODERN 2025 MOBILE LAYOUT (Vertical Card)
+  // MOBILE LAYOUT
   // ==========================================
   if (isMobile) {
     return (
-      <div className="relative w-full min-h-screen bg-black overflow-hidden top-0 -mt-16 sm:mt-0">
+      // ✅ Updated: #0B0B0C background
+      <div className="relative w-full min-h-screen bg-[#0B0B0C] overflow-hidden top-0 -mt-16 sm:mt-0">
         {/* Ambient Background */}
         <div className="absolute inset-0">
           <Image
@@ -86,7 +85,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
             className="object-cover opacity-30 blur-3xl scale-110"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0C]/60 via-[#0B0B0C]/40 to-[#0B0B0C]" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6 pt-24 gap-6">
@@ -102,10 +101,8 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
               sizes="(max-width: 768px) 100vw, 320px"
             />
             
-            {/* Gradient Overlay for Text */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
 
-            {/* Navigation Arrows (Overlay on Poster) */}
             {media.length > 1 && (
               <>
                 <button
@@ -123,13 +120,11 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
               </>
             )}
 
-            {/* Card Content (Bottom) */}
             <div className="absolute bottom-0 left-0 right-0 p-5 space-y-3">
               <h1 className="text-2xl font-bold text-white leading-tight font-chillax drop-shadow-md">
                 {currentMovie.title}
               </h1>
               
-              {/* Metadata Row */}
               <div className="flex items-center gap-2 text-xs font-medium text-gray-300">
                 {currentMovie.release_date && (
                   <span className="bg-white/10 backdrop-blur-md px-2 py-1 rounded border border-white/10">
@@ -141,7 +136,6 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
                 </span>
               </div>
 
-              {/* Genres */}
               {movieGenres.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {movieGenres.map((genre, idx) => (
@@ -154,7 +148,6 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
             </div>
           </div>
 
-          {/* Expanding Bar Carousel Indicators */}
           {media.length > 1 && (
             <div className="flex items-center justify-center gap-1.5">
               {media.map((_, index) => (
@@ -172,7 +165,6 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
             </div>
           )}
 
-          {/* Mobile Actions (Below Card) */}
           <div className="flex gap-3 w-full max-w-[320px]">
             <Link
               href={`/watch/movie/${currentMovie.id}`}
@@ -196,12 +188,11 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   }
 
   // ==========================================
-  // MODERN DESKTOP LAYOUT (Rectangular UI)
+  // DESKTOP LAYOUT
   // ==========================================
   return (
     <div className="relative w-full h-[100vh] min-h-[800px] overflow-hidden -mt-[6rem] z-0">
       
-      {/* Background Layer */}
       <div className="absolute inset-0">
         {media.map((movie, index) => (
           <div
@@ -222,13 +213,12 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
           </div>
         ))}
         
-        {/* Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-gradient-to-t from-black via-black/60 to-transparent" />
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
+        {/* ✅ Updated gradients with #0B0B0C */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0C]/90 via-[#0B0B0C]/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-gradient-to-t from-[#0B0B0C] via-[#0B0B0C]/60 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#0B0B0C]/60 to-transparent" />
       </div>
 
-      {/* Navigation Arrows - UPDATED: rounded-full */}
       {media.length > 1 && (
         <>
           <button
@@ -248,17 +238,14 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
         </>
       )}
 
-      {/* Hero Content */}
       <div className="relative z-10 h-full flex items-end pb-32">
         <div className="w-full max-w-[1600px] mx-auto px-8 md:px-16">
           <div className="max-w-4xl space-y-8">
             
-            {/* Animated Title */}
             <h1 className="text-6xl md:text-8xl font-extrabold text-white leading-[0.9] tracking-tight drop-shadow-2xl font-chillax animate-in fade-in slide-in-from-bottom-10 duration-700">
               {currentMovie.title}
             </h1>
 
-            {/* Metadata Rectangles (No rounded-full) */}
             <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-gray-200">
               {currentMovie.release_date && (
                 <span className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
@@ -275,14 +262,12 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
               ))}
             </div>
 
-            {/* Description */}
             {currentMovie.overview && (
               <p className="text-gray-300 text-lg md:text-xl leading-relaxed line-clamp-3 max-w-3xl drop-shadow-lg font-light">
                 {currentMovie.overview}
               </p>
             )}
 
-            {/* Rectangular Action Buttons (No excess glow) */}
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 href={`/watch/movie/${currentMovie.id}`}
@@ -304,7 +289,6 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
         </div>
       </div>
 
-      {/* Slide Indicators */}
       {media.length > 1 && (
         <div className="absolute bottom-12 right-12 z-20 flex gap-3">
           {media.map((_, index) => (
