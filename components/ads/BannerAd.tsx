@@ -17,7 +17,7 @@ export default function BannerAd() {
 
     // 2. Define the ad configuration
     (window as any).atOptions = {
-      key: '28f3f29a3ad710ba8ebc6c0299a7ac43',
+      key: '',
       format: 'iframe',
       height: 50,
       width: 320,
@@ -27,7 +27,7 @@ export default function BannerAd() {
     // 3. Create the script
     const script = document.createElement('script');
     script.type = 'text/javascript';
-    script.src = '//pigeoncontentmentcotton.com/28f3f29a3ad710ba8ebc6c0299a7ac43/invoke.js'; 
+    script.src = '//'; 
     script.async = true;
 
     // 4. Detect Hard Blocks (Script Load Error)
