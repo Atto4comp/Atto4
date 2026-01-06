@@ -41,13 +41,11 @@ async function readSnapshot() {
 }
 
 async function getHomePageData() {
-  // Prefer local snapshot (fast)
   const snapshot = await readSnapshot();
   if (snapshot) {
     return { ...snapshot, isDemo: false, error: undefined };
   }
 
-  // fallback: try runtime tmdbApi (this will be done during build if snapshot absent)
   try {
     const connection = await tmdbApi.testConnection();
     if (!connection.success) {
@@ -125,10 +123,14 @@ export default async function HomePage() {
   } = await getHomePageData();
 
   return (
-    // ✅ Updated Background: Solid #0B0B0C
-    <main className="min-h-screen bg-[#0B0B0C]">
+    // ✅ Updated Background: #050505
+    <main className="min-h-screen bg-[#050505] relative selection:bg-blue-500/30">
+      
+      {/* Subtle Top Spotlight Glow */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] bg-blue-900/10 blur-[120px] rounded-full pointer-events-none -z-0 mix-blend-screen opacity-50" />
+
       {(isDemo || error) && (
-        <div className="bg-yellow-500 text-black text-center py-3 text-sm font-medium">
+        <div className="bg-yellow-500/90 backdrop-blur-sm text-black text-center py-3 text-sm font-medium sticky top-0 z-50">
           {error
             ? `API Error: ${error}`
             : 'Showing demo content — Check your TMDB API key or network.'}
@@ -145,11 +147,10 @@ export default async function HomePage() {
       <meta name="monetag" content="b9b033ecae1bfb91e08c27b64bd425be" />
       <meta name="clckd" content="fe3300dbc05d420fca54fc1ebed516ba" />
       
-      {/* Banner Ad */}
       <BannerAd />
 
-      {/* ✅ Updated Section Background: Solid #0B0B0C */}
-      <div className="relative z-10 pt-16 pb-20 bg-[#0B0B0C] space-y-16">
+      {/* Content Section */}
+      <div className="relative z-10 pt-16 pb-20 space-y-20">
         <MediaRow title="Trending Movies" items={trending} genres={genres} category="trending" mediaType="movie" priority />
         <MediaRow title="Popular Movies" items={popular} genres={genres} category="popular" mediaType="movie" />
         <MediaRow title="Top-Rated Movies" items={topRated} genres={genres} category="top-rated" mediaType="movie" />
