@@ -49,8 +49,8 @@ export default function MediaRow({
 
   return (
     <div className="relative mb-12 md:mb-16 group/row animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header */}
-      <div className="mb-4 flex items-end justify-between px-6 md:px-12">
+      {/* Header - Aligned with Thumbnails (px-4 md:px-8) */}
+      <div className="mb-4 flex items-end justify-between px-4 md:px-8">
         <div>
           <h2 className="font-chillax text-xl md:text-2xl font-bold text-white tracking-wide">
             {title}
@@ -82,11 +82,11 @@ export default function MediaRow({
           <ChevronLeft className="h-8 w-8 text-white drop-shadow-lg" />
         </button>
 
-        {/* Cards Scroller (✅ Adjusted padding to align thumbnails) */}
+        {/* Cards Scroller - Aligned with Header (px-4 md:px-8) */}
         <div
           ref={rowRef}
           onScroll={handleScroll}
-          className="flex gap-4 -mt-2 overflow-x-auto scroll-smooth px-6 md:px-12 pb-4 hide-scrollbar snap-x snap-mandatory"
+          className="flex gap-4 -mt-2 overflow-x-auto scroll-smooth px-4 md:px-8 pb-4 hide-scrollbar snap-x snap-mandatory scroll-pl-4 md:scroll-pl-8"
         >
           {items.map((item, i) => (
             <MediaCard
@@ -97,8 +97,7 @@ export default function MediaRow({
               mediaType={mediaType}
             />
           ))}
-          {/* Spacer to allow scrolling the last item fully into view */}
-          <div className="w-6 md:w-12 flex-shrink-0" />
+          <div className="w-4 md:w-8 flex-shrink-0" />
         </div>
 
         {/* Right Arrow */}
