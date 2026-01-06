@@ -32,7 +32,6 @@ const unlock = (str: string) => {
 };
 
 // ⚙️ CONFIG: Define which sources should force the title to be HIDDEN or SHOWN
-// You can match by label (case-insensitive)
 const SOURCE_CONFIG = {
   hideTitle: ['vidly', 'vidme'], 
   showTitle: ['vidzy']
@@ -68,7 +67,6 @@ export default function VideoPlayer({
   useEffect(() => {
     const check = setInterval(() => {
       const t0 = Date.now(); 
-      // debugger; // Commented out for development convenience, uncomment for prod
       const t1 = Date.now();
       if (t1 - t0 > 100) { 
         setBlobUrl(null); 
@@ -126,13 +124,8 @@ export default function VideoPlayer({
   const currentLabel = currentSource?.label?.toLowerCase() || '';
 
   const dynamicShowTitle = useMemo(() => {
-    // 1. If source matches 'hideTitle' list -> Force HIDE
     if (SOURCE_CONFIG.hideTitle.some(name => currentLabel.includes(name))) return false;
-    
-    // 2. If source matches 'showTitle' list -> Force SHOW
     if (SOURCE_CONFIG.showTitle.some(name => currentLabel.includes(name))) return true;
-
-    // 3. Otherwise, fallback to the prop passed to the component
     return showTitle;
   }, [currentLabel, showTitle]);
 
@@ -154,25 +147,28 @@ export default function VideoPlayer({
   return (
     <div className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center group overflow-hidden">
       
-      {/* 🟢 TOP BAR OVERLAY */}
-      <div className="absolute top-0 left-0 right-0 z-[205] p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent transition-opacity opacity-0 group-hover:opacity-100 duration-300 pointer-events-none group-hover:pointer-events-auto">
+      {/* 
+        🟢 UPDATED OVERLAY: Fixed positioning + Z-Index 9999 
+        - pointer-events-none on container prevents blocking video clicks
+        - pointer-events-auto on buttons ensures they are clickable
+      */}
+      <div className="fixed top-0 left-0 right-0 z-[9999] p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent transition-opacity opacity-0 group-hover:opacity-100 duration-300 pointer-events-none">
         
         {/* 🎛️ LEFT SECTION: Back Button & Title */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 pointer-events-auto">
           <button onClick={handleClose} className="flex items-center gap-3 text-white/80 hover:text-white transition-colors group/btn text-left">
             
             {/* 1. Back Arrow */}
             {showBackButton && (
-              <div className="p-2 rounded-full bg-white/10 group-hover/btn:bg-white/20 backdrop-blur-md transition-colors flex-shrink-0">
+              <div className="p-2 rounded-full bg-white/10 group-hover/btn:bg-white/20 backdrop-blur-md transition-colors flex-shrink-0 border border-white/5 shadow-lg">
                 <ArrowLeft className="w-5 h-5" />
               </div>
             )}
 
-            {/* 2. DYNAMIC TITLE (Based on logic above) */}
+            {/* 2. DYNAMIC TITLE */}
             {dynamicShowTitle && (
               <span className="font-medium text-sm md:text-base drop-shadow-md max-w-[200px] md:max-w-md truncate">
                 {title || 'Back'}
-                {/* Optional: Add Episode info if needed */}
                 {mediaType === 'tv' && ` - S${season} E${episode}`}
               </span>
             )}
@@ -216,7 +212,7 @@ export default function VideoPlayer({
       </div>
 
       {isAutoSwitching && <div className="absolute inset-0 z-[202] flex items-center justify-center bg-black/90 backdrop-blur-sm"><div className="flex flex-col items-center gap-4 text-white animate-pulse"><RefreshCw className="w-10 h-10 animate-spin text-blue-500" /><p className="font-medium text-lg">Trying next server...</p></div></div>}
-      {blobUrl && <iframe key={blobUrl} src={blobUrl} className="w-full h-full border-0 bg-black overflow-hidden" allowFullScreen sandbox="allow-forms allow-scripts allow-same-origin allow-presentation" onError={handleSourceError} />}
+      {blobUrl && <iframe key={blobUrl} src={blobUrl} className="w-full h-full border-0 bg-black overflow-hidden relative z-[1]" allowFullScreen sandbox="allow-forms allow-scripts allow-same-origin allow-presentation" onError={handleSourceError} />}
     </div>
   );
 }
