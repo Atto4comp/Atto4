@@ -74,7 +74,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   // ==========================================
   if (isMobile) {
     return (
-      <div className="relative w-full min-h-screen bg-[#050505] overflow-hidden top-0 -mt-16 sm:mt-0">
+      <div className="relative w-full min-h-screen bg-[#09090b] overflow-hidden top-0 -mt-16 sm:mt-0">
         <div className="absolute inset-0">
           <Image
             src={buildTmdbImage(currentMovie.poster_path, 'w780')}
@@ -83,13 +83,13 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
             className="object-cover opacity-30 blur-3xl scale-110"
             priority
           />
-          {/* ✅ Updated Gradients to #050505 */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-[#050505]/40 to-[#050505]" />
+          {/* ✅ Gradient Blend to #09090b */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/60 via-[#09090b]/40 to-[#09090b]" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6 pt-24 gap-6">
           
-          <div className="relative w-full max-w-[320px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+          <div className="relative w-full max-w-[320px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/5 group">
             <Image
               src={buildTmdbImage(currentMovie.poster_path, TMDB_IMAGE_SIZES.poster)}
               alt={currentMovie.title || 'Movie poster'}
@@ -211,10 +211,10 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
           </div>
         ))}
         
-        {/* ✅ Updated Gradients to #050505 */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/95 via-[#050505]/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#050505]/80 to-transparent" />
+        {/* ✅ Updated Gradient Blend to #09090b */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#09090b]/95 via-[#09090b]/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-gradient-to-t from-[#09090b] via-[#09090b]/60 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#09090b]/80 to-transparent" />
       </div>
 
       {media.length > 1 && (
@@ -246,7 +246,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
 
             <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-gray-200">
               {currentMovie.release_date && (
-                <span className="bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
+                <span className="bg-white/5 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/5">
                   {new Date(currentMovie.release_date).getFullYear()}
                 </span>
               )}
