@@ -8,8 +8,8 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    // ✅ Updated: #0B0B0C background
-    <footer className="w-full bg-[#0B0B0C] border-t border-white/5 pt-16 pb-8 relative overflow-hidden">
+    // ✅ Updated Background: #050505
+    <footer className="w-full bg-[#050505] border-t border-white/5 pt-16 pb-8 relative overflow-hidden">
       
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-blue-900/5 blur-[120px] rounded-full pointer-events-none" />
 
