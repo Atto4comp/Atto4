@@ -11,14 +11,14 @@ export interface MovieEmbedResult {
 // 🔓 DIRECT LINKS (No Encryption)
 const SERVERS = [  
   { 
-    id: 'vidme', 
-    label: 'Vidme', 
-    baseUrl: "https://www.vidking.net/embed/movie/"
-  },
-  { 
     id: 'vidzy', 
     label: 'Vidzy', 
     baseUrl: "https://bidsrc.pro/movie/"
+  },
+  { 
+    id: 'vidme', 
+    label: 'Vidme', 
+    baseUrl: "https://www.vidking.net/embed/movie/"
   },
   { 
     id: 'vidly', 
