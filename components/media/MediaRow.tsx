@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Movie, Genre } from '@/lib/api/types';
@@ -27,19 +27,17 @@ export default function MediaRow({
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
-  // Check scroll position to toggle arrows
   const handleScroll = () => {
     if (rowRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = rowRef.current;
       setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10); // buffer
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
     }
   };
 
   const scroll = (direction: 'left' | 'right') => {
     if (rowRef.current) {
-      const { clientWidth } = rowRef.current;
-      const scrollAmount = clientWidth * 0.8; // Scroll 80% of width
+      const scrollAmount = rowRef.current.clientWidth * 0.8;
       rowRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth',
@@ -57,7 +55,7 @@ export default function MediaRow({
           <h2 className="font-chillax text-xl md:text-2xl font-bold text-white tracking-wide">
             {title}
           </h2>
-          <div className="mt-1 h-1 w-12 rounded-full bg-blue-500/80" /> {/* Subtle underline decoration */}
+          <div className="mt-1 h-1 w-12 rounded-full bg-blue-500/80" />
         </div>
 
         <Link
@@ -75,29 +73,30 @@ export default function MediaRow({
         <button
           onClick={() => scroll('left')}
           className={`absolute left-0 top-0 bottom-0 z-20 w-12 bg-gradient-to-r from-black/80 to-transparent flex items-center justify-center transition-opacity duration-300 ${
-            showLeftArrow ? 'opacity-0 group-hover/arrows:opacity-100' : 'opacity-0 pointer-events-none'
+            showLeftArrow
+              ? 'opacity-0 group-hover/arrows:opacity-100'
+              : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll left"
         >
           <ChevronLeft className="h-8 w-8 text-white drop-shadow-lg" />
         </button>
 
-        {/* Cards Scroller */}
+        {/* Cards Scroller (✅ moved up slightly) */}
         <div
           ref={rowRef}
           onScroll={handleScroll}
-          className="flex gap-4 overflow-x-auto scroll-smooth px-6 md:px-12 pb-4 hide-scrollbar snap-x snap-mandatory"
+          className="flex gap-4 -mt-2 overflow-x-auto scroll-smooth px-6 md:px-12 pb-4 hide-scrollbar snap-x snap-mandatory"
         >
           {items.map((item, i) => (
             <MediaCard
               key={item.id}
               media={item}
               genres={genres}
-              priority={priority && i < 4} // Only prioritize first few images
+              priority={priority && i < 4}
               mediaType={mediaType}
             />
           ))}
-          {/* Right Padding Dummy */}
           <div className="w-2 md:w-8 flex-shrink-0" />
         </div>
 
@@ -105,14 +104,16 @@ export default function MediaRow({
         <button
           onClick={() => scroll('right')}
           className={`absolute right-0 top-0 bottom-0 z-20 w-12 bg-gradient-to-l from-black/80 to-transparent flex items-center justify-center transition-opacity duration-300 ${
-            showRightArrow ? 'opacity-0 group-hover/arrows:opacity-100' : 'opacity-0 pointer-events-none'
+            showRightArrow
+              ? 'opacity-0 group-hover/arrows:opacity-100'
+              : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll right"
         >
           <ChevronRight className="h-8 w-8 text-white drop-shadow-lg" />
         </button>
       </div>
-      
+
       <style jsx>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
