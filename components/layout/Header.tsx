@@ -1,21 +1,31 @@
 'use client';
 
-import { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { 
+  motion, 
+  AnimatePresence, 
+  useScroll, 
+  useMotionValueEvent, 
+  useSpring,
+  useTransform
+} from 'framer-motion';
+import { 
   Search, Menu, Home, Film, Tv, Grid3X3, X, History, 
-  Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw, 
-  ChevronRight, ExternalLink 
-} from 'lucide-react'; 
-import SearchBar from '@/components/common/SearchBar';
+  Bell, ChevronRight, Zap, Sparkles 
+} from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-// --- Types & Constants ---
+// --- Utility: 2026 Standard Class Merger ---
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
-type NavItem = { href: string; label: string; icon: any };
-
-const NAV_ITEMS: NavItem[] = [
+// --- Constants & Data ---
+const NAV_ITEMS = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/movies', label: 'Movies', icon: Film },
   { href: '/tvshows', label: 'TV Shows', icon: Tv },
@@ -23,347 +33,298 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const NOTIFICATIONS = [
-  { 
-    id: 1, 
-    title: 'Welcome to Atto4', 
-    desc: 'The next-gen streaming platform. Ad-free, high-speed, and fully customizable.', 
-    date: 'Now', 
-    type: 'info' 
-  },
-  { 
-    id: 2, 
-    title: 'Version v1.0.2 (Beta)', 
-    desc: 'Current stable build. Includes new player controls and glassmorphic UI.', 
-    date: 'Dec 15', 
-    type: 'version' 
-  },
+  { id: 1, title: 'Atto4 Stable', desc: 'v2.0 is live. 0ms latency.', type: 'sys' },
+  { id: 2, title: 'New Player', desc: 'Home button added to player UI.', type: 'feat' },
 ];
 
-// --- Sub-Components (Clean Architecture) ---
+// --- Sub-Components ---
 
-const NavPill = memo(({ item, isActive }: { item: NavItem; isActive: boolean }) => (
-  <Link 
-    href={item.href}
-    className={`
-      group relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-out
-      ${isActive 
-        ? 'text-black bg-white shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-105' 
-        : 'text-gray-400 hover:text-white hover:bg-white/10'
-      }
-    `}
-  >
-    <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
-    <span className="relative z-10">{item.label}</span>
-  </Link>
-));
-NavPill.displayName = 'NavPill';
-
-const IconButton = ({ 
-  icon: Icon, onClick, active, badge 
-}: { 
-  icon: any; onClick: () => void; active?: boolean; badge?: boolean 
-}) => (
-  <button
-    onClick={onClick}
-    className={`
-      relative p-2.5 rounded-full transition-all duration-300 group
-      ${active 
-        ? 'bg-white text-black shadow-lg scale-110' 
-        : 'text-gray-400 hover:text-white hover:bg-white/10'
-      }
-    `}
-  >
-    <Icon size={20} strokeWidth={2} />
-    {badge && (
-      <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-rose-500 rounded-full ring-2 ring-black/50" />
+// 1. Magnetic Nav Item with Spatial Slide
+const NavItem = ({ item, isActive }: { item: typeof NAV_ITEMS[0]; isActive: boolean }) => (
+  <Link href={item.href} className="relative px-4 py-2 rounded-full group">
+    {isActive && (
+      <motion.div
+        layoutId="nav-pill"
+        className="absolute inset-0 bg-white/10 rounded-full"
+        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+      />
     )}
-  </button>
+    <span className={cn(
+      "relative z-10 flex items-center gap-2 text-sm font-medium transition-colors duration-200",
+      isActive ? "text-white" : "text-white/60 group-hover:text-white"
+    )}>
+      {/* Icon only visible on hover or active to reduce noise */}
+      <span className={cn("transition-all duration-300", isActive ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden group-hover:w-auto group-hover:opacity-100")}>
+         <item.icon size={14} />
+      </span>
+      {item.label}
+    </span>
+  </Link>
 );
 
-// --- Main Component ---
-
-export default function Header() {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false); 
-  const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates'); 
-  const [scrolled, setScrolled] = useState(false);
+// 2. Search Morphing Input
+const SearchInput = ({ onClose }: { onClose: () => void }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
   
-  const panelRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const pathname = usePathname();
-
-  // Optimized Scroll Handler
   useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setScrolled(window.scrollY > 20);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Auto-focus with a slight delay to allow animation to start
+    const timer = setTimeout(() => inputRef.current?.focus(), 100);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Click Outside Handler
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
-        setIsInfoPanelOpen(false);
-      }
-    };
-    if (isInfoPanelOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isInfoPanelOpen]);
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="flex items-center w-full px-2"
+    >
+      <Search className="text-white/50 mr-3" size={18} />
+      <input
+        ref={inputRef}
+        type="text"
+        placeholder="Search titles, genres, or people..."
+        className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/30 text-sm font-medium h-full"
+        onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      />
+      <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+        <div className="text-[10px] bg-white/10 px-1.5 rounded text-white/50 font-mono">ESC</div>
+      </button>
+    </motion.div>
+  );
+};
 
-  // Route Change Cleanup
+// --- Main Header Component ---
+
+export default function Header() {
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
+  
+  const { scrollY } = useScroll();
+  const [isHidden, setIsHidden] = useState(false);
+  const lastYRef = useRef(0);
+
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Scroll Physics: Hide on scroll down, show on scroll up (Velocity aware)
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const diff = latest - lastYRef.current;
+    if (Math.abs(diff) > 50) { // Threshold to prevent jitter
+      setIsHidden(diff > 0 && latest > 100);
+      lastYRef.current = latest;
+    }
+  });
+
+  // Reset states on route change
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setIsSearchOpen(false);
-    setIsInfoPanelOpen(false);
+    setIsMenuOpen(false);
+    setIsSearchMode(false);
+    setShowNotifs(false);
   }, [pathname]);
-
-  const toggleActivity = () => {
-    window.dispatchEvent(new CustomEvent('toggle-activity-view'));
-  };
 
   return (
     <>
-      {/* --- Floating Capsule Header --- */}
-      <header 
-        className={`
-          fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-          ${scrolled ? 'py-3' : 'py-6'}
-        `}
+      <motion.header
+        variants={{
+          visible: { y: 0 },
+          hidden: { y: -100 }
+        }}
+        animate={isHidden ? "hidden" : "visible"}
+        transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+        className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none"
       >
-        <div 
-          className={`
-            relative flex items-center px-2 py-2 rounded-full border border-white/10 shadow-2xl backdrop-blur-xl transition-all duration-500
-            ${scrolled 
-              ? 'bg-black/40 shadow-black/20 supports-[backdrop-filter]:bg-black/20' 
-              : 'bg-white/5 shadow-black/10 supports-[backdrop-filter]:bg-white/5'
-            }
-          `}
+        {/* 
+            THE CAPSULE 
+            Uses Layout Animation to morph width/height based on state 
+        */}
+        <motion.div
+          layout
+          className={cn(
+            "pointer-events-auto relative backdrop-blur-3xl border border-white/10 shadow-2xl shadow-black/40 overflow-hidden",
+            // Dynamic Sizing
+            isSearchMode ? "w-full max-w-2xl rounded-2xl" : "w-auto rounded-full"
+          )}
+          style={{
+            backgroundColor: "rgba(5, 5, 5, 0.65)", // Deep dark glass
+          }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 350, 
+            damping: 30 
+          }}
         >
-          {/* Logo Section */}
-          <Link href="/" className="flex items-center group px-4 pl-5">
-            <div className="relative w-8 h-8 mr-3 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
-              <Image 
-                src="/logo.png" 
-                alt="Atto4" 
-                width={32} 
-                height={32} 
-                className="object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
-                priority
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-chillax font-bold text-lg text-white tracking-tight leading-none">Atto4</span>
-              <span className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase leading-none mt-1 group-hover:text-blue-400 transition-colors">Stream</span>
-            </div>
-          </Link>
+          {/* Noise Texture Overlay for "Physicality" */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center bg-white/5 rounded-full px-1.5 py-1.5 mx-2 border border-white/5">
-            {NAV_ITEMS.map((item) => (
-              <NavPill key={item.href} item={item} isActive={pathname === item.href} />
-            ))}
-          </nav>
-
-          {/* Controls */}
-          <div className="flex items-center gap-1 pl-2 pr-1">
-            <IconButton 
-              icon={isSearchOpen ? X : Search} 
-              onClick={() => setIsSearchOpen(!isSearchOpen)} 
-              active={isSearchOpen}
-            />
+          <div className="relative z-10 flex items-center justify-between p-1.5">
             
-            <IconButton 
-              icon={History} 
-              onClick={toggleActivity} 
-            />
-
-            {/* Notification Panel Wrapper */}
-            <div className="relative" ref={panelRef}>
-              <IconButton 
-                icon={Bell} 
-                onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)} 
-                active={isInfoPanelOpen}
-                badge={true}
-              />
-
-              {/* Dropdown Panel */}
-              <div 
-                className={`
-                  absolute top-full right-0 mt-6 w-[360px] 
-                  bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden origin-top-right transition-all duration-300
-                  ${isInfoPanelOpen 
-                    ? 'opacity-100 scale-100 translate-y-0 visible' 
-                    : 'opacity-0 scale-95 -translate-y-4 invisible'
-                  }
-                `}
-              >
-                {/* Panel Header */}
-                <div className="flex border-b border-white/5 p-1.5 bg-white/[0.02]">
-                  {(['updates', 'guide'] as const).map((tab) => (
-                    <button 
-                      key={tab}
-                      onClick={() => setInfoTab(tab)} 
-                      className={`
-                        flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wide rounded-xl transition-all
-                        ${infoTab === tab 
-                          ? 'bg-white/10 text-white shadow-inner' 
-                          : 'text-gray-500 hover:text-white hover:bg-white/5'
-                        }
-                      `}
-                    > 
-                      {tab === 'updates' ? <Bell size={14} /> : <BookOpen size={14} />} 
-                      {tab} 
-                    </button>
-                  ))}
-                </div>
-
-                {/* Panel Content */}
-                <div className="max-h-[60vh] overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                  {infoTab === 'updates' ? (
-                    NOTIFICATIONS.map((note) => (
-                      <div key={note.id} className="p-4 hover:bg-white/5 rounded-2xl transition-colors group border border-transparent hover:border-white/5">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className={`
-                            text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider
-                            ${note.type === 'info' ? 'bg-blue-500/10 text-blue-400' : 'bg-green-500/10 text-green-400'}
-                          `}>
-                            {note.type}
-                          </span>
-                          <span className="text-[10px] text-gray-500 font-mono">{note.date}</span>
-                        </div>
-                        <h4 className="text-sm font-medium text-white mb-1 group-hover:text-blue-300 transition-colors">{note.title}</h4>
-                        <p className="text-xs text-gray-400 leading-relaxed">{note.desc}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 space-y-6">
-                      <div className="space-y-3">
-                        <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                          <PlayCircle size={12} /> Playback
-                        </h4>
-                        <div className="text-xs text-gray-400 space-y-2 pl-4 border-l border-white/10">
-                          <p>Use <span className="text-white">Auto Fix</span> if video buffers.</p>
-                          <p>The <span className="text-white">Home Button</span> inside player ensures safe exit.</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Donation Button (Desktop) */}
-            <button 
-              onClick={() => router.push('/donate')} 
-              className="hidden sm:flex ml-2 p-2 rounded-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 transition-all border border-yellow-500/10 hover:border-yellow-500/30" 
-              aria-label="Donate"
-            >
-              <Image src="/donation.svg" alt="Donate" width={20} height={20} className="w-5 h-5 object-contain" />
-            </button>
-
-            {/* Mobile Menu Toggle */}
-            <button 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-              className="sm:hidden ml-1 p-2.5 text-white hover:bg-white/10 rounded-full transition-colors"
-              aria-label="Menu"
-            >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* --- Search Curtain --- */}
-      <div 
-        className={`
-          fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300
-          ${isSearchOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}
-        `}
-        onClick={() => setIsSearchOpen(false)}
-      />
-      <div 
-        className={`
-          fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl z-50 transition-all duration-300 ease-out origin-top
-          ${isSearchOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 -translate-y-4 pointer-events-none'}
-        `}
-      >
-         <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-2 shadow-2xl overflow-hidden ring-1 ring-white/5">
-            {isSearchOpen && <SearchBar onClose={() => setIsSearchOpen(false)} />}
-         </div>
-      </div>
-
-      {/* --- Mobile Menu (Full Screen Glass) --- */}
-      <div 
-        className={`
-          fixed inset-0 z-[60] bg-black/90 backdrop-blur-3xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-          ${isMobileMenuOpen ? 'translate-y-0' : 'translate-y-full'}
-        `}
-      >
-        <div className="flex flex-col h-full p-6">
-          <div className="flex justify-between items-center mb-8">
-            <span className="text-white font-chillax text-2xl font-bold tracking-tight">Menu</span>
-            <button 
-              onClick={() => setIsMobileMenuOpen(false)} 
-              className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors border border-white/5"
-            >
-              <X size={20} className="text-white" />
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {NAV_ITEMS.map((item) => { 
-              const isActive = pathname === item.href; 
-              return ( 
-                <Link 
-                  key={item.href} 
-                  href={item.href} 
-                  className={`
-                    flex flex-col items-center justify-center gap-3 py-6 rounded-3xl border transition-all duration-300
-                    ${isActive 
-                      ? 'bg-white text-black border-white shadow-xl' 
-                      : 'bg-white/5 text-gray-400 border-transparent hover:bg-white/10 hover:border-white/10'
-                    }
-                  `}
+            <AnimatePresence mode="wait" initial={false}>
+              {isSearchMode ? (
+                // MODE: SEARCH
+                <SearchInput key="search-bar" onClose={() => setIsSearchMode(false)} />
+              ) : (
+                // MODE: NAVIGATION
+                <motion.div 
+                  key="nav-bar"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2"
                 >
-                  <item.icon size={28} strokeWidth={isActive ? 2 : 1.5} />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </Link> 
-              ); 
-            })}
-            
-            <button 
-              onClick={() => { setIsMobileMenuOpen(false); toggleActivity(); }} 
-              className="col-span-2 flex items-center justify-between px-8 py-6 bg-white/5 rounded-3xl border border-white/5 text-gray-300 hover:bg-white/10 transition-all"
+                  {/* Logo Area */}
+                  <Link href="/" className="flex items-center pl-3 pr-2 group">
+                    <div className="w-6 h-6 mr-2 relative">
+                      <Image 
+                        src="/logo.png" 
+                        alt="Logo" 
+                        width={24} 
+                        height={24} 
+                        className="object-contain group-hover:rotate-90 transition-transform duration-500" 
+                      />
+                    </div>
+                    <span className="font-bold text-white tracking-tight hidden sm:block">Atto4</span>
+                  </Link>
+
+                  {/* Divider */}
+                  <div className="w-px h-4 bg-white/10 mx-1 hidden md:block" />
+
+                  {/* Desktop Nav */}
+                  <nav className="hidden md:flex items-center">
+                    {NAV_ITEMS.map((item) => (
+                      <NavItem key={item.href} item={item} isActive={pathname === item.href} />
+                    ))}
+                  </nav>
+
+                  {/* Right Actions */}
+                  <div className="flex items-center gap-1 pl-2">
+                    <button 
+                      onClick={() => setIsSearchMode(true)}
+                      className="p-2.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <Search size={18} />
+                    </button>
+
+                    <div className="relative">
+                      <button 
+                        onClick={() => setShowNotifs(!showNotifs)}
+                        className={cn(
+                          "p-2.5 rounded-full transition-colors relative",
+                          showNotifs ? "bg-white text-black" : "text-white/70 hover:text-white hover:bg-white/10"
+                        )}
+                      >
+                        <Bell size={18} />
+                        {!showNotifs && <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-rose-500 rounded-full" />}
+                      </button>
+                      
+                      {/* Notifications Dropdown - Spatial pop-in */}
+                      <AnimatePresence>
+                        {showNotifs && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                            className="absolute top-full right-0 mt-4 w-80 p-2 rounded-2xl bg-[#0F0F0F] border border-white/10 shadow-2xl overflow-hidden"
+                          >
+                            <div className="text-[10px] uppercase font-bold text-white/30 px-3 py-2 tracking-widest">System Updates</div>
+                            {NOTIFICATIONS.map(n => (
+                              <div key={n.id} className="p-3 hover:bg-white/5 rounded-xl group cursor-pointer transition-colors">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {n.type === 'sys' ? <Zap size={12} className="text-yellow-400"/> : <Sparkles size={12} className="text-purple-400"/>}
+                                  <span className="text-xs font-semibold text-white">{n.title}</span>
+                                </div>
+                                <div className="text-xs text-white/50 leading-relaxed">{n.desc}</div>
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    <button 
+                      onClick={() => router.push('/donate')}
+                      className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-tr from-yellow-600 to-yellow-400 text-black font-bold shadow-lg shadow-yellow-500/20 hover:scale-105 active:scale-95 transition-transform"
+                    >
+                      <Image src="/donation.svg" width={16} height={16} alt="Donate" className="invert-0" />
+                    </button>
+
+                    <button 
+                      onClick={() => setIsMenuOpen(true)}
+                      className="md:hidden p-2.5 text-white/70 hover:text-white"
+                    >
+                      <Menu size={18} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </motion.header>
+
+      {/* 
+          MOBILE MENU OVERLAY 
+          Uses pure CSS backdrop-filter for performance, Framer for entry 
+      */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-2xl"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="absolute right-0 top-0 bottom-0 w-3/4 max-w-sm bg-[#050505] border-l border-white/10 p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3">
-                <History size={24} />
-                <span className="font-medium">Watch History</span>
+              <div className="flex justify-between items-center mb-10">
+                <span className="text-xl font-bold text-white tracking-tighter">Menu</span>
+                <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-white/5 rounded-full text-white/60 hover:text-white">
+                  <X size={20} />
+                </button>
               </div>
-              <ChevronRight size={20} className="opacity-50" />
-            </button>
-          </div>
-          
-          <div className="mt-auto">
-            <button 
-              onClick={() => router.push('/donate')} 
-              className="w-full py-5 bg-[#F59E0B] text-black rounded-3xl font-bold text-lg flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all shadow-[0_0_30px_rgba(245,158,11,0.2)]"
-            >
-              <Image src="/donation.svg" alt="Donate" width={24} height={24} />
-              Support Project
-            </button>
-          </div>
-        </div>
-      </div>
+
+              <div className="space-y-2">
+                {NAV_ITEMS.map((item) => (
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-4 p-4 rounded-xl transition-all",
+                      pathname === item.href ? "bg-white text-black" : "text-white/60 hover:bg-white/5 hover:text-white"
+                    )}
+                  >
+                    <item.icon size={20} />
+                    <span className="font-medium text-lg">{item.label}</span>
+                    {pathname === item.href && <ChevronRight className="ml-auto" size={16} />}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="absolute bottom-8 left-6 right-6">
+                <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                      <History size={16} />
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/40 uppercase tracking-wider">Last Watched</div>
+                      <div className="text-sm text-white font-medium truncate">Interstellar (2014)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
