@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { tmdbApi } from '@/lib/api/tmdb';
 import MediaGrid from '@/components/media/MediaGrid';
+import { Filter, ChevronDown, SortAsc } from 'lucide-react';
 
 interface TVShowsPageClientProps {
   initialGenres: any[];
@@ -32,7 +33,7 @@ export default function TVShowsPageClient({
       abortControllerRef.current = controller;
 
       setIsLoading(true);
-      setTvShows([]); // Clear current to avoid visual mismatch
+      setTvShows([]); 
       setCurrentPage(1);
 
       try {
@@ -98,92 +99,116 @@ export default function TVShowsPageClient({
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 tracking-tight">TV Shows</h1>
-        <p className="text-gray-400 text-base">
-          Discover amazing series and documentaries
+    // ✅ Updated Background: Darker #050505
+    <div className="min-h-screen bg-[#050505] pb-20 pt-24 px-6 md:px-12">
+      
+      <header className="relative mb-12 max-w-7xl mx-auto">
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+        
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight text-white font-chillax relative z-10">
+          TV Shows
+        </h1>
+        <p className="text-gray-400 text-lg max-w-2xl relative z-10">
+          Binge-worthy series, trending documentaries, and daily episodes updated in real-time.
         </p>
       </header>
 
-      <div className="mb-8 flex flex-wrap gap-4">
-        <div className="space-y-1">
-          <label className="block text-sm text-gray-300">Filter by Genre</label>
-          <select
-            value={selectedGenre}
-            onChange={(e) => setSelectedGenre(e.target.value)}
-            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[180px] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">All Genres</option>
-            {genres.map((genre) => (
-              <option key={genre.id} value={genre.id}>
-                {genre.name}
-              </option>
-            ))}
-          </select>
+      {/* Modern Filter Bar */}
+      <div className="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row gap-5 items-start md:items-center justify-between bg-white/5 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
+        
+        <div className="flex flex-wrap gap-4 w-full md:w-auto">
+          {/* Genre Filter */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+              <Filter className="w-4 h-4" />
+            </div>
+            <select
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="appearance-none bg-[#0a0a0a] border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm text-white focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all hover:bg-white/5 cursor-pointer min-w-[200px]"
+            >
+              <option value="">All Genres</option>
+              {genres.map((genre) => (
+                <option key={genre.id} value={genre.id}>{genre.name}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Sort Filter */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+              <SortAsc className="w-4 h-4" />
+            </div>
+            <select
+              value={sortOrder}
+              onChange={(e) => {
+                setSortOrder(e.target.value);
+                setSelectedGenre(''); 
+              }}
+              disabled={!!selectedGenre}
+              className="appearance-none bg-[#0a0a0a] border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm text-white focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all hover:bg-white/5 cursor-pointer min-w-[180px] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="popular">Popular</option>
+              <option value="airing_today">Airing Today</option>
+              <option value="on_the_air">On The Air</option>
+              <option value="top_rated">Top Rated</option>
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="block text-sm text-gray-300">Sort By</label>
-          <select
-            value={sortOrder}
-            onChange={(e) => {
-              setSortOrder(e.target.value);
-              setSelectedGenre(''); // Clear genre logic if desired
-            }}
-            disabled={!!selectedGenre}
-            className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white min-w-[150px] focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-          >
-            <option value="popular">Popular</option>
-            <option value="airing_today">Airing Today</option>
-            <option value="on_the_air">On The Air</option>
-            <option value="top_rated">Top Rated</option>
-          </select>
-        </div>
+        {tvShows.length > 0 && !isLoading && (
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+            {tvShows.length} Results
+          </span>
+        )}
       </div>
 
-      {tvShows.length > 0 && !isLoading && (
-        <div className="mb-6">
-          <p className="text-gray-400 text-sm">{tvShows.length} shows found</p>
-        </div>
-      )}
+      <div className="max-w-7xl mx-auto">
+        <MediaGrid items={tvShows} mediaType="tv" loading={isLoading && currentPage === 1} />
 
-      <MediaGrid items={tvShows} mediaType="tv" loading={isLoading && currentPage === 1} />
+        {tvShows.length > 0 && canLoadMore && (
+          <div className="mt-16 text-center">
+            <button
+              onClick={loadMoreShows}
+              disabled={isLoading}
+              className="group relative bg-white text-black font-bold py-4 px-12 rounded-full transition-all duration-300 hover:bg-gray-200 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <span>Load More Shows</span>
+              )}
+            </button>
+          </div>
+        )}
 
-      {tvShows.length > 0 && canLoadMore && (
-        <div className="mt-12 text-center">
-          <button
-            onClick={loadMoreShows}
-            disabled={isLoading}
-            className="group relative bg-white text-black font-semibold py-4 px-10 rounded-full transition-all duration-200 hover:bg-gray-100 hover:scale-110 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <div className="flex items-center gap-3">
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                <span>Loading more...</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span>Show More</span>
-              </div>
-            )}
-          </button>
-        </div>
-      )}
+        {!canLoadMore && tvShows.length > 0 && (
+          <div className="mt-16 text-center border-t border-white/5 pt-8">
+            <p className="text-gray-500 text-sm">You've reached the end of the list.</p>
+          </div>
+        )}
 
-      {!canLoadMore && tvShows.length > 0 && (
-        <div className="mt-12 text-center">
-          <p className="text-gray-500 text-sm">✨ You've seen all available shows</p>
-        </div>
-      )}
-
-      {!isLoading && tvShows.length === 0 && (
-        <div className="text-center py-20">
-          <div className="text-6xl mb-4">📺</div>
-          <h3 className="text-xl font-semibold mb-2">No TV shows found</h3>
-          <p className="text-gray-400">Try adjusting your filters or check back later</p>
-        </div>
-      )}
+        {!isLoading && tvShows.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-32 text-center">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+              <span className="text-4xl">📺</span>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">No TV shows found</h3>
+            <p className="text-gray-400 max-w-md">
+              We couldn't find any shows matching your filters. Try adjusting your selection.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
