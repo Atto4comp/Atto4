@@ -89,6 +89,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   
   const panelRef = useRef<HTMLDivElement>(null);
+  const notifButtonRef = useRef<HTMLButtonElement>(null); // Ref for positioning
   const menuRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const router = useRouter();
@@ -103,7 +104,13 @@ export default function Header() {
   // Click Outside Logic
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+      // Close Info Panel if clicking outside panel AND not on the toggle button
+      if (
+        panelRef.current && 
+        !panelRef.current.contains(event.target as Node) &&
+        notifButtonRef.current &&
+        !notifButtonRef.current.contains(event.target as Node)
+      ) {
         setIsInfoPanelOpen(false);
       }
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -130,7 +137,7 @@ export default function Header() {
         
         {/* --- The Capsule --- */}
         <motion.div
-          className="pointer-events-auto relative mt-4 flex items-center justify-between bg-[#050505]/85 backdrop-blur-3xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
+          className="pointer-events-auto relative mt-4 flex items-center justify-between bg-[#050505]/85 backdrop-blur-3xl border border-white/10 shadow-2xl shadow-black/50"
           initial={{ borderRadius: 32, width: "auto" }}
           animate={{ 
             padding: scrolled ? "8px 12px" : "10px 20px",
@@ -140,7 +147,7 @@ export default function Header() {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           {/* Noise Texture */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay rounded-[32px] overflow-hidden" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
 
           <div className="relative z-10 flex items-center justify-between w-full">
             
@@ -178,82 +185,18 @@ export default function Header() {
                 <History size={18} />
               </button>
 
-              {/* Notification Panel */}
-              <div className="relative" ref={panelRef}>
-                <button
-                  onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)}
-                  className={cn(
-                    "p-2.5 rounded-full transition-colors relative",
-                    isInfoPanelOpen ? "text-white bg-white/10" : "text-white/60 hover:text-purple-400 hover:bg-purple-500/10"
-                  )}
-                >
-                  <Bell size={18} />
-                  <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full ring-2 ring-[#050505]" />
-                </button>
-
-                <AnimatePresence>
-                  {isInfoPanelOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ type: "spring", duration: 0.3 }}
-                      className="absolute top-full right-0 mt-4 w-[360px] sm:w-[380px] bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 origin-top-right"
-                    >
-                      <div className="flex border-b border-white/5 p-1.5">
-                        {(['updates', 'guide'] as const).map((tab) => (
-                          <button 
-                            key={tab}
-                            onClick={() => setInfoTab(tab)} 
-                            className={cn(
-                              "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold uppercase tracking-wide rounded-xl transition-all",
-                              infoTab === tab ? "bg-white/10 text-white" : "text-gray-500 hover:text-white hover:bg-white/5"
-                            )}
-                          > 
-                            {tab === 'updates' ? <Bell size={14} /> : <BookOpen size={14} />} 
-                            {tab} 
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-1">
-                        {infoTab === 'updates' ? (
-                          <div className="space-y-1 p-1">
-                            {NOTIFICATIONS.map((note) => (
-                              <div key={note.id} className="p-3 hover:bg-white/5 rounded-xl transition-colors group">
-                                <div className="flex items-center gap-2 mb-1.5">
-                                  {note.type === 'info' ? <Zap size={12} className="text-blue-400"/> : <Sparkles size={12} className="text-purple-400"/>}
-                                  <span className="text-[10px] text-gray-500 font-mono">{note.date}</span>
-                                </div>
-                                <h4 className="text-sm font-medium text-white mb-1 group-hover:text-blue-300 transition-colors">{note.title}</h4>
-                                <p className="text-xs text-gray-400 leading-relaxed">{note.desc}</p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="p-4 space-y-5">
-                            <div className="space-y-3">
-                               <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><PlayCircle size={12} /> Basic Usage</h4>
-                               <div className="text-xs text-gray-300 space-y-2 pl-3 border-l border-white/10">
-                                  <p><span className="text-white font-medium">Getting Started:</span> Use <Search className="inline w-3 h-3" /> to search.</p>
-                                  <p><span className="text-white font-medium">History:</span> Use <History className="inline w-3 h-3" /> to resume.</p>
-                               </div>
-                            </div>
-                            <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl space-y-3">
-                               <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-2"><AlertCircle size={12} /> Troubleshooting</h4>
-                               <div className="text-xs text-gray-400 space-y-3">
-                                  <p><span className="text-white font-medium">Auto Fix:</span> Use if video buffers.</p>
-                                  <p><span className="text-white font-medium">Home Button:</span> Safe exit from embeds.</p>
-                                  <p><span className="text-white font-medium">Vidly Subtitles:</span> Use <span className="underline decoration-yellow-400/50">External</span> (👂) subs.</p>
-                                </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              {/* Notification Button (Ref for positioning) */}
+              <button
+                ref={notifButtonRef}
+                onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)}
+                className={cn(
+                  "p-2.5 rounded-full transition-colors relative",
+                  isInfoPanelOpen ? "text-white bg-white/10" : "text-white/60 hover:text-purple-400 hover:bg-purple-500/10"
+                )}
+              >
+                <Bell size={18} />
+                <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full ring-2 ring-[#050505]" />
+              </button>
 
               {/* Mobile Menu Toggle */}
               <button 
@@ -274,6 +217,76 @@ export default function Header() {
           </div>
         </motion.div>
 
+        {/* --- Notification Panel (Detached from Capsule to fix Z-Index) --- */}
+        <AnimatePresence>
+          {isInfoPanelOpen && (
+            <motion.div
+              ref={panelRef}
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ type: "spring", duration: 0.3 }}
+              className="pointer-events-auto absolute top-20 right-4 md:right-auto md:left-1/2 md:translate-x-[180px] w-[360px] sm:w-[380px] bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[60]"
+              style={{ 
+                  // Fallback positioning if exact centering isn't desired
+                  // Ideally, you might want to calculate position based on notifButtonRef
+                  // But centering it relative to viewport/header is safer for fixed header
+              }}
+            >
+              <div className="flex border-b border-white/5 p-1.5">
+                {(['updates', 'guide'] as const).map((tab) => (
+                  <button 
+                    key={tab}
+                    onClick={() => setInfoTab(tab)} 
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold uppercase tracking-wide rounded-xl transition-all",
+                      infoTab === tab ? "bg-white/10 text-white" : "text-gray-500 hover:text-white hover:bg-white/5"
+                    )}
+                  > 
+                    {tab === 'updates' ? <Bell size={14} /> : <BookOpen size={14} />} 
+                    {tab} 
+                  </button>
+                ))}
+              </div>
+
+              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-1">
+                {infoTab === 'updates' ? (
+                  <div className="space-y-1 p-1">
+                    {NOTIFICATIONS.map((note) => (
+                      <div key={note.id} className="p-3 hover:bg-white/5 rounded-xl transition-colors group">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          {note.type === 'info' ? <Zap size={12} className="text-blue-400"/> : <Sparkles size={12} className="text-purple-400"/>}
+                          <span className="text-[10px] text-gray-500 font-mono">{note.date}</span>
+                        </div>
+                        <h4 className="text-sm font-medium text-white mb-1 group-hover:text-blue-300 transition-colors">{note.title}</h4>
+                        <p className="text-xs text-gray-400 leading-relaxed">{note.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 space-y-5">
+                    <div className="space-y-3">
+                       <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><PlayCircle size={12} /> Basic Usage</h4>
+                       <div className="text-xs text-gray-300 space-y-2 pl-3 border-l border-white/10">
+                          <p><span className="text-white font-medium">Getting Started:</span> Use <Search className="inline w-3 h-3" /> to search.</p>
+                          <p><span className="text-white font-medium">History:</span> Use <History className="inline w-3 h-3" /> to resume.</p>
+                       </div>
+                    </div>
+                    <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl space-y-3">
+                       <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-2"><AlertCircle size={12} /> Troubleshooting</h4>
+                       <div className="text-xs text-gray-400 space-y-3">
+                          <p><span className="text-white font-medium">Auto Fix:</span> Use if video buffers.</p>
+                          <p><span className="text-white font-medium">Home Button:</span> Safe exit from embeds.</p>
+                          <p><span className="text-white font-medium">Vidly Subtitles:</span> Use <span className="underline decoration-yellow-400/50">External</span> (👂) subs.</p>
+                        </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* --- Mobile Menu (Floating Sheet) --- */}
         <AnimatePresence>
           {isMobileMenuOpen && (
@@ -283,7 +296,7 @@ export default function Header() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
-              className="pointer-events-auto absolute top-20 left-4 right-4 z-40 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-w-sm mx-auto"
+              className="pointer-events-auto absolute top-20 left-4 right-4 z-[60] bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-w-sm mx-auto"
             >
                <div className="p-4 space-y-3">
                   <div className="grid grid-cols-2 gap-3">
@@ -341,14 +354,15 @@ export default function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsSearchOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
             />
+            {/* Centered Search Bar Container */}
             <motion.div 
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="fixed top-28 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl z-50 pointer-events-auto"
+              className="fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl z-[101] pointer-events-auto"
             >
               <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-2 shadow-2xl ring-1 ring-white/5">
                 <SearchBar onClose={() => setIsSearchOpen(false)} />
