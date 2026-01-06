@@ -27,19 +27,19 @@ export default function MediaRow({
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
+  // Check scroll position to toggle arrows
   const handleScroll = () => {
     if (rowRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = rowRef.current;
       setShowLeftArrow(scrollLeft > 0);
-      // Buffer of 10px to hide arrow when close to end
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10); // buffer
     }
   };
 
   const scroll = (direction: 'left' | 'right') => {
     if (rowRef.current) {
       const { clientWidth } = rowRef.current;
-      const scrollAmount = clientWidth * 0.75; // Scroll 75% of view width
+      const scrollAmount = clientWidth * 0.8; // Scroll 80% of width
       rowRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth',
@@ -50,72 +50,69 @@ export default function MediaRow({
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="relative mb-14 md:mb-20 group/row">
-      {/* Header - Strictly aligned with content padding */}
-      <div className="flex items-end justify-between px-6 md:px-12 mb-5">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-xl md:text-3xl font-bold text-white font-chillax tracking-tight">
+    <div className="relative mb-12 md:mb-16 group/row animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Header */}
+      <div className="mb-4 flex items-end justify-between px-6 md:px-12">
+        <div>
+          <h2 className="font-chillax text-xl md:text-2xl font-bold text-white tracking-wide">
             {title}
           </h2>
-          {/* Optional: Tiny accent line to anchor the title visually */}
-          <div className="h-1 w-10 bg-blue-600 rounded-full opacity-80" />
+          <div className="mt-1 h-1 w-12 rounded-full bg-blue-500/80" /> {/* Subtle underline decoration */}
         </div>
 
         <Link
           href={`/browse/${category}?type=${mediaType}`}
-          className="group flex items-center gap-1.5 text-xs md:text-sm font-medium text-gray-400 hover:text-white transition-colors py-1"
+          className="group flex items-center gap-1 text-sm font-medium text-gray-400 transition-colors hover:text-white"
         >
-          <span>View All</span>
-          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+          <span className="hidden sm:inline">View All</span>
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>
 
       {/* Row Container */}
       <div className="relative group/arrows">
-        {/* Navigation Arrows (Full height hover zones) */}
+        {/* Left Arrow */}
         <button
           onClick={() => scroll('left')}
-          className={`absolute left-0 top-0 bottom-0 z-20 w-16 bg-gradient-to-r from-black/90 via-black/40 to-transparent flex items-center justify-start pl-4 transition-opacity duration-300 ${
+          className={`absolute left-0 top-0 bottom-0 z-20 w-12 bg-gradient-to-r from-black/80 to-transparent flex items-center justify-center transition-opacity duration-300 ${
             showLeftArrow ? 'opacity-0 group-hover/arrows:opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll left"
         >
-          <ChevronLeft className="w-8 h-8 text-white drop-shadow-md hover:scale-110 transition-transform" />
+          <ChevronLeft className="h-8 w-8 text-white drop-shadow-lg" />
         </button>
 
+        {/* Cards Scroller */}
+        <div
+          ref={rowRef}
+          onScroll={handleScroll}
+          className="flex gap-4 overflow-x-auto scroll-smooth px-6 md:px-12 pb-4 hide-scrollbar snap-x snap-mandatory"
+        >
+          {items.map((item, i) => (
+            <MediaCard
+              key={item.id}
+              media={item}
+              genres={genres}
+              priority={priority && i < 4} // Only prioritize first few images
+              mediaType={mediaType}
+            />
+          ))}
+          {/* Right Padding Dummy */}
+          <div className="w-2 md:w-8 flex-shrink-0" />
+        </div>
+
+        {/* Right Arrow */}
         <button
           onClick={() => scroll('right')}
-          className={`absolute right-0 top-0 bottom-0 z-20 w-16 bg-gradient-to-l from-black/90 via-black/40 to-transparent flex items-center justify-end pr-4 transition-opacity duration-300 ${
+          className={`absolute right-0 top-0 bottom-0 z-20 w-12 bg-gradient-to-l from-black/80 to-transparent flex items-center justify-center transition-opacity duration-300 ${
             showRightArrow ? 'opacity-0 group-hover/arrows:opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           aria-label="Scroll right"
         >
-          <ChevronRight className="w-8 h-8 text-white drop-shadow-md hover:scale-110 transition-transform" />
+          <ChevronRight className="h-8 w-8 text-white drop-shadow-lg" />
         </button>
-
-        {/* Scrollable Area */}
-        {/* Added explicit padding (px-6 md:px-12) to match header exactly */}
-        <div
-          ref={rowRef}
-          onScroll={handleScroll}
-          className="flex gap-4 md:gap-5 overflow-x-auto pb-8 pt-2 px-6 md:px-12 scroll-smooth hide-scrollbar snap-x snap-mandatory"
-        >
-          {items.map((item, i) => (
-            <div key={item.id} className="snap-start flex-shrink-0">
-              <MediaCard
-                media={item}
-                genres={genres}
-                priority={priority && i < 4}
-                mediaType={mediaType}
-              />
-            </div>
-          ))}
-          
-          {/* Right spacer to prevent last item being stuck against edge */}
-          <div className="w-6 md:w-12 flex-shrink-0" />
-        </div>
       </div>
-
+      
       <style jsx>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
