@@ -110,15 +110,11 @@ export default function MoviesPageClient({
   };
 
   return (
-    // ✅ BG: Rich dark charcoal (#09090b) - Modern & Clean
-    <div className="min-h-screen bg-[#09090b] pb-24 pt-32 px-6 md:px-12 selection:bg-blue-500/30">
+    // ✅ Updated: Reduced top padding (pt-24) to remove the "overlay" gap
+    <div className="min-h-screen bg-[#09090b] pb-24 pt-24 px-6 md:px-12 selection:bg-blue-500/30">
       
-      {/* 
-         ✨ Header: Minimalistic with subtle depth glow 
-         - Removed "black shade" gradient
-         - Added 'pointer-events-none' blurred orb for depth without clutter
-      */}
       <header className="relative mb-16 max-w-[1800px] mx-auto flex flex-col items-center text-center">
+        {/* Glow Orb */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none -z-10" />
         
         <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white font-chillax">
@@ -129,19 +125,15 @@ export default function MoviesPageClient({
         </p>
       </header>
 
-      {/* 
-         🎛️ Filter Bar: Floating, Glassmorphic, No Box 
-      */}
+      {/* Filter Bar */}
       <div className="max-w-[1800px] mx-auto mb-12 flex flex-col md:flex-row gap-6 items-center justify-between sticky top-24 z-30 transition-all">
         
         <div className="flex flex-wrap gap-4 justify-center w-full md:w-auto">
-          
           {/* Genre Filter */}
           <div className="relative group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 group-hover:text-white transition-colors">
               <Filter className="w-4 h-4" />
             </div>
-            {/* ✅ Dropdown: Dark (#0F0F0F) with refined borders */}
             <select
               value={selectedGenre}
               onChange={(e) => setSelectedGenre(e.target.value)}
@@ -182,7 +174,6 @@ export default function MoviesPageClient({
           </div>
         </div>
 
-        {/* Results Counter (Subtle Pill) */}
         {movies.length > 0 && !isLoading && (
           <div className="hidden md:flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-widest px-4 py-2 rounded-full border border-white/5 bg-white/[0.02]">
             <Sparkles className="w-3 h-3 text-blue-500" />
@@ -191,7 +182,6 @@ export default function MoviesPageClient({
         )}
       </div>
 
-      {/* Grid Content */}
       <div className="max-w-[1800px] mx-auto min-h-[500px]">
         <MediaGrid 
           items={movies as any} 
