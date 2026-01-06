@@ -142,12 +142,12 @@ export default function Header() {
                 title="Updates & Guide"
               >
                 <Bell size={18} />
-                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#0B0B0C]" />
+                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#050505]" />
               </button>
 
-              {/* ✅ Updated dropdown background: #0B0B0C */}
+              {/* ✅ Updated: #050505 Background */}
               {isInfoPanelOpen && (
-                <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[65px] sm:top-full sm:mt-4 w-auto sm:w-[380px] bg-[#0B0B0C]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
+                <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[65px] sm:top-full sm:mt-4 w-auto sm:w-[380px] bg-[#050505]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
                   
                   <div className="flex border-b border-white/5 p-1">
                     <button onClick={() => setInfoTab('updates')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-xl transition-all ${infoTab === 'updates' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}> <Bell size={14} /> Updates </button>
@@ -220,9 +220,11 @@ export default function Header() {
       </header>
 
       <div className={`search-curtain ${isSearchOpen ? 'open' : ''}`} onClick={() => setIsSearchOpen(false)} />
-      {/* ✅ Updated SearchBar wrapper background */}
-      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>{isSearchOpen && (<div className="bg-[#0B0B0C] border border-white/10 rounded-3xl p-2 shadow-2xl"><SearchBar onClose={() => setIsSearchOpen(false)} /></div>)}</div>
-      <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`}>
+      {/* ✅ Updated: #050505 Background */}
+      <div className={`search-capsule-wrapper ${isSearchOpen ? 'open' : ''}`}>{isSearchOpen && (<div className="bg-[#050505] border border-white/10 rounded-3xl p-2 shadow-2xl"><SearchBar onClose={() => setIsSearchOpen(false)} /></div>)}</div>
+      
+      {/* ✅ Updated: #050505 Background for Mobile Menu */}
+      <div className={`mobile-sheet ${isMobileMenuOpen ? 'open' : ''}`} style={{ backgroundColor: '#050505' }}>
         <div className="flex justify-between items-center mb-6 px-2"><span className="text-white font-chillax text-lg">Menu</span><button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white/10 rounded-full"><X size={16} /></button></div>
         <div className="mobile-grid">
           {navigationItems.map((item) => { const Icon = item.icon; const isActive = pathname === item.href; return ( <Link key={item.href} href={item.href} className={`mobile-item ${isActive ? 'active' : ''}`}><Icon className="mobile-icon" /><span className="mobile-label">{item.label}</span></Link> ); })}
