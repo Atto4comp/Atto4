@@ -74,9 +74,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
   // ==========================================
   if (isMobile) {
     return (
-      // ✅ Updated: #0B0B0C background
-      <div className="relative w-full min-h-screen bg-[#0B0B0C] overflow-hidden top-0 -mt-16 sm:mt-0">
-        {/* Ambient Background */}
+      <div className="relative w-full min-h-screen bg-[#050505] overflow-hidden top-0 -mt-16 sm:mt-0">
         <div className="absolute inset-0">
           <Image
             src={buildTmdbImage(currentMovie.poster_path, 'w780')}
@@ -85,12 +83,12 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
             className="object-cover opacity-30 blur-3xl scale-110"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0C]/60 via-[#0B0B0C]/40 to-[#0B0B0C]" />
+          {/* ✅ Updated Gradients to #050505 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-[#050505]/40 to-[#050505]" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6 pt-24 gap-6">
           
-          {/* Main Vertical Poster Card */}
           <div className="relative w-full max-w-[320px] aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
             <Image
               src={buildTmdbImage(currentMovie.poster_path, TMDB_IMAGE_SIZES.poster)}
@@ -168,7 +166,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
           <div className="flex gap-3 w-full max-w-[320px]">
             <Link
               href={`/watch/movie/${currentMovie.id}`}
-              className="flex-1 flex items-center justify-center gap-2 bg-white text-black font-bold py-3.5 rounded-xl hover:scale-[1.02] active:scale-95 transition-all"
+              className="flex-1 flex items-center justify-center gap-2 bg-white text-black font-bold py-3.5 rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
             >
               <Play className="w-4 h-4 fill-black" />
               <span>Watch</span>
@@ -213,10 +211,10 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
           </div>
         ))}
         
-        {/* ✅ Updated gradients with #0B0B0C */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0C]/90 via-[#0B0B0C]/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-gradient-to-t from-[#0B0B0C] via-[#0B0B0C]/60 to-transparent" />
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#0B0B0C]/60 to-transparent" />
+        {/* ✅ Updated Gradients to #050505 */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/95 via-[#050505]/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-[500px] bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#050505]/80 to-transparent" />
       </div>
 
       {media.length > 1 && (
@@ -271,7 +269,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 href={`/watch/movie/${currentMovie.id}`}
-                className="flex items-center gap-3 bg-white text-black font-bold px-8 py-4 rounded-xl hover:bg-gray-200 transition-colors shadow-sm"
+                className="flex items-center gap-3 bg-white text-black font-bold px-8 py-4 rounded-xl hover:bg-gray-200 transition-colors shadow-lg hover:shadow-white/20 hover:scale-[1.02] transform duration-200"
               >
                 <Play className="w-5 h-5 fill-black" />
                 <span className="text-lg">Watch Now</span>
@@ -279,7 +277,7 @@ export default function HeroSection({ media, genres = [] }: HeroSectionProps) {
               
               <Link
                 href={`/movie/${currentMovie.id}`}
-                className="flex items-center gap-3 bg-white/5 backdrop-blur-md text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-colors border border-white/10"
+                className="flex items-center gap-3 bg-white/5 backdrop-blur-md text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-colors border border-white/10 hover:border-white/20"
               >
                 <Info className="w-5 h-5" />
                 <span className="text-lg">More Info</span>
