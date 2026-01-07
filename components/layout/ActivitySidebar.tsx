@@ -19,7 +19,7 @@ export default function ActivitySidebar() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch full details for a single item from TMDB
+  // Fetch full details for a single item from TMDB to get images
   const fetchItemDetails = async (item: WatchHistoryItem): Promise<EnrichedHistoryItem> => {
     try {
       const res = await fetch(
@@ -34,21 +34,21 @@ export default function ActivitySidebar() {
       };
     } catch (err) {
       console.error('Failed to fetch item details:', err);
-      return item; // Return original if fetch fails
+      return item; // Return original item if fetch fails (will use fallback placeholder)
     }
   };
 
   const loadData = async () => {
     const watched = progressStorage.getHistory();
     
-    // Enrich history items with TMDB data
+    // Enrich history items with TMDB data (images)
     const enrichedHistory = await Promise.all(
       watched.map(item => fetchItemDetails(item))
     );
     
     setHistory(enrichedHistory);
 
-    // Fetch recommendations based on last watched item
+    // Fetch recommendations based on the last watched item
     if (enrichedHistory.length > 0) {
       setLoading(true);
       const lastItem = enrichedHistory[0];
@@ -140,7 +140,7 @@ export default function ActivitySidebar() {
                       onClick={() => setIsOpen(false)}
                       className="flex gap-4 group p-3 rounded-xl bg-white/5 border border-white/5 hover:border-blue-500/50 hover:bg-white/10 transition-all"
                     >
-                      {/* Thumbnail with Play Overlay */}
+                      {/* Thumbnail with Play Overlay (No Progress Bar) */}
                       <div className="relative w-28 aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 shadow-lg">
                         {thumbnailUrl ? (
                           <Image 
@@ -159,11 +159,6 @@ export default function ActivitySidebar() {
                         {/* Play Button Overlay */}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-blue-500/20 transition-colors">
                           <Play className="w-8 h-8 text-white/80 group-hover:text-white group-hover:scale-110 transition-all drop-shadow-lg" fill="currentColor" />
-                        </div>
-                        
-                        {/* Progress Bar (if you track watch progress) */}
-                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
-                          <div className="h-full bg-blue-500 w-[60%]" /> {/* Replace with actual progress */}
                         </div>
                       </div>
                       
