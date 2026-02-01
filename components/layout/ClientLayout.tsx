@@ -2,10 +2,15 @@
 'use client';
 
 import { useDevToolsProtection } from '@/hooks/useDevToolsProtection';
+import { AuthProvider } from '@/lib/context/AuthContext';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   // Activate the "Anti-Debug" protection
-  useDevToolsProtection(); 
+  useDevToolsProtection();
 
-  return <>{children}</>;
+  return (
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+  );
 }

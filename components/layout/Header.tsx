@@ -4,17 +4,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { 
-  motion, 
-  AnimatePresence, 
-  useScroll, 
-  useMotionValueEvent 
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useMotionValueEvent
 } from 'framer-motion';
-import { 
-  Search, Menu, Home, Film, Tv, Grid3X3, X, History, 
-  Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw, Captions, ChevronRight, Zap, Sparkles 
+import {
+  Search, Menu, Home, Film, Tv, Grid3X3, X, History,
+  Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw, Captions, ChevronRight, Zap, Sparkles,
+  User, LogOut, FileText, Shield
 } from 'lucide-react';
 import SearchBar from '@/components/common/SearchBar';
+import AuthModal from '@/components/auth/AuthModal';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { signOutUser } from '@/lib/firebase/auth';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -29,29 +33,30 @@ const NAV_ITEMS = [
   { href: '/movies', label: 'Movies', icon: Film },
   { href: '/tvshows', label: 'TV Shows', icon: Tv },
   { href: '/genres', label: 'Genres', icon: Grid3X3 },
+  { href: '/originals', label: 'Originals', icon: Sparkles },
 ];
 
 const NOTIFICATIONS = [
-  { 
-    id: 1, 
-    title: 'Welcome to Atto4', 
-    desc: 'The next-gen streaming platform. Ad-free, high-speed, and fully customizable.', 
-    date: 'Now', 
-    type: 'info' 
+  {
+    id: 1,
+    title: 'Welcome to Atto4',
+    desc: 'The next-gen streaming platform. Ad-free, high-speed, and fully customizable.',
+    date: 'Now',
+    type: 'info'
   },
-  { 
-    id: 2, 
-    title: 'Version v1.0.2 (Beta)', 
-    desc: 'Current stable build. Includes new player controls and glassmorphic UI.', 
-    date: 'Dec 15', 
-    type: 'version' 
+  {
+    id: 2,
+    title: 'Version v1.0.2 (Beta)',
+    desc: 'Current stable build. Includes new player controls and glassmorphic UI.',
+    date: 'Dec 15',
+    type: 'version'
   },
-  { 
-    id: 3, 
-    title: 'New Feature: Home Button', 
-    desc: 'Added a dedicated Home button inside the player for easier navigation from embeds.', 
-    date: 'Dec 14', 
-    type: 'feature' 
+  {
+    id: 3,
+    title: 'New Feature: Home Button',
+    desc: 'Added a dedicated Home button inside the player for easier navigation from embeds.',
+    date: 'Dec 14',
+    type: 'feature'
   },
 ];
 
@@ -72,7 +77,7 @@ const NavItem = ({ item, isActive }: { item: typeof NAV_ITEMS[0]; isActive: bool
       isActive ? "text-white" : "text-white/60 group-hover:text-white"
     )}>
       <span className={cn("transition-all duration-300", isActive ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden group-hover:w-auto group-hover:opacity-100")}>
-         <item.icon size={14} />
+        <item.icon size={14} />
       </span>
       {item.label}
     </span>
@@ -84,13 +89,17 @@ const NavItem = ({ item, isActive }: { item: typeof NAV_ITEMS[0]; isActive: bool
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false); 
-  const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates'); 
+  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
+  const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates');
   const [scrolled, setScrolled] = useState(false);
-  
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const { user, userDoc, isAdmin, isCreator } = useAuth();
   const panelRef = useRef<HTMLDivElement>(null);
   const notifButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const router = useRouter();
   const pathname = usePathname();
@@ -106,7 +115,7 @@ export default function Header() {
     const handleClickOutside = (event: MouseEvent) => {
       // Close Info Panel
       if (
-        panelRef.current && 
+        panelRef.current &&
         !panelRef.current.contains(event.target as Node) &&
         notifButtonRef.current &&
         !notifButtonRef.current.contains(event.target as Node)
@@ -135,12 +144,12 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        
+
         {/* --- The Capsule --- */}
         <motion.div
           className="pointer-events-auto relative mt-4 flex items-center justify-between bg-[#050505]/85 backdrop-blur-3xl border border-white/10 shadow-2xl shadow-black/50"
           initial={{ borderRadius: 32, width: "auto" }}
-          animate={{ 
+          animate={{
             padding: scrolled ? "8px 12px" : "10px 20px",
             y: scrolled ? -6 : 0,
             borderRadius: 32
@@ -151,7 +160,7 @@ export default function Header() {
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay rounded-[32px] overflow-hidden" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
 
           <div className="relative z-10 flex items-center justify-between w-full">
-            
+
             {/* Logo */}
             <Link href="/" className="flex items-center pl-2 pr-6 group">
               <div className="relative w-7 h-7 mr-2.5 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
@@ -199,16 +208,82 @@ export default function Header() {
                 <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full ring-2 ring-[#050505]" />
               </button>
 
+              {/* User Menu / Auth Button */}
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="p-2.5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                  >
+                    <User size={18} />
+                  </button>
+                  {isUserMenuOpen && (
+                    <div
+                      ref={userMenuRef}
+                      className="absolute top-12 right-0 w-56 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[70]"
+                    >
+                      <div className="p-3 border-b border-white/10">
+                        <p className="text-sm font-medium text-white">{userDoc?.displayName}</p>
+                        <p className="text-xs text-gray-500">{userDoc?.email}</p>
+                      </div>
+                      <div className="p-2">
+                        <button
+                          onClick={() => { router.push('/profile'); setIsUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                        >
+                          <User size={16} />
+                          Profile
+                        </button>
+                        {isCreator && (
+                          <button
+                            onClick={() => { router.push('/my-submissions'); setIsUserMenuOpen(false); }}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                          >
+                            <FileText size={16} />
+                            My Submissions
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button
+                            onClick={() => { router.push('/admin'); setIsUserMenuOpen(false); }}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                          >
+                            <Shield size={16} />
+                            Admin Dashboard
+                          </button>
+                        )}
+                      </div>
+                      <div className="p-2 border-t border-white/10">
+                        <button
+                          onClick={async () => { await signOutUser(); setIsUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        >
+                          <LogOut size={16} />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="px-4 py-2 ml-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
+                >
+                  Sign In
+                </button>
+              )}
+
               {/* Mobile Menu Toggle */}
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden p-2.5 text-white/70 hover:text-white"
                 aria-label="Menu"
               >
                 {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
 
-              <button 
+              <button
                 onClick={() => router.push('/donate')}
                 className="hidden sm:flex items-center justify-center w-8 h-8 ml-2 rounded-full bg-gradient-to-tr from-yellow-600 to-yellow-400 text-black shadow-lg shadow-yellow-500/20 hover:scale-105 active:scale-95 transition-transform"
               >
@@ -231,16 +306,16 @@ export default function Header() {
             >
               <div className="flex border-b border-white/5 p-1.5">
                 {(['updates', 'guide'] as const).map((tab) => (
-                  <button 
+                  <button
                     key={tab}
-                    onClick={() => setInfoTab(tab)} 
+                    onClick={() => setInfoTab(tab)}
                     className={cn(
                       "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold uppercase tracking-wide rounded-xl transition-all",
                       infoTab === tab ? "bg-white/10 text-white" : "text-gray-500 hover:text-white hover:bg-white/5"
                     )}
-                  > 
-                    {tab === 'updates' ? <Bell size={14} /> : <BookOpen size={14} />} 
-                    {tab} 
+                  >
+                    {tab === 'updates' ? <Bell size={14} /> : <BookOpen size={14} />}
+                    {tab}
                   </button>
                 ))}
               </div>
@@ -251,7 +326,7 @@ export default function Header() {
                     {NOTIFICATIONS.map((note) => (
                       <div key={note.id} className="p-3 hover:bg-white/5 rounded-xl transition-colors group">
                         <div className="flex items-center gap-2 mb-1.5">
-                          {note.type === 'info' ? <Zap size={12} className="text-blue-400"/> : <Sparkles size={12} className="text-purple-400"/>}
+                          {note.type === 'info' ? <Zap size={12} className="text-blue-400" /> : <Sparkles size={12} className="text-purple-400" />}
                           <span className="text-[10px] text-gray-500 font-mono">{note.date}</span>
                         </div>
                         <h4 className="text-sm font-medium text-white mb-1 group-hover:text-blue-300 transition-colors">{note.title}</h4>
@@ -262,19 +337,19 @@ export default function Header() {
                 ) : (
                   <div className="p-4 space-y-5">
                     <div className="space-y-3">
-                       <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><PlayCircle size={12} /> Basic Usage</h4>
-                       <div className="text-xs text-gray-300 space-y-2 pl-3 border-l border-white/10">
-                          <p><span className="text-white font-medium">Getting Started:</span> Use <Search className="inline w-3 h-3" /> to search.</p>
-                          <p><span className="text-white font-medium">History:</span> Use <History className="inline w-3 h-3" /> to resume.</p>
-                       </div>
+                      <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><PlayCircle size={12} /> Basic Usage</h4>
+                      <div className="text-xs text-gray-300 space-y-2 pl-3 border-l border-white/10">
+                        <p><span className="text-white font-medium">Getting Started:</span> Use <Search className="inline w-3 h-3" /> to search.</p>
+                        <p><span className="text-white font-medium">History:</span> Use <History className="inline w-3 h-3" /> to resume.</p>
+                      </div>
                     </div>
                     <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl space-y-3">
-                       <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-2"><AlertCircle size={12} /> Troubleshooting</h4>
-                       <div className="text-xs text-gray-400 space-y-3">
-                          <p><span className="text-white font-medium">Auto Fix:</span> Use if video buffers.</p>
-                          <p><span className="text-white font-medium">Home Button:</span> Safe exit from embeds.</p>
-                          <p><span className="text-white font-medium">Vidly Subtitles:</span> Use <span className="underline decoration-yellow-400/50">External</span> (👂) subs.</p>
-                        </div>
+                      <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-2"><AlertCircle size={12} /> Troubleshooting</h4>
+                      <div className="text-xs text-gray-400 space-y-3">
+                        <p><span className="text-white font-medium">Auto Fix:</span> Use if video buffers.</p>
+                        <p><span className="text-white font-medium">Home Button:</span> Safe exit from embeds.</p>
+                        <p><span className="text-white font-medium">Vidly Subtitles:</span> Use <span className="underline decoration-yellow-400/50">External</span> (👂) subs.</p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -294,58 +369,64 @@ export default function Header() {
               transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
               className="pointer-events-auto absolute top-20 left-4 right-4 z-[60] bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-w-sm mx-auto"
             >
-               <div className="p-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    {NAV_ITEMS.map((item) => { 
-                      const isActive = pathname === item.href; 
-                      return ( 
-                        <Link 
-                          key={item.href} 
-                          href={item.href} 
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className={cn(
-                            "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border transition-all duration-200",
-                            isActive 
-                              ? "bg-white text-black border-white shadow-lg" 
-                              : "bg-white/5 text-gray-400 border-transparent hover:bg-white/10"
-                          )}
-                        >
-                          <item.icon size={24} strokeWidth={isActive ? 2 : 1.5} />
-                          <span className="text-xs font-medium">{item.label}</span>
-                        </Link> 
-                      ); 
-                    })}
-                  </div>
-                  
-                  <button 
-                    onClick={() => { setIsMobileMenuOpen(false); toggleActivity(); }} 
-                    className="w-full flex items-center justify-between px-5 py-4 bg-white/5 rounded-2xl border border-white/5 text-gray-300 hover:bg-white/10 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-full"><History size={16} /></div>
-                      <span className="text-sm font-medium text-white">Activity</span>
-                    </div>
-                    <ChevronRight size={16} className="opacity-50" />
-                  </button>
+              <div className="p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  {NAV_ITEMS.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn(
+                          "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border transition-all duration-200",
+                          isActive
+                            ? "bg-white text-black border-white shadow-lg"
+                            : "bg-white/5 text-gray-400 border-transparent hover:bg-white/10"
+                        )}
+                      >
+                        <item.icon size={24} strokeWidth={isActive ? 2 : 1.5} />
+                        <span className="text-xs font-medium">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
 
-                  <button 
-                    onClick={() => { setIsMobileMenuOpen(false); router.push('/donate'); }} 
-                    className="w-full py-3.5 bg-[#F59E0B] text-black rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all"
-                  >
-                    <Image src="/donation.svg" alt="Donate" width={18} height={18} />
-                    Donate
-                  </button>
-               </div>
+                <button
+                  onClick={() => { setIsMobileMenuOpen(false); toggleActivity(); }}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-white/5 rounded-2xl border border-white/5 text-gray-300 hover:bg-white/10 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-full"><History size={16} /></div>
+                    <span className="text-sm font-medium text-white">Activity</span>
+                  </div>
+                  <ChevronRight size={16} className="opacity-50" />
+                </button>
+
+                <button
+                  onClick={() => { setIsMobileMenuOpen(false); router.push('/donate'); }}
+                  className="w-full py-3.5 bg-[#F59E0B] text-black rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all"
+                >
+                  <Image src="/donation.svg" alt="Donate" width={18} height={18} />
+                  Donate
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </header>
 
+      {/* --- Auth Modal --- */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
       {/* --- Search Curtain (Modal) --- */}
       <AnimatePresence>
         {isSearchOpen && (
           <>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -353,7 +434,7 @@ export default function Header() {
               className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
             />
             {/* FIXED CENTERING WITH MOTION */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -20, x: "-50%", scale: 0.95 }}
               animate={{ opacity: 1, y: 0, x: "-50%", scale: 1 }}
               exit={{ opacity: 0, y: -20, x: "-50%", scale: 0.95 }}

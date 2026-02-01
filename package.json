@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@filiptypjeu/streamlink": "^1.0.2",
-    "@p-stream/providers": "github:p-stream/providers#production",
     "@radix-ui/react-slot": "^1.2.3",
     "@sparticuz/chromium": "^141.0.0",
     "@upstash/ratelimit": "^2.0.6",
@@ -25,6 +24,7 @@
     "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase": "^11.2.0",
     "framer-motion": "^12.23.12",
     "fuse.js": "^7.1.0",
     "hls.js": "^1.6.13",

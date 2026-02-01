@@ -1,79 +1,15 @@
-// firestore.rules
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function userDoc() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid));
-    }
-
-    function hasRole(role) {
-      return isSignedIn() && userDoc().data.role == role;
-    }
-
-    function isAdmin() {
-      return hasRole('admin');
-    }
-
-    // ----- users -----
-    match /users/{uid} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.auth.uid == uid;
-      allow update, delete: if isSignedIn() && (
-        request.auth.uid == uid || isAdmin()
-      );
-    }
-
-    // ----- originalScripts -----
-    match /originalScripts/{scriptId} {
-      allow create: if isSignedIn() && (
-        hasRole('creator') || isAdmin()
-      ) && request.resource.data.writerId == request.auth.uid;
-
-      // writer can read their own script; admin can read all
-      allow get, list: if isSignedIn() && (
-        resource.data.writerId == request.auth.uid || isAdmin()
-      );
-
-      // writer can update their own script only while pending
-      allow update: if isSignedIn() && (
-        // writer editing while pending
-        (resource.data.writerId == request.auth.uid &&
-         resource.data.status == 'pending' &&
-         request.resource.data.status == 'pending') ||
-        // admin can change anything
-        isAdmin()
-      );
-
-      // only admin can delete scripts
-      allow delete: if isAdmin();
-    }
-
-    // ----- originalProjects (Atto4 Originals) -----
-    match /originalProjects/{projectId} {
-      // public can read released projects, admin can read all
-      allow get, list: if
-        (resource.data.status == 'released') || isAdmin();
-
-      // only admin creates/updates/deletes projects
-      allow create, update, delete: if isAdmin();
-    }
-
-    // ----- originalRatings -----
-    match /originalRatings/{ratingId} {
-      allow get: if isSignedIn();
-
-      // one rating per user+project, user only edits their own
-      allow create, update: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid;
-
-      // optional: nobody deletes ratings except admin
-      allow delete: if isAdmin();
+    
+    // TEMPORARY SIMPLE RULES FOR TESTING
+    // These allow any authenticated user to read/write everything
+    // Replace with proper rules in production
+    
+    match /{document=**} {
+      // Allow all reads and writes for authenticated users
+      allow read, write: if request.auth != null;
     }
   }
 }
