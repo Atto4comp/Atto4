@@ -196,17 +196,16 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
             ...(tvRes?.results || []),
           ];
 
-          // Filter items with good backdrops (prefer backdrop over poster for landscape look)
-          const withBackdrops = combined.filter((x: any) => x?.backdrop_path && x?.vote_average > 6);
-          const withPosters = combined.filter((x: any) => x?.poster_path && x?.vote_average > 6);
+          // Filter items with good posters for the 2:3 aspect ratio
+          const withPosters = combined.filter((x: any) => x?.poster_path && x?.vote_average > 5);
           
-          // Pick a random high-quality backdrop (or fallback to poster)
-          const pool = withBackdrops.length > 0 ? withBackdrops : withPosters;
+          // Pick a random high-quality poster
+          const pool = withPosters.length > 0 ? withPosters : combined.filter((x: any) => x?.poster_path);
           const pick = pool.length > 0 
-            ? pool[Math.floor(Math.random() * Math.min(pool.length, 5))] // Random from top 5
+            ? pool[Math.floor(Math.random() * Math.min(pool.length, 5))] 
             : null;
 
-          const url = buildTmdbImage((pick?.backdrop_path || pick?.poster_path) ?? null, 'w780');
+          const url = buildTmdbImage(pick?.poster_path ?? null, 'w780');
           return { id: genre.id, url: url ?? null };
         } catch {
           return { id: genre.id, url: null };
@@ -309,7 +308,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                 <button
                   key={genre.id}
                   onClick={() => selectGenre(genre)}
-                  className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.03] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className="group relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] hover:border-white/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] aspect-[2/3]"
                 >
                   {/* Thumbnail */}
                   {thumb ? (
@@ -318,21 +317,21 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                         src={thumb}
                         alt={`${genre.name} thumbnail`}
                         fill
-                        className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-[1.06]"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 240px"
+                        className="object-cover opacity-80 transition-transform duration-700 group-hover:scale-[1.06]"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/90 via-[#09090b]/35 to-[#09090b]/10" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)]/95 via-[var(--background)]/40 to-transparent" />
                     </div>
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent" />
                   )}
 
-                  <div className="relative p-5 h-[112px] flex flex-col justify-end">
-                    <div className="text-lg leading-none mb-2 opacity-90">{emoji}</div>
-                    <h3 className="text-sm font-semibold text-white tracking-tight line-clamp-1">
+                  <div className="relative h-full flex flex-col p-5 justify-end z-10">
+                    <div className="text-3xl leading-none mb-3 opacity-90 drop-shadow-md">{emoji}</div>
+                    <h3 className="text-xl font-bold text-white tracking-tight line-clamp-2 drop-shadow-lg font-display">
                       {genre.name}
                     </h3>
-                    <div className="mt-2 h-[2px] w-10 bg-white/10 rounded-full overflow-hidden">
+                    <div className="mt-3 h-[2px] w-12 bg-white/10 rounded-full overflow-hidden">
                       <div className="h-full w-0 bg-[var(--accent)] transition-all duration-500 group-hover:w-full" />
                     </div>
                   </div>
