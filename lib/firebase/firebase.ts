@@ -1,7 +1,7 @@
 // lib/firebase/firebase.ts
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { getFirestore, Firestore, enableNetwork, disableNetwork } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 // Firebase configuration from environment variables
@@ -22,15 +22,34 @@ let storage: FirebaseStorage;
 
 // Only initialize on client side
 if (typeof window !== 'undefined') {
+    console.log('🔥 [Firebase] Initializing with config:', {
+        projectId: firebaseConfig.projectId,
+        authDomain: firebaseConfig.authDomain,
+        apiKey: firebaseConfig.apiKey ? '✅ Set' : '❌ Missing'
+    });
+
     if (!getApps().length) {
         app = initializeApp(firebaseConfig);
+        console.log('✅ [Firebase] App initialized');
     } else {
         app = getApps()[0];
+        console.log('✅ [Firebase] Using existing app');
     }
 
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
+
+    // Force enable Firestore network - fixes "client is offline" errors
+    enableNetwork(db)
+        .then(() => {
+            console.log('✅ [Firestore] Network enabled successfully');
+        })
+        .catch((error) => {
+            console.error('❌ [Firestore] Failed to enable network:', error);
+        });
+
+    console.log('✅ [Firebase] All services initialized');
 } else {
     // For SSR, create placeholder objects to prevent undefined errors
     app = null as any;

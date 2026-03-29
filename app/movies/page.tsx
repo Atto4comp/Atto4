@@ -57,7 +57,7 @@ export default async function MoviesPage() {
   console.log('🎬 Rendering static movies page');
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen text-white">
       <Suspense fallback={<LoadingSpinner />}>
         <MoviesPageClient 
           initialGenres={data.genres}

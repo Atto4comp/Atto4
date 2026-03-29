@@ -6,11 +6,10 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ActivitySidebar from '@/components/layout/ActivitySidebar'; 
-import ClientLayout from '@/components/layout/ClientLayout'; // ✅ Added Wrapper
+import ClientLayout from '@/components/layout/ClientLayout';
 import { SITE_CONFIG } from '@/lib/constants';
 import { Analytics } from "@vercel/analytics/next";
 
-// ✅ Optimize font loading with display swap
 const inter = Inter({ 
   subsets: ['latin'],
   variable: '--font-inter',
@@ -19,7 +18,6 @@ const inter = Inter({
   fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
 });
 
-// ✅ Static metadata for SSG
 export const metadata: Metadata = {
   title: {
     default: 'Atto4 - Stream Movies & TV Shows Online',
@@ -95,7 +93,6 @@ export const metadata: Metadata = {
   category: 'entertainment',
 };
 
-// ✅ Root layout with SSG optimizations
 export default function RootLayout({
   children,
 }: {
@@ -104,41 +101,23 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
-        {/* ✅ Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://image.tmdb.org" />
         <link rel="dns-prefetch" href="https://image.tmdb.org" />
-        
-        {/* ✅ Theme color for mobile browsers */}
-        <meta name="theme-color" content="#000000" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <meta name="theme-color" content="#050507" />
         <meta name="color-scheme" content="dark" />
-        
-        {/* ✅ Prevent zoom on iOS */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
       </head>
-      <body 
-        className="min-h-screen bg-black text-white antialiased overflow-x-hidden"
-        suppressHydrationWarning
-      >
-        {/* ✅ Wrap everything in ClientLayout for DevTools Protection */}
+      <body className="app-shell min-h-screen text-white antialiased overflow-x-hidden" suppressHydrationWarning>
         <ClientLayout>
-          
-          {/* Header */}
           <Header />
-          
-          {/* Main Content with proper spacing */}
-          <main className="pt-16 md:pt-20 min-h-screen relative">
+          <main className="relative min-h-screen pt-16 md:pt-20">
             {children}
           </main>
-
-          {/* ✅ Activity Sidebar (Floating) */}
           <ActivitySidebar />
-          
-          {/* Footer */}
           <Footer />
-          
-          {/* Analytics */}
           <Analytics />
-
         </ClientLayout>
       </body>
     </html>

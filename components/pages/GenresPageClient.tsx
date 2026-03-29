@@ -206,7 +206,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
             ? pool[Math.floor(Math.random() * Math.min(pool.length, 5))] // Random from top 5
             : null;
 
-          const url = buildTmdbImage(pick?.backdrop_path || pick?.poster_path, 'w780');
+          const url = buildTmdbImage((pick?.backdrop_path || pick?.poster_path) ?? null, 'w780');
           return { id: genre.id, url: url ?? null };
         } catch {
           return { id: genre.id, url: null };
@@ -227,11 +227,11 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
   }, [allGenres]);
 
   return (
-    <div className="min-h-screen bg-[#09090b] pb-24 pt-32 -mt-24 px-6 md:px-12 selection:bg-purple-500/30 relative z-0">
-      <div className="max-w-[1800px] mx-auto">
+    <div className="min-h-screen pb-16 pt-28 -mt-20 selection:bg-[var(--accent-muted)]">
+      <div className="max-w-[1800px] mx-auto px-6 md:px-12">
         {/* Header */}
         <header className="relative mb-12 flex flex-col items-center text-center">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[320px] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[320px] bg-[var(--accent)]/[0.04] rounded-full blur-[120px] pointer-events-none -z-10" />
 
           {selectedGenre ? (
             <div className="w-full flex flex-col items-center">
@@ -243,7 +243,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                 Back to Genres
               </button>
 
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white font-chillax">
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white font-display">
                 {selectedGenre.name}
               </h1>
               <p className="mt-4 text-gray-400 text-lg md:text-xl font-light max-w-2xl leading-relaxed">
@@ -252,7 +252,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
             </div>
           ) : (
             <div className="w-full">
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white font-chillax">
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white font-display">
                 Genres
               </h1>
               <p className="mt-4 text-gray-400 text-lg md:text-xl font-light max-w-2xl leading-relaxed mx-auto">
@@ -271,7 +271,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                 value={genreQuery}
                 onChange={(e) => setGenreQuery(e.target.value)}
                 placeholder="Search genres…"
-                className="w-full bg-[#0F0F0F] hover:bg-[#151515] border border-white/10 rounded-full pl-11 pr-4 py-3.5 text-sm text-gray-200 outline-none focus:ring-2 focus:ring-purple-500/40 transition-all shadow-lg shadow-black/20"
+                className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] rounded-xl pl-11 pr-4 py-3.5 text-sm text-white/72 outline-none focus:ring-2 focus:ring-[var(--accent)]/30 transition-all shadow-lg"
               />
             </div>
           ) : (
@@ -280,7 +280,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                 <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value as any)}
-                  className="appearance-none bg-[#0F0F0F] hover:bg-[#151515] border border-white/10 rounded-full pl-4 pr-10 py-3.5 text-sm text-gray-200 outline-none focus:ring-2 focus:ring-purple-500/40 transition-all shadow-lg shadow-black/20"
+                  className="appearance-none bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] rounded-xl pl-4 pr-10 py-3.5 text-sm text-white/72 outline-none focus:ring-2 focus:ring-[var(--accent)]/30 transition-all shadow-lg"
                 >
                   <option value="popular">Most Popular</option>
                   <option value="latest">Latest Releases</option>
@@ -290,7 +290,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
 
               {mixedContent.length > 0 && !isLoading && (
                 <div className="hidden md:flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-widest px-4 py-2 rounded-full border border-white/5 bg-white/[0.02]">
-                  <Sparkles className="w-3 h-3 text-purple-500" />
+                  <Sparkles className="w-3 h-3 text-[var(--accent)]" />
                   <span>{mixedContent.length} Titles</span>
                 </div>
               )}
@@ -333,7 +333,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                       {genre.name}
                     </h3>
                     <div className="mt-2 h-[2px] w-10 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full w-0 bg-purple-500/70 transition-all duration-500 group-hover:w-full" />
+                      <div className="h-full w-0 bg-[var(--accent)] transition-all duration-500 group-hover:w-full" />
                     </div>
                   </div>
                 </button>
@@ -358,7 +358,7 @@ export default function GenresPageClient({ initialGenres }: GenresPageClientProp
                 <button
                   onClick={loadMoreContent}
                   disabled={isLoading}
-                  className="group relative bg-white text-black font-bold py-4 px-12 rounded-full transition-all duration-300 hover:bg-gray-200 hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_40px_rgba(255,255,255,0.08)] hover:shadow-[0_0_60px_rgba(255,255,255,0.14)]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 text-[14px] font-semibold text-black shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-200 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-3">

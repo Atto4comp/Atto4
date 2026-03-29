@@ -1,61 +1,69 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, X, Loader2, Film, Tv, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Film, Loader2, Search, Tv, X } from 'lucide-react';
 
 const TMDB_SEARCH_URL = 'https://api.themoviedb.org/3/search/multi';
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w92';
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w154';
 
 interface SearchBarProps {
   onClose?: () => void;
 }
 
+interface SearchResult {
+  id: number;
+  media_type: 'movie' | 'tv';
+  poster_path: string | null;
+  title?: string;
+  name?: string;
+  popularity?: number;
+  release_date?: string;
+  first_air_date?: string;
+  vote_average?: number;
+}
+
 export default function SearchBar({ onClose }: SearchBarProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
-  // Auto-focus on open
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    inputRef.current?.focus();
   }, []);
 
-  // Debounced Search
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       if (query.trim().length > 1) {
-        fetchResults(query);
+        fetchResults(query.trim());
       } else {
         setResults([]);
       }
-    }, 300);
+    }, 220);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [query]);
 
-  const fetchResults = async (q: string) => {
+  const fetchResults = async (value: string) => {
     setLoading(true);
+
     try {
       const res = await fetch(
-        `${TMDB_SEARCH_URL}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&query=${encodeURIComponent(q)}&page=1`
+        `${TMDB_SEARCH_URL}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&query=${encodeURIComponent(value)}&page=1`
       );
-      const data = await res.json();
-      
+      const data = (await res.json()) as { results?: SearchResult[] };
       const filtered = (data.results || [])
-        .filter((item: any) => 
-          (item.media_type === 'movie' || item.media_type === 'tv') && 
-          item.poster_path && 
-          item.popularity > 5
+        .filter(
+          (item) =>
+            (item.media_type === 'movie' || item.media_type === 'tv') &&
+            item.poster_path &&
+            (item.popularity || 0) > 5
         )
-        .slice(0, 5); // Top 5 results only
+        .slice(0, 6);
 
       setResults(filtered);
     } catch (error) {
@@ -65,75 +73,62 @@ export default function SearchBar({ onClose }: SearchBarProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     if (!query.trim()) return;
-    
-    router.push(`/search?q=${encodeURIComponent(query)}`);
-    if (onClose) onClose();
+
+    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    onClose?.();
   };
 
   return (
-    <div ref={containerRef} className="w-full max-w-2xl mx-auto relative">
-      {/* Search Input Capsule */}
-      <form 
-        onSubmit={handleSubmit}
-        className="relative flex items-center w-full bg-[#1a1a1a] border border-white/10 rounded-full overflow-hidden shadow-2xl transition-all focus-within:border-white/30 focus-within:ring-1 focus-within:ring-white/20"
-      >
-        <div className="pl-5 text-gray-400">
-          <Search className="w-5 h-5" />
-        </div>
-
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search movies, shows, genres..."
-          className="w-full bg-transparent border-none text-white placeholder-gray-500 px-4 py-4 text-base focus:outline-none font-medium"
-        />
-
-        <div className="pr-2 flex items-center gap-2">
-          {loading && <Loader2 className="w-5 h-5 animate-spin text-blue-500" />}
-          
-          {query && !loading && (
+    <div className="relative mx-auto w-full">
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3.5 py-3">
+          <Search className="h-4 w-4 text-white/28" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search movies and series…"
+            className="w-full border-none bg-transparent text-sm text-white placeholder:text-white/24 focus:outline-none"
+          />
+          <div className="flex items-center gap-1.5">
+            {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--accent)]" />}
+            {query && !loading && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="rounded-md p-1.5 text-white/32 transition-colors hover:text-white/56"
+                aria-label="Clear search"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
             <button
-              type="button"
-              onClick={() => setQuery('')}
-              className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
+              type="submit"
+              className="hidden rounded-md border border-white/[0.08] bg-white/[0.04] p-1.5 text-white/48 transition-all hover:bg-white/[0.08] hover:text-white sm:inline-flex"
+              aria-label="Search"
             >
-              <X className="w-4 h-4" />
+              <ArrowRight className="h-3.5 w-3.5" />
             </button>
-          )}
-          
-          <button 
-            type="submit"
-            className="hidden sm:flex p-2 bg-white text-black rounded-full hover:scale-105 active:scale-95 transition-all"
-          >
-            <ArrowRight className="w-5 h-5" />
-          </button>
+          </div>
         </div>
       </form>
 
-      {/* Quick Results Dropdown */}
       {(results.length > 0 || (query.length > 1 && !loading && results.length === 0)) && (
-        <div className="absolute top-full left-0 right-0 mt-3 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 animate-in fade-in slide-in-from-top-2">
-          
+        <div className="mt-2 overflow-hidden rounded-lg border border-white/[0.06] bg-[rgba(8,9,14,0.96)] p-1.5 backdrop-blur-xl">
           {results.length > 0 ? (
-            <div className="py-2">
-              <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Top Results
-              </div>
-              
+            <div className="space-y-0.5">
               {results.map((item) => (
                 <Link
                   key={item.id}
                   href={`/${item.media_type}/${item.id}`}
                   onClick={onClose}
-                  className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors group"
+                  className="flex items-center gap-3 rounded-lg px-2.5 py-2.5 transition-colors hover:bg-white/[0.04]"
                 >
-                  {/* Poster Thumbnail */}
-                  <div className="relative w-10 h-14 flex-shrink-0 rounded overflow-hidden bg-gray-800 shadow-sm group-hover:shadow-md transition-all">
+                  <div className="relative h-14 w-10 overflow-hidden rounded-md border border-white/[0.06] bg-white/[0.03]">
                     <Image
                       src={`${TMDB_IMAGE_BASE}${item.poster_path}`}
                       alt={item.title || item.name}
@@ -142,40 +137,36 @@ export default function SearchBar({ onClose }: SearchBarProps) {
                     />
                   </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-white truncate group-hover:text-blue-400 transition-colors">
-                      {item.title || item.name}
-                    </h4>
-                    <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
-                      <span className="flex items-center gap-1 capitalize">
-                        {item.media_type === 'movie' ? <Film className="w-3 h-3" /> : <Tv className="w-3 h-3" />}
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-[13px] font-medium text-white/84">{item.title || item.name}</h4>
+                    <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-white/32">
+                      <span className="flex items-center gap-0.5 capitalize">
+                        {item.media_type === 'movie' ? <Film className="h-2.5 w-2.5" /> : <Tv className="h-2.5 w-2.5" />}
                         {item.media_type}
                       </span>
-                      <span>•</span>
-                      <span>
-                        {(item.release_date || item.first_air_date)?.split('-')[0] || 'TBA'}
-                      </span>
-                      <span className="ml-auto text-yellow-500 font-semibold flex items-center gap-1">
-                        ★ {item.vote_average?.toFixed(1)}
-                      </span>
+                      <span className="h-[3px] w-[3px] rounded-full bg-white/16" />
+                      <span>{(item.release_date || item.first_air_date)?.split('-')[0] || 'TBA'}</span>
                     </div>
+                  </div>
+
+                  <div className="text-[10px] font-medium text-white/32">
+                    {item.vote_average?.toFixed(1) || 'N/A'}
                   </div>
                 </Link>
               ))}
 
-              {/* View All Link */}
               <Link
                 href={`/search?q=${encodeURIComponent(query)}`}
                 onClick={onClose}
-                className="block mt-2 mx-2 py-3 text-center text-sm font-medium text-blue-400 hover:bg-blue-500/10 rounded-xl transition-colors border border-blue-500/20"
+                className="mt-1 flex items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2.5 text-[12px] text-white/44 transition-colors hover:bg-white/[0.04] hover:text-white/64"
               >
-                View all results for "{query}"
+                <span>See all results for &quot;{query}&quot;</span>
+                <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           ) : (
-            <div className="p-8 text-center text-gray-400">
-              <p>No results found for "{query}"</p>
+            <div className="rounded-lg bg-white/[0.02] px-4 py-6 text-center text-[12px] text-white/32">
+              No results found for &quot;{query}&quot;
             </div>
           )}
         </div>

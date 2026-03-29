@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
-import { Movie, Genre } from '@/lib/api/types';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Genre, Movie } from '@/lib/api/types';
 import MediaCard from './MediaCard';
 
 interface MediaRowProps {
@@ -28,101 +28,80 @@ export default function MediaRow({
   const [showRightArrow, setShowRightArrow] = useState(true);
 
   const handleScroll = () => {
-    if (rowRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = rowRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
-    }
+    if (!rowRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = rowRef.current;
+    setShowLeftArrow(scrollLeft > 8);
+    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 8);
   };
 
   const scroll = (direction: 'left' | 'right') => {
-    if (rowRef.current) {
-      const scrollAmount = rowRef.current.clientWidth * 0.8;
-      rowRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
+    if (!rowRef.current) return;
+    const amount = rowRef.current.clientWidth * 0.78;
+    rowRef.current.scrollBy({
+      left: direction === 'left' ? -amount : amount,
+      behavior: 'smooth',
+    });
   };
 
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="relative mb-12 md:mb-16 group/row animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header - Aligned with Thumbnails (px-4 md:px-8) */}
-      <div className="mb-4 flex items-end justify-between px-4 md:px-8">
-        <div>
-          <h2 className="font-chillax text-xl md:text-2xl font-bold text-white tracking-wide">
-            {title}
-          </h2>
-          <div className="mt-1 h-1 w-12 rounded-full bg-blue-500/80" />
-        </div>
+    <section className="section-shell relative mb-10 md:mb-14">
+      {/* Section Header */}
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <h2 className="font-display text-xl font-semibold tracking-tight text-white md:text-2xl">
+          {title}
+        </h2>
 
         <Link
           href={`/browse/${category}?type=${mediaType}`}
-          className="group flex items-center gap-1 text-sm font-medium text-gray-400 transition-colors hover:text-white"
+          className="flex items-center gap-1 text-[11px] font-medium text-white/36 transition-colors hover:text-white/64"
         >
-          <span className="hidden sm:inline">View All</span>
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          See all
+          <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
 
-      {/* Row Container */}
-      <div className="relative group/arrows">
-        {/* Left Arrow */}
+      {/* Scroll Area */}
+      <div className="group/scroll relative">
+        {/* Left Arrow (desktop) */}
         <button
           onClick={() => scroll('left')}
-          className={`absolute left-0 top-0 bottom-0 z-20 w-12 bg-gradient-to-r from-black/80 to-transparent flex items-center justify-center transition-opacity duration-300 ${
-            showLeftArrow
-              ? 'opacity-0 group-hover/arrows:opacity-100'
-              : 'opacity-0 pointer-events-none'
+          className={`absolute left-1 top-1/2 z-20 hidden -translate-y-1/2 rounded-lg border border-white/[0.08] bg-[rgba(5,5,7,0.9)] p-2 text-white/48 shadow-md backdrop-blur-md transition-all duration-200 hover:bg-white/[0.08] hover:text-white md:block ${
+            showLeftArrow ? 'opacity-0 group-hover/scroll:opacity-100' : 'pointer-events-none opacity-0'
           }`}
           aria-label="Scroll left"
         >
-          <ChevronLeft className="h-8 w-8 text-white drop-shadow-lg" />
+          <ChevronLeft className="h-4 w-4" />
         </button>
 
-        {/* Cards Scroller - Aligned with Header (px-4 md:px-8) */}
         <div
           ref={rowRef}
           onScroll={handleScroll}
-          className="flex gap-4 -mt-2 overflow-x-auto scroll-smooth px-4 md:px-8 pb-4 hide-scrollbar snap-x snap-mandatory scroll-pl-4 md:scroll-pl-8"
+          className="edge-fade hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pt-1 scroll-smooth"
         >
-          {items.map((item, i) => (
+          {items.map((item, index) => (
             <MediaCard
               key={item.id}
               media={item}
               genres={genres}
-              priority={priority && i < 4}
+              priority={priority && index < 4}
               mediaType={mediaType}
             />
           ))}
-          <div className="w-4 md:w-8 flex-shrink-0" />
         </div>
 
-        {/* Right Arrow */}
+        {/* Right Arrow (desktop) */}
         <button
           onClick={() => scroll('right')}
-          className={`absolute right-0 top-0 bottom-0 z-20 w-12 bg-gradient-to-l from-black/80 to-transparent flex items-center justify-center transition-opacity duration-300 ${
-            showRightArrow
-              ? 'opacity-0 group-hover/arrows:opacity-100'
-              : 'opacity-0 pointer-events-none'
+          className={`absolute right-1 top-1/2 z-20 hidden -translate-y-1/2 rounded-lg border border-white/[0.08] bg-[rgba(5,5,7,0.9)] p-2 text-white/48 shadow-md backdrop-blur-md transition-all duration-200 hover:bg-white/[0.08] hover:text-white md:block ${
+            showRightArrow ? 'opacity-0 group-hover/scroll:opacity-100' : 'pointer-events-none opacity-0'
           }`}
           aria-label="Scroll right"
         >
-          <ChevronRight className="h-8 w-8 text-white drop-shadow-lg" />
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
-
-      <style jsx>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-    </div>
+    </section>
   );
 }

@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import fs from 'fs/promises';
 import path from 'path';
 import { tmdbApi } from '@/lib/api/tmdb';
+import type { Genre, Movie } from '@/lib/api/types';
 import HeroSection from '@/components/media/HeroSection';
 import MediaRow from '@/components/media/MediaRow';
 import WatchlistRow from '@/components/media/WatchlistRow';
@@ -84,17 +85,17 @@ async function getHomePageData() {
       p.status === 'fulfilled' ? p.value : fallback;
 
     return {
-      trending: safe(trending, [] as any[]).slice(0, 20) || mockMovies,
+      trending: safe(trending, [] as Movie[]).slice(0, 20) || mockMovies,
       popular: safe(popularRes, { results: [] }).results || mockMovies,
       topRated: safe(topRatedRes, { results: [] }).results || mockMovies,
       latest: safe(latestRes, { results: [] }).results || mockMovies,
       popularTV: safe(popularTVRes, { results: [] }).results,
       topRatedTV: safe(topRatedTVRes, { results: [] }).results,
-      genres: safe(genres, [] as any[]),
+      genres: safe(genres, [] as Genre[]),
       isDemo: false,
       error: undefined,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return {
       trending: mockMovies,
       popular: mockMovies,
@@ -104,7 +105,7 @@ async function getHomePageData() {
       topRatedTV: [],
       genres: [],
       isDemo: true,
-      error: err.message ?? 'Unknown error',
+      error: err instanceof Error ? err.message : 'Unknown error',
     };
   }
 }
@@ -123,11 +124,10 @@ export default async function HomePage() {
   } = await getHomePageData();
 
   return (
-    // ✅ Unified BG: #09090b
-    <main className="min-h-screen bg-[#09090b] relative selection:bg-blue-500/30">
+    <main className="relative min-h-screen">
       
       {(isDemo || error) && (
-        <div className="bg-yellow-500/90 backdrop-blur-sm text-black text-center py-3 text-sm font-medium sticky top-0 z-50">
+        <div className="sticky top-0 z-40 border-b border-amber-400/10 bg-amber-400/8 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200/72 backdrop-blur-md">
           {error
             ? `API Error: ${error}`
             : 'Showing demo content — Check your TMDB API key or network.'}
@@ -135,7 +135,7 @@ export default async function HomePage() {
       )}
 
       <Suspense fallback={<LoadingSpinner />}>
-        <HeroSection media={(trending || []).slice(0, 5)} />
+        <HeroSection media={(trending || []).slice(0, 5)} genres={genres} />
       </Suspense>
       
       {/* Meta Tags for Ads */}
@@ -143,15 +143,18 @@ export default async function HomePage() {
       <meta name="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" content="b2b4e492a079f757d4b5bb735a0b869a6c6db20e" />
       <meta name="monetag" content="b9b033ecae1bfb91e08c27b64bd425be" />
       <meta name="clckd" content="fe3300dbc05d420fca54fc1ebed516ba" />
-      
-      <BannerAd />
 
-      {/* Content Section */}
-      <div className="relative z-10 pt-16 pb-20 space-y-20">
-        <MediaRow title="Trending Movies" items={trending} genres={genres} category="trending" mediaType="movie" priority />
+      <div className="relative z-10 pb-16 pt-4 md:pt-6">
+        <MediaRow title="Trending Now" items={trending} genres={genres} category="trending" mediaType="movie" priority />
         <MediaRow title="Popular Movies" items={popular} genres={genres} category="popular" mediaType="movie" />
-        <MediaRow title="Top-Rated Movies" items={topRated} genres={genres} category="top-rated" mediaType="movie" />
-        <MediaRow title="Latest Movies" items={latest} genres={genres} category="latest" mediaType="movie" />
+        
+        {/* Ad placement after initial content hook */}
+        <div className="section-shell my-2">
+          <BannerAd />
+        </div>
+
+        <MediaRow title="Top Rated" items={topRated} genres={genres} category="top-rated" mediaType="movie" />
+        <MediaRow title="New Releases" items={latest} genres={genres} category="latest" mediaType="movie" />
 
         {popularTV?.length > 0 && (
           <MediaRow title="Popular TV Shows" items={popularTV} genres={genres} category="popular" mediaType="tv" />

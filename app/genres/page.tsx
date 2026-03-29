@@ -64,7 +64,7 @@ export default async function GenresPage() {
   console.log('🎭 Rendering static genres page');
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen text-white">
       <Suspense fallback={<LoadingSpinner />}>
         <GenresPageClient
           initialGenres={data.allGenres}

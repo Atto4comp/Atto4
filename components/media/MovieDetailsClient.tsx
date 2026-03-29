@@ -118,7 +118,7 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
   // ========================
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-[#050505] pb-20 overflow-hidden">
+      <div className="min-h-screen pb-20 overflow-hidden">
         {showDownload && <DownloadModal />}
         
         <div className="fixed top-4 left-4 z-50">
@@ -139,7 +139,7 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
             <Image src={buildImage(movie.poster_path, 'w780')} alt={movie.title} fill className="object-cover" priority />
           </div>
 
-          <h1 className="text-3xl font-bold text-white text-center font-chillax mb-3 leading-tight drop-shadow-lg">{movie.title}</h1>
+          <h1 className="text-3xl font-bold text-white text-center font-display mb-3 leading-tight drop-shadow-lg">{movie.title}</h1>
           
           <div className="flex items-center justify-center flex-wrap gap-3 text-xs text-gray-200 font-medium mb-8">
             <span className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm"><Calendar className="w-3 h-3" /> {formatYear(movie.release_date)}</span>
@@ -190,7 +190,7 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
   // DESKTOP LAYOUT
   // ========================
   return (
-    <div className="relative min-h-screen bg-[#050505] text-white pt-20">
+    <div className="relative min-h-screen text-white pt-20">
       {showDownload && <DownloadModal />}
 
       {/* ... (Background Logic same as before) ... */}
@@ -216,7 +216,7 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
             <ChevronLeft className="w-4 h-4" /> Back to Home
           </Link>
 
-          <h1 className="text-5xl lg:text-7xl font-extrabold font-chillax leading-[1.05] mb-6 drop-shadow-2xl">
+          <h1 className="text-5xl lg:text-7xl font-extrabold font-display leading-[1.05] mb-6 drop-shadow-2xl">
             {movie.title}
           </h1>
 
@@ -259,7 +259,7 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
           </div>
 
           <div className="mb-10">
-            <h3 className="text-lg font-bold text-white mb-3 font-chillax drop-shadow-md">Storyline</h3>
+            <h3 className="text-lg font-bold text-white mb-3 font-display drop-shadow-md">Storyline</h3>
             <p className="text-lg text-gray-200 leading-relaxed max-w-4xl font-light drop-shadow-md">
               {movie.overview}
             </p>

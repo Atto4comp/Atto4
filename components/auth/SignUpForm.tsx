@@ -40,7 +40,7 @@ export default function SignUpForm({ onSuccess, onSwitchToSignIn }: SignUpFormPr
             await createUser(userCredential.user.uid, {
                 displayName,
                 email,
-                role,
+                role: 'regular',
             });
             console.log('✅ Firestore user document created!');
 
@@ -112,25 +112,7 @@ export default function SignUpForm({ onSuccess, onSwitchToSignIn }: SignUpFormPr
                 <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
             </div>
 
-            <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-2">
-                    Account Type
-                </label>
-                <select
-                    id="role"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    <option value="regular">Regular User (Watch & Rate)</option>
-                    <option value="creator">Creator (Submit Scripts)</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                    {role === 'creator'
-                        ? 'You can submit original scripts for review'
-                        : 'You can watch and rate Atto4 Originals'}
-                </p>
-            </div>
+
 
             <button
                 type="submit"

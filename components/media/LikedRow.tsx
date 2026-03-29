@@ -5,23 +5,21 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Heart, Star, Play } from 'lucide-react';
 import { likedStorage, WatchlistItem } from '@/lib/storage/watchlist';
 
 const TMDB_IMAGE_SIZES = {
-  backdrop: 'w780',
   poster: 'w500',
 } as const;
 
 export default function LikedRow() {
   const [liked, setLiked] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  // ✅ Use backdrop for horizontal layout
   const buildImage = (item: WatchlistItem) => {
-    // If item has backdrop_path (you might need to update WatchlistItem type to include it)
-    // defaulting to poster path with horizontal framing if backdrop missing
-    if (item.poster_path) return `https://image.tmdb.org/t/p/${TMDB_IMAGE_SIZES.backdrop}${item.poster_path}`;
+    if (item.poster_path) return `https://image.tmdb.org/t/p/${TMDB_IMAGE_SIZES.poster}${item.poster_path}`;
     return '/placeholder-movie.jpg';
   };
 
@@ -47,11 +45,11 @@ export default function LikedRow() {
 
   if (loading) {
     return (
-      <div className="mb-12 px-4 md:px-12">
-        <div className="h-8 w-48 bg-gray-800 rounded animate-pulse mb-4" />
-        <div className="flex gap-4 overflow-hidden">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="flex-shrink-0 w-[280px] aspect-video bg-gray-900 rounded-xl animate-pulse" />
+      <div className="section-shell mb-10">
+        <div className="h-6 w-36 skeleton-pulse rounded-md mb-4" />
+        <div className="flex gap-3 overflow-hidden">
+          {[1,2,3,4,5].map(i => (
+            <div key={i} className="flex-shrink-0 w-[156px] sm:w-[172px] md:w-[190px] aspect-[2/3] skeleton-pulse rounded-xl" />
           ))}
         </div>
       </div>
@@ -61,78 +59,78 @@ export default function LikedRow() {
   if (liked.length === 0) return null;
 
   return (
-    <div className="relative mb-12 group/row">
-      <div className="px-4 md:px-12">
-        <div className="flex items-end justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl md:text-2xl font-bold text-white font-chillax tracking-wide">Liked Content</h2>
-            <span className="px-2 py-0.5 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium">
-              {liked.length}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory">
-          {liked.map((item) => {
-            const title = item.media_type === 'movie' ? item.title : item.name;
-            const releaseDate = item.media_type === 'movie' ? item.release_date : item.first_air_date;
-            const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
-
-            return (
-              <div key={`${item.media_type}-${item.id}`} className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] group/card">
-                <Link href={`/${item.media_type}/${item.id}`} className="block">
-                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 border border-white/5 transition-all duration-300 group-hover/card:border-white/20 group-hover/card:shadow-lg">
-                    
-                    <Image
-                      src={buildImage(item)}
-                      alt={title || 'Media'}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover/card:scale-105"
-                      sizes="(max-width: 768px) 280px, 320px"
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
-
-                    <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
-                      <button
-                        onClick={(e) => handleRemove(item.id, item.media_type, e)}
-                        className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
-                        title="Remove from Liked"
-                      >
-                        <Heart className="w-4 h-4 fill-current" />
-                      </button>
-                      <div className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center shadow-lg">
-                        <Play className="w-4 h-4 fill-current ml-0.5" />
-                      </div>
-                    </div>
-
-                    <div className="absolute top-3 right-3 flex gap-2">
-                      {item.vote_average > 0 && (
-                        <div className="bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded-lg flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          <span className="text-[10px] font-bold text-white">{item.vote_average.toFixed(1)}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="text-white font-bold text-base leading-tight line-clamp-1 font-chillax group-hover/card:text-blue-400 transition-colors">
-                        {title}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                        {year && <span>{year}</span>}
-                        <span className="w-1 h-1 bg-gray-600 rounded-full" />
-                        <span className="uppercase">{item.media_type === 'movie' ? 'Movie' : 'TV'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            );
-          })}
-          <div className="w-4 flex-shrink-0" />
-        </div>
+    <section className="section-shell relative mb-10 md:mb-14">
+      <div className="mb-4 flex items-baseline gap-2.5">
+        <h2 className="font-display text-lg font-semibold tracking-tight text-white/92 md:text-xl">
+          Liked
+        </h2>
+        <span className="rounded-md bg-rose-500/12 px-2 py-0.5 text-[10px] font-semibold text-rose-400">
+          {liked.length}
+        </span>
       </div>
-    </div>
+
+      <div className="edge-fade hide-scrollbar flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+        {liked.map((item) => {
+          const title = item.media_type === 'movie' ? item.title : item.name;
+          const releaseDate = item.media_type === 'movie' ? item.release_date : item.first_air_date;
+          const year = releaseDate ? new Date(releaseDate).getFullYear() : null;
+
+          return (
+            <div key={`${item.media_type}-${item.id}`} className="snap-start flex-shrink-0 w-[156px] sm:w-[172px] md:w-[190px] group">
+              <Link href={`/${item.media_type}/${item.id}`} className="block">
+                <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-white/[0.05] bg-[#0a0a0e] transition-all duration-300 group-hover:-translate-y-1">
+                  <Image
+                    src={buildImage(item)}
+                    alt={title || 'Media'}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                    sizes="(max-width: 640px) 156px, (max-width: 768px) 172px, 190px"
+                  />
+
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/48 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-250">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.push(`/watch/${item.media_type}/${item.id}`);
+                      }}
+                      className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-110"
+                    >
+                      <Play className="ml-0.5 h-4 w-4 fill-current" />
+                    </button>
+                    <button
+                      onClick={(e) => handleRemove(item.id, item.media_type, e)}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500 text-white transition-transform hover:scale-110"
+                      title="Unlike"
+                    >
+                      <Heart className="h-3.5 w-3.5 fill-current" />
+                    </button>
+                  </div>
+
+                  {/* Rating */}
+                  {item.vote_average > 0 && (
+                    <div className="absolute top-2 right-2 flex items-center gap-0.5 rounded-md bg-black/48 backdrop-blur-md px-1.5 py-0.5 border border-white/[0.06]">
+                      <Star className="w-[9px] h-[9px] fill-[var(--accent-warm)] text-[var(--accent-warm)]" />
+                      <span className="text-[9px] font-semibold text-white/72">{item.vote_average.toFixed(1)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="mt-2.5 px-0.5">
+                  <h3 className="font-display text-[13px] font-medium tracking-tight text-white/88 line-clamp-1">{title}</h3>
+                  <div className="mt-1 flex items-center gap-1.5 text-[10px] text-white/28">
+                    {year && <span>{year}</span>}
+                    {year && <span className="h-[3px] w-[3px] rounded-full bg-white/16" />}
+                    <span className="uppercase">{item.media_type}</span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

@@ -6,7 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Star, Play } from 'lucide-react';
 
-// Types
 type MediaItem = {
   id: number;
   title?: string;
@@ -27,10 +26,9 @@ interface Props {
 }
 
 export default function MediaGrid({ items, mediaType, loading }: Props) {
-  
-  // âœ… Helper Functions defined INSIDE component scope
+
   const getItemTitle = (item: MediaItem) => item.title || item.name || 'Untitled';
-  
+
   const getItemYear = (item: MediaItem) => {
     const date = item.release_date || item.first_air_date;
     return date ? new Date(date).getFullYear() : null;
@@ -51,9 +49,9 @@ export default function MediaGrid({ items, mediaType, loading }: Props) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="w-full aspect-video bg-gray-900 rounded-xl animate-pulse border border-white/5" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
+        {Array.from({ length: 18 }).map((_, i) => (
+          <div key={i} className="aspect-[2/3] skeleton-pulse rounded-xl" />
         ))}
       </div>
     );
@@ -61,71 +59,73 @@ export default function MediaGrid({ items, mediaType, loading }: Props) {
 
   if (!items?.length) {
     return (
-      <div className="text-center py-16">
-        <div className="text-6xl mb-4">ðŸŽ¬</div>
-        <p className="text-gray-400 text-lg">No content available</p>
-        <p className="text-gray-500 text-sm mt-2">Try adjusting your filters</p>
+      <div className="text-center py-24">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.03]">
+          <span className="text-2xl opacity-40">🎬</span>
+        </div>
+        <p className="text-white/48 text-sm">No content available</p>
+        <p className="text-white/24 text-xs mt-1">Try adjusting your filters</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
       {items.map((item) => {
         const title = getItemTitle(item);
         const year = getItemYear(item);
         const rating = formatRating(item.vote_average);
         const href = getItemHref(item);
-        
-        // Prefer backdrop for horizontal layout, fallback to poster
-        const posterUrl = item.backdrop_path 
-          ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}`
-          : item.poster_path 
-            ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+
+        const posterUrl = item.poster_path
+          ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+          : item.backdrop_path
+            ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}`
             : null;
 
         return (
           <Link key={`${item.id}-${item.media_type || mediaType}`} href={href} className="group block">
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 border border-white/5 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-white/20 group-hover:-translate-y-1">
-              
+            <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-white/[0.06] bg-[#0a0a0e] shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:-translate-y-1.5 group-hover:drop-shadow-[0_12px_28px_rgba(0,0,0,0.4)]">
+
               {/* Image */}
               <Image
                 src={posterUrl || '/placeholder-movie.jpg'}
                 alt={title}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 20vw, 16vw"
               />
-              
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-90" />
-              
-              {/* Play Icon on Hover */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20 backdrop-blur-[1px]">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg scale-90 group-hover:scale-100 transition-transform">
-                  <Play className="w-5 h-5 fill-black text-black ml-0.5" />
+
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/48 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-250">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-110">
+                  <Play className="ml-0.5 h-4 w-4 fill-current" />
                 </div>
               </div>
 
-              {/* Content Info */}
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <div className="flex justify-between items-end">
-                  <div className="flex-1 mr-2">
-                    <h3 className="text-white font-bold text-base leading-tight line-clamp-1 font-chillax">
-                      {title}
-                    </h3>
-                    <p className="text-gray-400 text-xs mt-1 font-medium">
-                      {year || 'Unknown'}
-                    </p>
-                  </div>
-                  
-                  {rating && (
-                    <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md px-2 py-1 rounded-md border border-white/10">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs font-bold text-white">{rating}</span>
-                    </div>
-                  )}
+              {/* Rating Badge */}
+              {rating && (
+                <div className="absolute top-2 right-2 flex items-center gap-0.5 rounded-md bg-black/48 backdrop-blur-md px-1.5 py-0.5 border border-white/[0.06]">
+                  <Star className="w-[9px] h-[9px] fill-[var(--accent-warm)] text-[var(--accent-warm)]" />
+                  <span className="text-[9px] font-semibold text-white/72">{rating}</span>
                 </div>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="mt-2.5 px-0.5">
+              <h3 className="font-display text-[13px] font-medium leading-tight tracking-tight text-white line-clamp-1">
+                {title}
+              </h3>
+              <div className="mt-1 flex items-center gap-1.5 text-[10px] text-white/36">
+                {year && <span>{year}</span>}
+                {year && rating && <span className="h-[3px] w-[3px] rounded-full bg-white/20" />}
+                {rating && (
+                  <span className="flex items-center gap-0.5 text-[var(--accent-warm)]">
+                    <Star className="h-[9px] w-[9px] fill-[var(--accent-warm)] text-[var(--accent-warm)]" />
+                    {rating}
+                  </span>
+                )}
               </div>
             </div>
           </Link>

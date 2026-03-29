@@ -1,447 +1,488 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useMotionValueEvent
-} from 'framer-motion';
-import {
-  Search, Menu, Home, Film, Tv, Grid3X3, X, History,
-  Bell, BookOpen, AlertCircle, PlayCircle, RefreshCw, Captions, ChevronRight, Zap, Sparkles,
-  User, LogOut, FileText, Shield
+  Bell,
+  BookOpen,
+  ChevronRight,
+  Film,
+  Grid3X3,
+  History,
+  Home,
+  LogOut,
+  Menu,
+  Search,
+  Shield,
+  Sparkles,
+  Tv,
+  User,
+  X,
+  FileText,
+  PlayCircle,
+  AlertCircle,
 } from 'lucide-react';
 import SearchBar from '@/components/common/SearchBar';
 import AuthModal from '@/components/auth/AuthModal';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { signOutUser } from '@/lib/firebase/auth';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 
-// --- Utility ---
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-// --- Constants ---
 const NAV_ITEMS = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/movies', label: 'Movies', icon: Film },
   { href: '/tvshows', label: 'TV Shows', icon: Tv },
   { href: '/genres', label: 'Genres', icon: Grid3X3 },
-  { href: '/originals', label: 'Originals', icon: Sparkles },
 ];
 
 const NOTIFICATIONS = [
   {
     id: 1,
     title: 'Welcome to Atto4',
-    desc: 'The next-gen streaming platform. Ad-free, high-speed, and fully customizable.',
+    desc: 'A lighter, faster shell built around instant browsing and cleaner focus.',
     date: 'Now',
-    type: 'info'
   },
   {
     id: 2,
-    title: 'Version v1.0.2 (Beta)',
-    desc: 'Current stable build. Includes new player controls and glassmorphic UI.',
-    date: 'Dec 15',
-    type: 'version'
+    title: 'Player flow improved',
+    desc: 'Navigation and quick actions are now easier to reach on both desktop and mobile.',
+    date: 'Update',
   },
   {
     id: 3,
-    title: 'New Feature: Home Button',
-    desc: 'Added a dedicated Home button inside the player for easier navigation from embeds.',
-    date: 'Dec 14',
-    type: 'feature'
+    title: 'Search stays in context',
+    desc: 'Quick results remain compact so you can jump into a title without leaving the page.',
+    date: 'UX',
   },
 ];
 
-// --- Sub-Components ---
-
-// 1. Magnetic Nav Item (Desktop)
-const NavItem = ({ item, isActive }: { item: typeof NAV_ITEMS[0]; isActive: boolean }) => (
-  <Link href={item.href} className="relative px-4 py-2 rounded-full group">
-    {isActive && (
-      <motion.div
-        layoutId="nav-pill"
-        className="absolute inset-0 bg-white/10 rounded-full"
-        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+const DesktopNavItem = ({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: boolean;
+}) => (
+  <Link
+    href={href}
+    className={cn(
+      'relative px-3.5 py-2 text-[13px] font-medium transition-colors duration-200',
+      active ? 'text-white' : 'text-white/40 hover:text-white/72'
+    )}
+  >
+    {active && (
+      <motion.span
+        layoutId="desktop-nav-dot"
+        className="absolute bottom-0 left-1/2 h-[3px] w-[3px] -translate-x-1/2 rounded-full bg-white"
+        transition={{ type: 'spring', stiffness: 500, damping: 36 }}
       />
     )}
-    <span className={cn(
-      "relative z-10 flex items-center gap-2 text-sm font-medium transition-colors duration-200",
-      isActive ? "text-white" : "text-white/60 group-hover:text-white"
-    )}>
-      <span className={cn("transition-all duration-300", isActive ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden group-hover:w-auto group-hover:opacity-100")}>
-        <item.icon size={14} />
-      </span>
-      {item.label}
-    </span>
+    <span className="relative z-10">{label}</span>
   </Link>
 );
-
-// --- Main Header ---
 
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates');
-  const [scrolled, setScrolled] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const { user, userDoc, isAdmin, isCreator } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { scrollY } = useScroll();
+
   const panelRef = useRef<HTMLDivElement>(null);
   const notifButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const { scrollY } = useScroll();
-  const router = useRouter();
-  const pathname = usePathname();
 
-  // Optimized Scroll Physics
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const isScrolled = latest > 20;
-    if (isScrolled !== scrolled) setScrolled(isScrolled);
+  useMotionValueEvent(scrollY, 'change', (latest) => {
+    setScrolled(latest > 12);
   });
 
-  // Click Outside Logic
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Close Info Panel
+      const target = event.target as Node;
+
       if (
+        isInfoPanelOpen &&
         panelRef.current &&
-        !panelRef.current.contains(event.target as Node) &&
+        !panelRef.current.contains(target) &&
         notifButtonRef.current &&
-        !notifButtonRef.current.contains(event.target as Node)
+        !notifButtonRef.current.contains(target)
       ) {
         setIsInfoPanelOpen(false);
       }
-      // Close Mobile Menu
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        const target = event.target as HTMLElement;
-        if (!target.closest('button[aria-label="Menu"]')) setIsMobileMenuOpen(false);
+
+      if (isMobileMenuOpen && menuRef.current && !menuRef.current.contains(target)) {
+        const element = event.target as HTMLElement;
+        if (!element.closest('button[aria-label="Menu"]')) {
+          setIsMobileMenuOpen(false);
+        }
+      }
+
+      if (isUserMenuOpen && userMenuRef.current && !userMenuRef.current.contains(target)) {
+        const element = event.target as HTMLElement;
+        if (!element.closest('button[aria-label="User menu"]')) {
+          setIsUserMenuOpen(false);
+        }
       }
     };
-    if (isInfoPanelOpen || isMobileMenuOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isInfoPanelOpen, isMobileMenuOpen]);
 
-  // Cleanup
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isInfoPanelOpen, isMobileMenuOpen, isUserMenuOpen]);
+
   useEffect(() => {
-    setIsMobileMenuOpen(false);
     setIsSearchOpen(false);
+    setIsMobileMenuOpen(false);
     setIsInfoPanelOpen(false);
+    setIsUserMenuOpen(false);
   }, [pathname]);
 
   const toggleActivity = () => window.dispatchEvent(new CustomEvent('toggle-activity-view'));
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
-
-        {/* --- The Capsule --- */}
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-2.5 md:px-5 md:pt-3.5">
         <motion.div
-          className="pointer-events-auto relative mt-4 flex items-center justify-between bg-[#050505]/85 backdrop-blur-3xl border border-white/10 shadow-2xl shadow-black/50"
-          initial={{ borderRadius: 32, width: "auto" }}
+          initial={false}
           animate={{
-            padding: scrolled ? "8px 12px" : "10px 20px",
-            y: scrolled ? -6 : 0,
-            borderRadius: 32
+            width: scrolled ? 'min(1000px, calc(100vw - 20px))' : 'min(1120px, calc(100vw - 20px))',
           }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          className={cn(
+            'pointer-events-auto relative flex items-center gap-2 rounded-2xl px-2.5 py-2 md:px-3.5',
+            'border border-white/[0.06] backdrop-blur-2xl',
+            scrolled
+              ? 'bg-[rgba(5,5,7,0.88)] shadow-[0_4px_24px_-6px_rgba(0,0,0,0.5)]'
+              : 'bg-[rgba(5,5,7,0.5)]'
+          )}
         >
-          {/* Noise Texture */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay rounded-[32px] overflow-hidden" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+          {/* Logo */}
+          <Link href="/" className="relative z-10 flex items-center gap-2.5 rounded-xl px-1.5 py-1">
+            <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.04]">
+              <Image src="/logo.png" alt="Atto4" width={20} height={20} className="object-contain" priority />
+            </div>
+            <span className="hidden font-display text-[15px] font-semibold tracking-tight text-white min-[430px]:block">
+              Atto4
+            </span>
+          </Link>
 
-          <div className="relative z-10 flex items-center justify-between w-full">
-
-            {/* Logo */}
-            <Link href="/" className="flex items-center pl-2 pr-6 group">
-              <div className="relative w-7 h-7 mr-2.5 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
-                <Image src="/logo.png" alt="Atto4" width={28} height={28} className="object-contain" priority />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-lg text-white tracking-tight leading-none">Atto4</span>
-                <span className="text-[9px] text-gray-500 font-bold tracking-[0.25em] uppercase leading-none mt-0.5 group-hover:text-blue-400 transition-colors">Stream</span>
-              </div>
-            </Link>
-
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center mr-4">
+          {/* Desktop Nav */}
+          <nav className="relative z-10 hidden flex-1 items-center justify-center md:flex">
+            <div className="flex items-center gap-0.5">
               {NAV_ITEMS.map((item) => (
-                <NavItem key={item.href} item={item} isActive={pathname === item.href} />
+                <DesktopNavItem
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  icon={item.icon}
+                  active={pathname === item.href}
+                />
               ))}
-            </nav>
+            </div>
+          </nav>
 
-            {/* Actions */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setIsSearchOpen(true)}
-                className="p-2.5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                <Search size={18} />
-              </button>
+          {/* Right Actions */}
+          <div className="relative z-10 ml-auto flex items-center gap-1">
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="focus-ring rounded-lg p-2 text-white/36 transition-colors duration-150 hover:text-white/72"
+              aria-label="Open search"
+            >
+              <Search className="h-[16px] w-[16px]" />
+            </button>
 
-              <button
-                onClick={toggleActivity}
-                className="p-2.5 rounded-full text-white/60 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
-              >
-                <History size={18} />
-              </button>
+            <button
+              onClick={toggleActivity}
+              className="focus-ring hidden rounded-lg p-2 text-white/36 transition-colors duration-150 hover:text-white/72 sm:inline-flex"
+              aria-label="Open activity"
+            >
+              <History className="h-[16px] w-[16px]" />
+            </button>
 
-              {/* Notification Button */}
-              <button
-                ref={notifButtonRef}
-                onClick={() => setIsInfoPanelOpen(!isInfoPanelOpen)}
-                className={cn(
-                  "p-2.5 rounded-full transition-colors relative",
-                  isInfoPanelOpen ? "text-white bg-white/10" : "text-white/60 hover:text-purple-400 hover:bg-purple-500/10"
-                )}
-              >
-                <Bell size={18} />
-                <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full ring-2 ring-[#050505]" />
-              </button>
+            <button
+              ref={notifButtonRef}
+              onClick={() => setIsInfoPanelOpen((current) => !current)}
+              className={cn(
+                'focus-ring relative rounded-lg p-2 transition-colors duration-150',
+                isInfoPanelOpen
+                  ? 'text-white/72'
+                  : 'text-white/36 hover:text-white/72'
+              )}
+              aria-label="Open updates"
+            >
+              <Bell className="h-[16px] w-[16px]" />
+              <span className="absolute right-1.5 top-1.5 h-1 w-1 rounded-full bg-[var(--accent)]" />
+            </button>
 
-              {/* User Menu / Auth Button */}
-              {user ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="p-2.5 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-                  >
-                    <User size={18} />
-                  </button>
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen((current) => !current)}
+                  className="focus-ring rounded-lg border border-white/[0.08] bg-white/[0.04] p-2 text-white/56 transition-all duration-150 hover:bg-white/[0.08] hover:text-white"
+                  aria-label="User menu"
+                >
+                  <User className="h-[16px] w-[16px]" />
+                </button>
+
+                <AnimatePresence>
                   {isUserMenuOpen && (
-                    <div
+                    <motion.div
                       ref={userMenuRef}
-                      className="absolute top-12 right-0 w-56 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[70]"
+                      initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      className="surface-panel-strong absolute right-0 top-12 z-[70] w-56 overflow-hidden rounded-xl"
                     >
-                      <div className="p-3 border-b border-white/10">
-                        <p className="text-sm font-medium text-white">{userDoc?.displayName}</p>
-                        <p className="text-xs text-gray-500">{userDoc?.email}</p>
+                      <div className="border-b border-white/[0.06] px-4 py-3">
+                        <p className="text-sm font-medium text-white">{userDoc?.displayName || 'Account'}</p>
+                        <p className="mt-0.5 text-xs text-white/36">{userDoc?.email}</p>
                       </div>
-                      <div className="p-2">
+                      <div className="p-1.5">
                         <button
-                          onClick={() => { router.push('/profile'); setIsUserMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                          onClick={() => {
+                            router.push('/profile');
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] text-white/56 transition-colors hover:bg-white/[0.05] hover:text-white"
                         >
-                          <User size={16} />
+                          <User className="h-3.5 w-3.5" />
                           Profile
                         </button>
                         {isCreator && (
                           <button
-                            onClick={() => { router.push('/my-submissions'); setIsUserMenuOpen(false); }}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                            onClick={() => {
+                              router.push('/my-submissions');
+                              setIsUserMenuOpen(false);
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] text-white/56 transition-colors hover:bg-white/[0.05] hover:text-white"
                           >
-                            <FileText size={16} />
+                            <FileText className="h-3.5 w-3.5" />
                             My Submissions
                           </button>
                         )}
                         {isAdmin && (
                           <button
-                            onClick={() => { router.push('/admin'); setIsUserMenuOpen(false); }}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                            onClick={() => {
+                              router.push('/admin');
+                              setIsUserMenuOpen(false);
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] text-white/56 transition-colors hover:bg-white/[0.05] hover:text-white"
                           >
-                            <Shield size={16} />
+                            <Shield className="h-3.5 w-3.5" />
                             Admin Dashboard
                           </button>
                         )}
                       </div>
-                      <div className="p-2 border-t border-white/10">
+                      <div className="border-t border-white/[0.06] p-1.5">
                         <button
-                          onClick={async () => { await signOutUser(); setIsUserMenuOpen(false); }}
-                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          onClick={async () => {
+                            await signOutUser();
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] text-red-400/72 transition-colors hover:bg-red-500/[0.06] hover:text-red-300"
                         >
-                          <LogOut size={16} />
+                          <LogOut className="h-3.5 w-3.5" />
                           Sign Out
                         </button>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="px-4 py-2 ml-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
-                >
-                  Sign In
-                </button>
-              )}
-
-              {/* Mobile Menu Toggle */}
+                </AnimatePresence>
+              </div>
+            ) : (
               <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2.5 text-white/70 hover:text-white"
-                aria-label="Menu"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="hidden rounded-lg border border-white/[0.1] px-3.5 py-1.5 text-[13px] font-medium text-white/72 transition-all duration-200 hover:border-white/20 hover:text-white sm:block"
               >
-                {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+                Sign In
               </button>
+            )}
 
-              <button
-                onClick={() => router.push('/donate')}
-                className="hidden sm:flex items-center justify-center w-8 h-8 ml-2 rounded-full bg-gradient-to-tr from-yellow-600 to-yellow-400 text-black shadow-lg shadow-yellow-500/20 hover:scale-105 active:scale-95 transition-transform"
-              >
-                <Image src="/donation.svg" width={14} height={14} alt="Donate" className="invert-0" />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen((current) => !current)}
+              className="focus-ring rounded-lg p-2 text-white/48 transition-colors duration-150 hover:text-white/72 md:hidden"
+              aria-label="Menu"
+            >
+              {isMobileMenuOpen ? <X className="h-[16px] w-[16px]" /> : <Menu className="h-[16px] w-[16px]" />}
+            </button>
           </div>
         </motion.div>
 
-        {/* --- Notification Panel --- */}
+        {/* Notification / Info Panel */}
         <AnimatePresence>
           {isInfoPanelOpen && (
             <motion.div
               ref={panelRef}
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              initial={{ opacity: 0, y: 8, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              transition={{ type: "spring", duration: 0.3 }}
-              className="pointer-events-auto absolute top-20 right-4 md:right-auto md:left-1/2 md:translate-x-[180px] w-[360px] sm:w-[380px] bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[60]"
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="surface-panel-strong pointer-events-auto absolute right-3 top-[72px] z-[60] w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-xl md:right-5"
             >
-              <div className="flex border-b border-white/5 p-1.5">
+              <div className="grid grid-cols-2 gap-0.5 border-b border-white/[0.06] p-1.5">
                 {(['updates', 'guide'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setInfoTab(tab)}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold uppercase tracking-wide rounded-xl transition-all",
-                      infoTab === tab ? "bg-white/10 text-white" : "text-gray-500 hover:text-white hover:bg-white/5"
+                      'rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors',
+                      infoTab === tab ? 'bg-white/[0.06] text-white/72' : 'text-white/28 hover:text-white/48'
                     )}
                   >
-                    {tab === 'updates' ? <Bell size={14} /> : <BookOpen size={14} />}
                     {tab}
                   </button>
                 ))}
               </div>
 
-              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-1">
-                {infoTab === 'updates' ? (
-                  <div className="space-y-1 p-1">
-                    {NOTIFICATIONS.map((note) => (
-                      <div key={note.id} className="p-3 hover:bg-white/5 rounded-xl transition-colors group">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          {note.type === 'info' ? <Zap size={12} className="text-blue-400" /> : <Sparkles size={12} className="text-purple-400" />}
-                          <span className="text-[10px] text-gray-500 font-mono">{note.date}</span>
-                        </div>
-                        <h4 className="text-sm font-medium text-white mb-1 group-hover:text-blue-300 transition-colors">{note.title}</h4>
-                        <p className="text-xs text-gray-400 leading-relaxed">{note.desc}</p>
+              {infoTab === 'updates' ? (
+                <div className="space-y-1.5 p-2">
+                  {NOTIFICATIONS.map((note) => (
+                    <div key={note.id} className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-3.5">
+                      <div className="mb-1.5 flex items-center justify-between text-[10px] uppercase tracking-[0.16em] text-white/24">
+                        <span>{note.date}</span>
+                        <Bell className="h-3 w-3" />
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 space-y-5">
-                    <div className="space-y-3">
-                      <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2"><PlayCircle size={12} /> Basic Usage</h4>
-                      <div className="text-xs text-gray-300 space-y-2 pl-3 border-l border-white/10">
-                        <p><span className="text-white font-medium">Getting Started:</span> Use <Search className="inline w-3 h-3" /> to search.</p>
-                        <p><span className="text-white font-medium">History:</span> Use <History className="inline w-3 h-3" /> to resume.</p>
-                      </div>
+                      <h4 className="text-[13px] font-medium text-white/88">{note.title}</h4>
+                      <p className="mt-1 text-[12px] leading-[1.6] text-white/40">{note.desc}</p>
                     </div>
-                    <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl space-y-3">
-                      <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-2"><AlertCircle size={12} /> Troubleshooting</h4>
-                      <div className="text-xs text-gray-400 space-y-3">
-                        <p><span className="text-white font-medium">Auto Fix:</span> Use if video buffers.</p>
-                        <p><span className="text-white font-medium">Home Button:</span> Safe exit from embeds.</p>
-                        <p><span className="text-white font-medium">Vidly Subtitles:</span> Use <span className="underline decoration-yellow-400/50">External</span> (👂) subs.</p>
-                      </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-1.5 p-2">
+                  <div className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-3.5">
+                    <div className="mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-white/28">
+                      <PlayCircle className="h-3 w-3" />
+                      Watching
                     </div>
+                    <p className="text-[12px] leading-[1.6] text-white/40">
+                      Use quick search to jump in, then open activity when you want to resume something you already started.
+                    </p>
                   </div>
-                )}
-              </div>
+                  <div className="rounded-lg border border-amber-400/[0.08] bg-amber-400/[0.02] p-3.5">
+                    <div className="mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-amber-200/48">
+                      <AlertCircle className="h-3 w-3" />
+                      Playback Help
+                    </div>
+                    <p className="text-[12px] leading-[1.6] text-white/40">
+                      If a source buffers, switch players or reopen the title page to try another stream without losing context.
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-3.5">
+                    <div className="mb-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-white/28">
+                      <BookOpen className="h-3 w-3" />
+                      Discovery
+                    </div>
+                    <p className="text-[12px] leading-[1.6] text-white/40">
+                      Browse by rows for speed, or open the full category views when you want a deeper catalog pass.
+                    </p>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* --- Mobile Menu --- */}
+        {/* Mobile Menu */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
               ref={menuRef}
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
-              className="pointer-events-auto absolute top-20 left-4 right-4 z-[60] bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-w-sm mx-auto"
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="surface-panel-strong pointer-events-auto absolute inset-x-3 top-[72px] z-[60] overflow-hidden rounded-xl md:hidden"
             >
-              <div className="p-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {NAV_ITEMS.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={cn(
-                          "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border transition-all duration-200",
-                          isActive
-                            ? "bg-white text-black border-white shadow-lg"
-                            : "bg-white/5 text-gray-400 border-transparent hover:bg-white/10"
-                        )}
-                      >
-                        <item.icon size={24} strokeWidth={isActive ? 2 : 1.5} />
-                        <span className="text-xs font-medium">{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
+              <div className="grid grid-cols-2 gap-1.5 p-2">
+                {NAV_ITEMS.map((item) => {
+                  const active = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={cn(
+                        'rounded-lg border px-3.5 py-3.5 text-left transition-all',
+                        active
+                          ? 'border-white/[0.1] bg-white/[0.06] text-white'
+                          : 'border-white/[0.04] bg-white/[0.02] text-white/44 hover:bg-white/[0.04] hover:text-white/72'
+                      )}
+                    >
+                      <item.icon className="mb-2 h-4 w-4" />
+                      <div className="text-[13px] font-medium">{item.label}</div>
+                    </Link>
+                  );
+                })}
+              </div>
 
+              <div className="space-y-1.5 border-t border-white/[0.06] p-2">
                 <button
-                  onClick={() => { setIsMobileMenuOpen(false); toggleActivity(); }}
-                  className="w-full flex items-center justify-between px-5 py-4 bg-white/5 rounded-2xl border border-white/5 text-gray-300 hover:bg-white/10 transition-colors"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    toggleActivity();
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.02] px-3.5 py-3.5 text-left text-white/48 transition-colors hover:bg-white/[0.04] hover:text-white/72"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-full"><History size={16} /></div>
-                    <span className="text-sm font-medium text-white">Activity</span>
+                  <div className="flex items-center gap-2.5">
+                    <History className="h-4 w-4" />
+                    <span className="text-[13px] font-medium">Activity</span>
                   </div>
-                  <ChevronRight size={16} className="opacity-50" />
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </button>
 
-                <button
-                  onClick={() => { setIsMobileMenuOpen(false); router.push('/donate'); }}
-                  className="w-full py-3.5 bg-[#F59E0B] text-black rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all"
-                >
-                  <Image src="/donation.svg" alt="Donate" width={18} height={18} />
-                  Donate
-                </button>
+                {!user && (
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="w-full rounded-lg border border-white/[0.1] bg-white/[0.04] px-3.5 py-3.5 text-[13px] font-medium text-white/72 transition-all hover:bg-white/[0.08] hover:text-white"
+                  >
+                    Sign In
+                  </button>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </header>
 
-      {/* --- Auth Modal --- */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
 
-      {/* --- Search Curtain (Modal) --- */}
+      {/* Search Overlay */}
       <AnimatePresence>
         {isSearchOpen && (
           <>
-            <motion.div
+            <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsSearchOpen(false)}
-              className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-[100] bg-black/64 backdrop-blur-lg"
+              aria-label="Close search"
             />
-            {/* FIXED CENTERING WITH MOTION */}
             <motion.div
-              initial={{ opacity: 0, y: -20, x: "-50%", scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, x: "-50%", scale: 1 }}
-              exit={{ opacity: 0, y: -20, x: "-50%", scale: 0.95 }}
-              transition={{ type: "spring", duration: 0.4 }}
-              className="fixed top-24 left-1/2 w-[90%] max-w-2xl z-[101] pointer-events-auto"
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="fixed left-1/2 top-20 z-[101] w-[min(680px,calc(100vw-24px))] -translate-x-1/2"
             >
-              <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-2 shadow-2xl ring-1 ring-white/5">
+              <div className="surface-panel-strong rounded-xl p-2.5">
                 <SearchBar onClose={() => setIsSearchOpen(false)} />
               </div>
             </motion.div>

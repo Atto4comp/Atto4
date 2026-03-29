@@ -3,13 +3,104 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // TEMPORARY SIMPLE RULES FOR TESTING
-    // These allow any authenticated user to read/write everything
-    // Replace with proper rules in production
+    // ===== HELPER FUNCTIONS =====
     
-    match /{document=**} {
-      // Allow all reads and writes for authenticated users
-      allow read, write: if request.auth != null;
+    // Check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
     }
+    
+    // Check if user owns the document (userId field)
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Get user role from users collection
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    // Check if user has specific role
+    function hasRole(role) {
+      return isSignedIn() && getUserRole() == role;
+    }
+    
+    // Check if user is admin
+    function isAdmin() {
+      return hasRole('admin');
+    }
+    
+    // Check if user is creator or admin
+    function isCreator() {
+      return hasRole('creator') || isAdmin();
+    }
+    
+    // ===== USERS COLLECTION =====
+    
+    match /users/{userId} {
+      // Anyone authenticated can read user profiles
+      allow read: if isSignedIn();
+      
+      // Users can create their own profile during signup
+      allow create: if isSignedIn() 
+                    && request.auth.uid == userId
+                    && request.resource.data.email == request.auth.token.email;
+      
+      // Users can update their own profile (but not change role unless admin)
+      allow update: if isOwner(userId) 
+                    && (request.resource.data.role == resource.data.role || isAdmin());
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+    
+    // ===== ORIGINAL SCRIPTS COLLECTION =====
+    
+    match /originalScripts/{scriptId} {
+      // All authenticated users can read scripts
+      allow read: if isSignedIn();
+      
+      // Only creators can submit scripts
+      allow create: if isCreator() 
+                    && request.resource.data.writerId == request.auth.uid
+                    && request.resource.data.status == 'pending';
+      
+      // Writers can update their own pending scripts, admins can update any
+      allow update: if (isOwner(resource.data.writerId) && resource.data.status == 'pending')
+                    || isAdmin();
+      
+      // Only admins can delete scripts
+      allow delete: if isAdmin();
+    }
+    
+    // ===== ORIGINAL PROJECTS COLLECTION =====
+    
+    match /originalProjects/{projectId} {
+      // Public read access for everyone (even non-authenticated)
+      allow read: if true;
+      
+      // Only admins can create, update, or delete projects
+      allow write: if isAdmin();
+    }
+    
+    // ===== ORIGINAL RATINGS COLLECTION =====
+    
+    match /originalRatings/{ratingId} {
+      // Authenticated users can read all ratings
+      allow read: if isSignedIn();
+      
+      // Users can create ratings for projects
+      allow create: if isSignedIn() 
+                    && request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own ratings
+      allow update: if isOwner(resource.data.userId);
+      
+      // Users can delete their own ratings, admins can delete any
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // ===== DEFAULT DENY =====
+    // Any other collections are denied by default
   }
 }

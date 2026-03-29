@@ -57,7 +57,7 @@ export default async function TVShowsPage() {
   console.log('📺 Rendering static TV shows page');
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen text-white">
       <Suspense fallback={<LoadingSpinner />}>
         <TVShowsPageClient 
           initialGenres={data.genres}

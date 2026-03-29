@@ -315,8 +315,8 @@ export default function LatestReleasesClient({
       {!loading && items.length === 0 && (
         <div className="text-center py-20">
           <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h2 className=\"text-xl font-semibold text-white mb-2\">No latest releases found</h2>
-          <p className=\"text-gray-400\">
+          <h2 className="text-xl font-semibold text-white mb-2">No latest releases found</h2>
+          <p className="text-gray-400">
             Try adjusting your filters or check back later.
           </p>
         </div>

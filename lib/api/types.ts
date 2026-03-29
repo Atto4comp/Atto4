@@ -43,6 +43,9 @@ export interface VideoSource {
 }
 
 export interface MediaDetails extends Movie {
+  name?: string;
+  first_air_date?: string;
+  number_of_seasons?: number;
   genres: Genre[];
   runtime: number;
   budget: number;

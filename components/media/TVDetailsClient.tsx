@@ -76,14 +76,14 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
 
   const toggleWatchlist = () => {
     if (isInWatchlist) watchlistStorage.removeFromWatchlist(tv.id, 'tv');
-    else watchlistStorage.addToWatchlist({ id: tv.id, name: tv.name, poster_path: tv.poster_path, media_type: 'tv', vote_average: tv.vote_average || 0, first_air_date: tv.first_air_date });
+    else watchlistStorage.addToWatchlist({ id: tv.id, title: tv.name || 'Unknown', name: tv.name, poster_path: tv.poster_path, media_type: 'tv', vote_average: tv.vote_average || 0, first_air_date: tv.first_air_date });
     setIsInWatchlist(!isInWatchlist);
     window.dispatchEvent(new CustomEvent('watchlist-updated'));
   };
 
   const toggleLike = () => {
     if (isLiked) likedStorage.removeFromLiked(tv.id, 'tv');
-    else likedStorage.addToLiked({ id: tv.id, name: tv.name, poster_path: tv.poster_path, media_type: 'tv', vote_average: tv.vote_average || 0, first_air_date: tv.first_air_date });
+    else likedStorage.addToLiked({ id: tv.id, title: tv.name || 'Unknown', name: tv.name, poster_path: tv.poster_path, media_type: 'tv', vote_average: tv.vote_average || 0, first_air_date: tv.first_air_date });
     setIsLiked(!isLiked);
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
@@ -102,7 +102,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
   // ========================
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-[#050505] pb-20 overflow-hidden">
+      <div className="min-h-screen pb-20 overflow-hidden">
         <div className="fixed top-4 left-4 z-50">
           <Link href="/" className="p-2 bg-black/30 backdrop-blur-md rounded-full text-white border border-white/10">
             <ChevronLeft className="w-6 h-6" />
@@ -124,10 +124,10 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
 
         <div className="relative z-10 flex flex-col items-center px-6 pt-24">
           <div className="relative w-[200px] aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/10 mb-6">
-            <Image src={buildImage(tv.poster_path, 'w780')} alt={tv.name} fill className="object-cover" priority />
+            <Image src={buildImage(tv.poster_path, 'w780')} alt={tv.name || 'TV Show'} fill className="object-cover" priority />
           </div>
 
-          <h1 className="text-3xl font-bold text-white text-center font-chillax mb-3 leading-tight drop-shadow-lg">{tv.name}</h1>
+          <h1 className="text-3xl font-bold text-white text-center font-display mb-3 leading-tight drop-shadow-lg">{tv.name}</h1>
           
           <div className="flex items-center justify-center flex-wrap gap-3 text-xs text-gray-200 font-medium mb-8">
             <span className="bg-white/10 px-2 py-1 rounded-md backdrop-blur-sm">{formatYear(tv.first_air_date)}</span>
@@ -149,7 +149,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
           </div>
 
           <div className="w-full flex items-center justify-between mb-4 px-2" ref={episodesRef}>
-            <h3 className="text-lg font-bold text-white font-chillax">Episodes</h3>
+            <h3 className="text-lg font-bold text-white font-display">Episodes</h3>
             <SeasonSelector seasons={seasons} currentSeason={selectedSeasonNumber} onSelect={handleSeasonChange} />
           </div>
 
@@ -182,7 +182,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
   // DESKTOP LAYOUT
   // ========================
   return (
-    <div className="relative min-h-screen bg-[#050505] text-white pt-20">
+    <div className="relative min-h-screen text-white pt-20">
       
       {/* Vibrant Ambient Background Layer */}
       <div className="fixed inset-0 h-screen w-full -z-10 overflow-hidden">
@@ -200,7 +200,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
           <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10 group bg-black/20 backdrop-blur-sm">
             <Image 
               src={buildImage(tv.poster_path, 'w780')} 
-              alt={tv.name} 
+              alt={tv.name || 'TV Show'} 
               fill 
               className="object-cover transition-transform duration-700 group-hover:scale-105" 
               priority 
@@ -215,7 +215,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
             <ChevronLeft className="w-4 h-4" /> Back to Home
           </Link>
 
-          <h1 className="text-5xl lg:text-7xl font-extrabold font-chillax leading-[1.05] mb-6 drop-shadow-2xl">
+          <h1 className="text-5xl lg:text-7xl font-extrabold font-display leading-[1.05] mb-6 drop-shadow-2xl">
             {tv.name}
           </h1>
 
@@ -256,7 +256,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
           </div>
 
           <div className="mb-10">
-            <h3 className="text-lg font-bold text-white mb-3 font-chillax drop-shadow-md">Storyline</h3>
+            <h3 className="text-lg font-bold text-white mb-3 font-display drop-shadow-md">Storyline</h3>
             <p className="text-lg text-gray-200 leading-relaxed max-w-4xl font-light drop-shadow-md">
               {tv.overview}
             </p>
@@ -269,7 +269,7 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
           {/* Episodes Section */}
           <div className="w-full pb-12" ref={episodesRef}>
             <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
-              <h3 className="text-2xl font-bold text-white font-chillax drop-shadow-md">Episodes</h3>
+              <h3 className="text-2xl font-bold text-white font-display drop-shadow-md">Episodes</h3>
               <SeasonSelector seasons={seasons} currentSeason={selectedSeasonNumber} onSelect={handleSeasonChange} />
             </div>
 

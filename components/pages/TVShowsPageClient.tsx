@@ -54,7 +54,7 @@ export default function TVShowsPageClient({
         setTvShows(data?.results || []);
         setCanLoadMore(data?.total_pages > 1);
 
-      } catch (error) {
+      } catch (error: any) {
         if (error.name !== 'AbortError') console.error('Failed to fetch TV shows:', error);
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
@@ -99,50 +99,47 @@ export default function TVShowsPageClient({
   };
 
   return (
-    // ✅ FIXED: Added negative margin (-mt-24) to pull background up over the layout gap
-    // ✅ ADJUSTED: Increased padding (pt-32)
-    <div className="min-h-screen bg-[#09090b] pb-24 pt-32 -mt-24 px-6 md:px-12 selection:bg-purple-500/30 relative z-0">
-      
-      <header className="relative mb-12 max-w-[1800px] mx-auto flex flex-col items-center text-center">
-        {/* Glow Orb */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+    <div className="min-h-screen pb-16 pt-28 -mt-20 selection:bg-[var(--accent-muted)]">
+
+      {/* Page Header */}
+      <header className="section-shell relative mb-10 flex flex-col items-center text-center">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-[var(--accent)]/[0.04] rounded-full blur-[120px] pointer-events-none -z-10" />
         
-        <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight text-white font-chillax">
+        <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight text-white">
           TV Shows
         </h1>
-        <p className="text-gray-400 text-lg md:text-xl font-light max-w-2xl leading-relaxed">
+        <p className="text-white/40 text-base md:text-lg mt-3 max-w-xl leading-relaxed">
           Binge-worthy series, trending documentaries, and daily episodes.
         </p>
       </header>
 
       {/* Filter Bar */}
-      <div className="max-w-[1800px] mx-auto mb-10 flex flex-col md:flex-row gap-6 items-center justify-between sticky top-28 z-30 transition-all">
-        
-        <div className="flex flex-wrap gap-4 justify-center w-full md:w-auto">
+      <div className="section-shell mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="flex flex-wrap gap-3 justify-center w-full md:w-auto">
           {/* Genre Filter */}
           <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 group-hover:text-white transition-colors">
-              <Filter className="w-4 h-4" />
+            <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-white/28 group-hover:text-white/48 transition-colors">
+              <Filter className="w-3.5 h-3.5" />
             </div>
             <select
               value={selectedGenre}
               onChange={(e) => setSelectedGenre(e.target.value)}
-              className="appearance-none bg-[#0F0F0F] hover:bg-[#161616] border border-white/10 rounded-full pl-11 pr-12 py-3.5 text-sm text-gray-200 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 outline-none transition-all cursor-pointer min-w-[200px] shadow-lg shadow-black/20"
+              className="appearance-none bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] rounded-xl pl-10 pr-10 py-2.5 text-[13px] text-white/72 focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)]/30 outline-none transition-all cursor-pointer min-w-[180px]"
             >
               <option value="">All Genres</option>
-              {genres.map((genre) => (
+              {genres.map((genre: any) => (
                 <option key={genre.id} value={genre.id}>{genre.name}</option>
               ))}
             </select>
-            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-500">
-              <ChevronDown className="w-4 h-4" />
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-white/24">
+              <ChevronDown className="w-3.5 h-3.5" />
             </div>
           </div>
 
           {/* Sort Filter */}
           <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 group-hover:text-white transition-colors">
-              <SortAsc className="w-4 h-4" />
+            <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-white/28 group-hover:text-white/48 transition-colors">
+              <SortAsc className="w-3.5 h-3.5" />
             </div>
             <select
               value={sortOrder}
@@ -151,63 +148,64 @@ export default function TVShowsPageClient({
                 setSelectedGenre(''); 
               }}
               disabled={!!selectedGenre}
-              className="appearance-none bg-[#0F0F0F] hover:bg-[#161616] border border-white/10 rounded-full pl-11 pr-12 py-3.5 text-sm text-gray-200 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 outline-none transition-all cursor-pointer min-w-[180px] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/20"
+              className="appearance-none bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] rounded-xl pl-10 pr-10 py-2.5 text-[13px] text-white/72 focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)]/30 outline-none transition-all cursor-pointer min-w-[160px] disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <option value="popular">Popular</option>
               <option value="airing_today">Airing Today</option>
               <option value="on_the_air">On The Air</option>
               <option value="top_rated">Top Rated</option>
             </select>
-            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-500">
-              <ChevronDown className="w-4 h-4" />
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-white/24">
+              <ChevronDown className="w-3.5 h-3.5" />
             </div>
           </div>
         </div>
 
         {tvShows.length > 0 && !isLoading && (
-          <div className="hidden md:flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-widest px-4 py-2 rounded-full border border-white/5 bg-white/[0.02]">
-            <Sparkles className="w-3 h-3 text-purple-500" />
+          <div className="hidden md:flex items-center gap-1.5 text-[10px] font-semibold text-white/28 uppercase tracking-[0.16em] px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
+            <Sparkles className="w-3 h-3 text-[var(--accent)]" />
             <span>{tvShows.length} Series</span>
           </div>
         )}
       </div>
 
-      <div className="max-w-[1800px] mx-auto min-h-[500px]">
+      {/* Grid */}
+      <div className="section-shell min-h-[500px]">
         <MediaGrid items={tvShows} mediaType="tv" loading={isLoading && currentPage === 1} />
 
         {tvShows.length > 0 && canLoadMore && (
-          <div className="mt-24 text-center">
+          <div className="mt-16 text-center">
             <button
               onClick={loadMoreShows}
               disabled={isLoading}
-              className="group relative bg-white text-black font-bold py-4 px-12 rounded-full transition-all duration-300 hover:bg-gray-200 hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)]"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3 text-[14px] font-semibold text-black shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-200 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
-                  <span>Loading...</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                  <span>Loading…</span>
                 </div>
               ) : (
-                <span>Load More Shows</span>
+                <span>Load More</span>
               )}
             </button>
           </div>
         )}
 
         {!canLoadMore && tvShows.length > 0 && (
-          <div className="mt-24 text-center border-t border-white/5 pt-12">
-            <p className="text-gray-500 text-sm font-light tracking-wide">You've reached the end of the collection.</p>
+          <div className="mt-16 text-center border-t border-white/[0.04] pt-8">
+            <p className="text-white/24 text-[12px] uppercase tracking-[0.14em]">End of collection</p>
           </div>
         )}
 
         {!isLoading && tvShows.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-32 text-center animate-in fade-in zoom-in duration-500">
-            <div className="w-24 h-24 bg-white/[0.03] rounded-full flex items-center justify-center mb-6 border border-white/5">
-              <span className="text-4xl opacity-50">📺</span>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.03]">
+              <span className="text-2xl opacity-40">📺</span>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">No TV shows found</h3>
-            <p className="text-gray-500 max-w-md font-light">
-              We couldn't find any shows matching your filters. Try adjusting your selection.
+            <h3 className="font-display text-lg font-semibold text-white mb-1">No TV shows found</h3>
+            <p className="text-white/36 text-sm max-w-md">
+              Try adjusting your filters or browse a different category.
             </p>
           </div>
         )}
