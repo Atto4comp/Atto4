@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import MobileNav from '@/components/layout/MobileNav';
 import ActivitySidebar from '@/components/layout/ActivitySidebar'; 
 import ClientLayout from '@/components/layout/ClientLayout';
 import { SITE_CONFIG } from '@/lib/constants';
@@ -109,7 +110,7 @@ export default function RootLayout({
         <meta name="color-scheme" content="dark" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
       </head>
-      <body className="app-shell min-h-screen text-white antialiased overflow-x-hidden" suppressHydrationWarning>
+      <body className="app-shell min-h-screen text-white antialiased overflow-x-hidden pb-16 md:pb-0" suppressHydrationWarning>
         <ClientLayout>
           <Header />
           <main className="relative min-h-screen pt-16 md:pt-20">
@@ -117,6 +118,7 @@ export default function RootLayout({
           </main>
           <ActivitySidebar />
           <Footer />
+          <MobileNav />
           <Analytics />
         </ClientLayout>
       </body>

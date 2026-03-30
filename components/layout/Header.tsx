@@ -398,9 +398,9 @@ export default function Header() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="fixed left-1/2 top-20 z-[101] w-[min(680px,calc(100vw-24px))] -translate-x-1/2"
+              className="fixed inset-x-0 top-0 z-[101] flex items-start justify-center pt-[18vh] px-3"
             >
-              <div className="surface-panel-strong rounded-xl p-2.5">
+              <div className="surface-panel-strong w-full max-w-[680px] rounded-xl p-2.5">
                 <SearchBar onClose={() => setIsSearchOpen(false)} />
               </div>
             </motion.div>

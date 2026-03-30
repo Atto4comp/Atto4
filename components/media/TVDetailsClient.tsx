@@ -24,7 +24,6 @@ const TMDB_IMAGE_SIZES = {
 } as const;
 
 export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: TVDetailsClientProps) {
-  const [isMobile, setIsMobile] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   
@@ -34,13 +33,6 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
 
   // Ref for scrolling to episodes
   const episodesRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     setIsInWatchlist(watchlistStorage.isInWatchlist(tv.id, 'tv'));
@@ -98,11 +90,12 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
   const formatYear = (date?: string) => date ? new Date(date).getFullYear() : 'N/A';
 
   // ========================
-  // MOBILE LAYOUT
+  // COMBINED RESPONSIVE LAYOUT
   // ========================
-  if (isMobile) {
-    return (
-      <div className="min-h-screen pb-20 overflow-hidden">
+  return (
+    <>
+      {/* --- MOBILE VIEW --- */}
+      <div className="min-h-screen pb-20 overflow-hidden md:hidden">
         <div className="fixed top-4 left-4 z-50">
           <Link href="/" className="p-2 bg-black/30 backdrop-blur-md rounded-full text-white border border-white/10">
             <ChevronLeft className="w-6 h-6" />
@@ -175,14 +168,9 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
           </div>
         </div>
       </div>
-    );
-  }
 
-  // ========================
-  // DESKTOP LAYOUT
-  // ========================
-  return (
-    <div className="relative min-h-screen text-white pt-20">
+      {/* --- DESKTOP VIEW --- */}
+      <div className="relative min-h-screen text-white pt-20 hidden md:block">
       
       {/* Vibrant Ambient Background Layer */}
       <div className="fixed inset-0 h-screen w-full -z-10 overflow-hidden">
@@ -293,5 +281,6 @@ export default function TvShowDetailsClient({ tv, genres, seasons, cast = [] }: 
         </div>
       </div>
     </div>
+    </>
   );
 }

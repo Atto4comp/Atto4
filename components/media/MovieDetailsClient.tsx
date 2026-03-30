@@ -15,20 +15,12 @@ interface MovieDetailsClientProps {
 }
 
 export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDetailsClientProps) {
-  const [isMobile, setIsMobile] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   
   // 🔽 NEW: State for Download Modal
   const [showDownload, setShowDownload] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState('');
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const buildImage = (path: string | null, size: string) => 
     path ? `https://image.tmdb.org/t/p/${size}${path}` : '/placeholder-movie.jpg';
@@ -114,12 +106,14 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
   );
 
   // ========================
-  // MOBILE LAYOUT
+  // COMBINED RESPONSIVE LAYOUT
   // ========================
-  if (isMobile) {
-    return (
-      <div className="min-h-screen pb-20 overflow-hidden">
-        {showDownload && <DownloadModal />}
+  return (
+    <>
+      {showDownload && <DownloadModal />}
+      
+      {/* --- MOBILE VIEW --- */}
+      <div className="min-h-screen pb-20 overflow-hidden md:hidden">
         
         <div className="fixed top-4 left-4 z-50">
           <Link href="/" className="p-2 bg-black/30 backdrop-blur-md rounded-full text-white border border-white/10">
@@ -183,15 +177,9 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
           </div>
         </div>
       </div>
-    );
-  }
 
-  // ========================
-  // DESKTOP LAYOUT
-  // ========================
-  return (
-    <div className="relative min-h-screen text-white pt-20">
-      {showDownload && <DownloadModal />}
+      {/* --- DESKTOP VIEW --- */}
+      <div className="relative min-h-screen text-white pt-20 hidden md:block">
 
       {/* ... (Background Logic same as before) ... */}
       <div className="fixed inset-0 h-screen w-full -z-10 overflow-hidden">
@@ -281,5 +269,6 @@ export default function MovieDetailsClient({ movie, genres, cast = [] }: MovieDe
         </div>
       </div>
     </div>
+    </>
   );
 }

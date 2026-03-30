@@ -181,36 +181,36 @@ export default function BrowsePageClient({
   }, [loading, hasMore, fetchData]);
 
   return (
-    <div className="min-h-screen bg-black pb-20 pt-24 relative">
+    <div className="relative min-h-screen bg-black pb-24 pt-20 md:pb-20 md:pt-24">
       <div className="fixed inset-0 -z-10 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 blur-[120px] rounded-full" />
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02]" />
       </div>
 
-      <div className="max-w-[1800px] mx-auto px-4 md:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+      <div className="mx-auto max-w-[1800px] px-4 md:px-8">
+        <div className="mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-end md:justify-between md:gap-6">
           <div>
             <button 
               onClick={() => router.back()} 
-              className="flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-4"
+              className="mb-4 flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
-            <h1 className="text-4xl md:text-6xl font-bold font-chillax text-white">
+            <h1 className="font-chillax text-[2.4rem] font-bold text-white md:text-6xl">
               {getCategoryTitle(category)}
             </h1>
-            <p className="text-white/60 mt-2 text-lg">
+            <p className="mt-2 max-w-[24rem] text-sm text-white/60 md:text-lg">
               Discover the {mediaType === 'movie' ? 'movies' : 'TV shows'} everyone is watching.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="relative">
               <select
                 value={mediaType}
                 onChange={(e) => setMediaType(e.target.value as 'movie' | 'tv')}
-                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-4 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20"
+                className="w-full cursor-pointer appearance-none rounded-2xl border border-white/10 bg-white/10 py-3 pl-4 pr-10 text-white outline-none transition-all hover:bg-white/20 focus:border-white/30"
               >
                 <option value="movie" className="bg-black text-gray-300">Movies</option>
                 <option value="tv" className="bg-black text-gray-300">TV Shows</option>
@@ -223,7 +223,7 @@ export default function BrowsePageClient({
               <select
                 value={genreId || ''}
                 onChange={(e) => setGenreId(e.target.value ? Number(e.target.value) : undefined)}
-                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-10 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20 min-w-[160px]"
+                className="min-w-[160px] w-full cursor-pointer appearance-none rounded-2xl border border-white/10 bg-white/10 py-3 pl-10 pr-10 text-white outline-none transition-all hover:bg-white/20 focus:border-white/30"
               >
                 <option value="" className="bg-black text-gray-300">All Genres</option>
                 {genres.map(g => (
@@ -237,7 +237,7 @@ export default function BrowsePageClient({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-white/10 backdrop-blur-md border border-white/10 text-white pl-4 pr-10 py-3 rounded-xl outline-none focus:border-white/30 transition-all cursor-pointer hover:bg-white/20"
+                className="w-full cursor-pointer appearance-none rounded-2xl border border-white/10 bg-white/10 py-3 pl-4 pr-10 text-white outline-none transition-all hover:bg-white/20 focus:border-white/30"
               >
                 <option value="popularity" className="bg-black text-gray-300">Most Popular</option>
                 <option value="rating" className="bg-black text-gray-300">Highest Rated</option>
