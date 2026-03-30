@@ -58,16 +58,17 @@ export default function MediaCard({
     event.preventDefault();
     event.stopPropagation();
 
+    const m = media as any;
     const item = {
       id: media.id,
-      title: mediaType === 'movie' ? media.title : media.name,
-      name: mediaType === 'tv' ? media.name : undefined,
+      title: mediaType === 'movie' ? media.title : m.name,
+      name: mediaType === 'tv' ? m.name : undefined,
       poster_path: media.poster_path,
       backdrop_path: media.backdrop_path,
       media_type: mediaType,
       vote_average: media.vote_average ?? 0,
       release_date: mediaType === 'movie' ? media.release_date : undefined,
-      first_air_date: mediaType === 'tv' ? media.first_air_date : undefined,
+      first_air_date: mediaType === 'tv' ? m.first_air_date : undefined,
     };
 
     if (inWatch) {
@@ -96,34 +97,47 @@ export default function MediaCard({
     window.dispatchEvent(new CustomEvent('liked-updated'));
   };
 
-  const title = mediaType === 'movie' ? media.title : media.name;
-  const date = mediaType === 'movie' ? media.release_date : media.first_air_date;
+  const m = media as any;
+  const title = mediaType === 'movie' ? media.title : m.name;
+  const date = mediaType === 'movie' ? media.release_date : m.first_air_date;
   const year = date ? new Date(date).getFullYear() : null;
   const rating = media.vote_average ? media.vote_average.toFixed(1) : null;
 
   return (
     <div
-      className={cn('group relative w-[156px] flex-shrink-0 snap-start sm:w-[172px] md:w-[190px]', className)}
+      className={cn(
+        'group relative flex-shrink-0 snap-start',
+        'w-[var(--mobile-card-w)] sm:w-[160px] md:w-[190px]',
+        className
+      )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link href={`/${mediaType}/${media.id}`} className="block">
-        <article className="overflow-hidden rounded-xl transition-all duration-300 group-hover:-translate-y-1.5 group-hover:drop-shadow-[0_12px_28px_rgba(0,0,0,0.4)]">
+        <article className="overflow-hidden rounded-xl transition-all duration-300 md:group-hover:-translate-y-1.5 md:group-hover:drop-shadow-[0_12px_28px_rgba(0,0,0,0.4)]">
           {/* Poster Image — 2:3 */}
           <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-white/[0.06] bg-[#0a0a0e] shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
             <Image
               src={buildImage(media.poster_path)}
               alt={title || 'Media'}
               fill
-              sizes="(max-width: 640px) 156px, (max-width: 768px) 172px, 190px"
+              sizes="(max-width: 640px) 140px, (max-width: 768px) 160px, 190px"
               priority={priority}
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              className="object-cover transition-transform duration-500 md:group-hover:scale-[1.04]"
             />
 
-            {/* Hover overlay */}
+            {/* Mobile: Rating badge top-right */}
+            {rating && (
+              <div className="absolute right-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-black/50 px-1.5 py-[2px] backdrop-blur-md md:hidden">
+                <Star className="h-[8px] w-[8px] fill-[var(--accent-warm)] text-[var(--accent-warm)]" />
+                <span className="text-[8px] font-semibold text-white/80">{rating}</span>
+              </div>
+            )}
+
+            {/* Desktop: Hover overlay */}
             <div
               className={cn(
-                'absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/48 backdrop-blur-[2px] transition-all duration-250',
+                'absolute inset-0 hidden md:flex flex-col items-center justify-center gap-2 bg-black/48 backdrop-blur-[2px] transition-all duration-250',
                 isHovered ? 'opacity-100' : 'opacity-0'
               )}
             >
@@ -171,15 +185,16 @@ export default function MediaCard({
           </div>
 
           {/* Card Info */}
-          <div className="mt-2.5 px-0.5">
-            <h3 className="font-display text-[13px] font-medium leading-tight tracking-tight text-white line-clamp-1">
+          <div className="mt-2 px-0.5 md:mt-2.5">
+            <h3 className="font-display text-[12px] md:text-[13px] font-medium leading-tight tracking-tight text-white line-clamp-1">
               {title}
             </h3>
-            <div className="mt-1 flex items-center gap-1.5 text-[10px] text-white/36">
+            <div className="mt-0.5 md:mt-1 flex items-center gap-1.5 text-[10px] text-white/36">
               {year && <span>{year}</span>}
-              {year && rating && <span className="h-[3px] w-[3px] rounded-full bg-white/20" />}
+              {/* Desktop rating in info row */}
+              {year && rating && <span className="hidden md:block h-[3px] w-[3px] rounded-full bg-white/20" />}
               {rating && (
-                <span className="flex items-center gap-0.5 text-[var(--accent-warm)]">
+                <span className="hidden md:flex items-center gap-0.5 text-[var(--accent-warm)]">
                   <Star className="h-[9px] w-[9px] fill-[var(--accent-warm)] text-[var(--accent-warm)]" />
                   {rating}
                 </span>

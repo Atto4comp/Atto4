@@ -46,19 +46,19 @@ export default function MediaRow({
   if (!items || items.length === 0) return null;
 
   return (
-    <section className="section-shell relative mb-10 md:mb-14">
+    <section className="section-shell relative mb-8 md:mb-14">
       {/* Section Header */}
-      <div className="mb-5 flex items-end justify-between gap-4">
-        <h2 className="font-display text-xl font-semibold tracking-tight text-white md:text-2xl">
+      <div className="mb-3 md:mb-5 flex items-end justify-between gap-4">
+        <h2 className="font-display text-[1rem] md:text-2xl font-semibold tracking-tight text-white">
           {title}
         </h2>
 
         <Link
           href={`/browse/${category}?type=${mediaType}`}
-          className="flex items-center gap-1 text-[11px] font-medium text-white/36 transition-colors hover:text-white/64"
+          className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-white/36 transition-colors hover:text-white/64 md:text-[11px] md:normal-case md:tracking-normal"
         >
-          See all
-          <ArrowRight className="h-3 w-3" />
+          <span className="hidden md:inline">See all</span>
+          <ArrowRight className="h-3.5 w-3.5 md:h-3 md:w-3" />
         </Link>
       </div>
 
@@ -78,7 +78,7 @@ export default function MediaRow({
         <div
           ref={rowRef}
           onScroll={handleScroll}
-          className="edge-fade hide-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pt-1 scroll-smooth"
+          className="hide-scrollbar flex snap-x snap-mandatory gap-2.5 md:gap-3 overflow-x-auto pb-2 pt-1 scroll-smooth md:edge-fade"
         >
           {items.map((item, index) => (
             <MediaCard
@@ -89,6 +89,8 @@ export default function MediaRow({
               mediaType={mediaType}
             />
           ))}
+          {/* Peek spacer */}
+          <div className="w-2 md:w-0 flex-shrink-0" />
         </div>
 
         {/* Right Arrow (desktop) */}

@@ -49,9 +49,9 @@ export default function MediaGrid({ items, mediaType, loading }: Props) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6">
         {Array.from({ length: 18 }).map((_, i) => (
-          <div key={i} className="aspect-[2/3] skeleton-pulse rounded-xl" />
+          <div key={i} className="aspect-[2/3] rounded-xl md:rounded-[1.35rem] skeleton-pulse" />
         ))}
       </div>
     );
@@ -70,7 +70,7 @@ export default function MediaGrid({ items, mediaType, loading }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6">
       {items.map((item) => {
         const title = getItemTitle(item);
         const year = getItemYear(item);
@@ -85,39 +85,39 @@ export default function MediaGrid({ items, mediaType, loading }: Props) {
 
         return (
           <Link key={`${item.id}-${item.media_type || mediaType}`} href={href} className="group block">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-white/[0.06] bg-[#0a0a0e] shadow-[0_2px_8px_rgba(0,0,0,0.3)] transition-all duration-300 group-hover:-translate-y-1.5 group-hover:drop-shadow-[0_12px_28px_rgba(0,0,0,0.4)]">
+            <div className="relative aspect-[2/3] overflow-hidden rounded-xl md:rounded-[1.35rem] border border-white/[0.06] bg-[#0a0a0e] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.5)] transition-all duration-300 md:group-hover:-translate-y-1.5 md:group-hover:drop-shadow-[0_12px_28px_rgba(0,0,0,0.4)]">
 
-              {/* Image */}
-              <Image
-                src={posterUrl || '/placeholder-movie.jpg'}
-                alt={title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 20vw, 16vw"
-              />
+                {/* Image */}
+                <Image
+                  src={posterUrl || '/placeholder-movie.jpg'}
+                  alt={title}
+                  fill
+                  className="object-cover transition-transform duration-500 md:group-hover:scale-[1.04]"
+                  sizes="(max-width: 640px) 33vw, (max-width: 768px) 33vw, (max-width: 1280px) 20vw, 16vw"
+                />
 
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/48 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-250">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-110">
-                  <Play className="ml-0.5 h-4 w-4 fill-current" />
+                {/* Desktop: Hover Overlay */}
+                <div className="absolute inset-0 hidden md:flex flex-col items-center justify-center gap-2 bg-black/48 opacity-0 backdrop-blur-[2px] transition-all duration-250 group-hover:opacity-100">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-110">
+                    <Play className="ml-0.5 h-4 w-4 fill-current" />
+                  </div>
                 </div>
+
+                {/* Rating Badge (always visible on mobile, top-right on desktop hover) */}
+                {rating && (
+                  <div className="absolute right-1.5 top-1.5 flex items-center gap-0.5 rounded-full border border-white/[0.06] bg-black/50 px-1.5 py-0.5 backdrop-blur-md">
+                    <Star className="w-[8px] h-[8px] fill-[var(--accent-warm)] text-[var(--accent-warm)]" />
+                    <span className="text-[8px] md:text-[9px] font-semibold text-white/72">{rating}</span>
+                  </div>
+                )}
               </div>
 
-              {/* Rating Badge */}
-              {rating && (
-                <div className="absolute top-2 right-2 flex items-center gap-0.5 rounded-md bg-black/48 backdrop-blur-md px-1.5 py-0.5 border border-white/[0.06]">
-                  <Star className="w-[9px] h-[9px] fill-[var(--accent-warm)] text-[var(--accent-warm)]" />
-                  <span className="text-[9px] font-semibold text-white/72">{rating}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="mt-2.5 px-0.5">
-              <h3 className="font-display text-[13px] font-medium leading-tight tracking-tight text-white line-clamp-1">
+            {/* Info — hidden on mobile for dense grid, shown on desktop */}
+            <div className="mt-1.5 px-0.5 md:mt-2.5">
+              <h3 className="line-clamp-1 font-display text-[11px] md:text-[13px] font-medium leading-tight tracking-tight text-white">
                 {title}
               </h3>
-              <div className="mt-1 flex items-center gap-1.5 text-[10px] text-white/36">
+              <div className="hidden md:flex mt-1 items-center gap-1.5 text-[10px] text-white/36">
                 {year && <span>{year}</span>}
                 {year && rating && <span className="h-[3px] w-[3px] rounded-full bg-white/20" />}
                 {rating && (

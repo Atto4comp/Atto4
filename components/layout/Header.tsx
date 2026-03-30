@@ -89,7 +89,6 @@ const DesktopNavItem = ({
 
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [infoTab, setInfoTab] = useState<'updates' | 'guide'>('updates');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -103,7 +102,6 @@ export default function Header() {
 
   const panelRef = useRef<HTMLDivElement>(null);
   const notifButtonRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
@@ -124,13 +122,6 @@ export default function Header() {
         setIsInfoPanelOpen(false);
       }
 
-      if (isMobileMenuOpen && menuRef.current && !menuRef.current.contains(target)) {
-        const element = event.target as HTMLElement;
-        if (!element.closest('button[aria-label="Menu"]')) {
-          setIsMobileMenuOpen(false);
-        }
-      }
-
       if (isUserMenuOpen && userMenuRef.current && !userMenuRef.current.contains(target)) {
         const element = event.target as HTMLElement;
         if (!element.closest('button[aria-label="User menu"]')) {
@@ -141,11 +132,10 @@ export default function Header() {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isInfoPanelOpen, isMobileMenuOpen, isUserMenuOpen]);
+  }, [isInfoPanelOpen, isUserMenuOpen]);
 
   useEffect(() => {
     setIsSearchOpen(false);
-    setIsMobileMenuOpen(false);
     setIsInfoPanelOpen(false);
     setIsUserMenuOpen(false);
   }, [pathname]);
@@ -154,19 +144,19 @@ export default function Header() {
 
   return (
     <>
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-2.5 md:px-5 md:pt-3.5">
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-2 pt-1.5 md:px-5 md:pt-3.5">
         <motion.div
           initial={false}
           animate={{
-            width: scrolled ? 'min(1000px, calc(100vw - 20px))' : 'min(1120px, calc(100vw - 20px))',
+            width: scrolled ? 'min(1000px, calc(100vw - 16px))' : 'min(1120px, calc(100vw - 16px))',
           }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           className={cn(
-            'pointer-events-auto relative flex items-center gap-2 rounded-2xl px-2.5 py-2 md:px-3.5',
-            'border border-white/[0.06] backdrop-blur-2xl',
+            'pointer-events-auto relative flex items-center gap-1.5 md:gap-2 rounded-2xl px-2 py-1.5 md:px-3.5 md:py-2',
+            'backdrop-blur-2xl',
             scrolled
-              ? 'bg-[rgba(5,5,7,0.88)] shadow-[0_4px_24px_-6px_rgba(0,0,0,0.5)]'
-              : 'bg-[rgba(5,5,7,0.5)]'
+              ? 'border border-white/[0.06] bg-[rgba(5,5,7,0.92)] shadow-[0_4px_24px_-6px_rgba(0,0,0,0.5)]'
+              : 'border border-transparent md:border-white/[0.06] bg-transparent md:bg-[rgba(5,5,7,0.5)]'
           )}
         >
           {/* Logo */}
@@ -206,7 +196,7 @@ export default function Header() {
 
             <button
               onClick={toggleActivity}
-              className="focus-ring hidden rounded-lg p-2 text-white/36 transition-colors duration-150 hover:text-white/72 sm:inline-flex"
+              className="focus-ring hidden rounded-lg p-2 text-white/36 transition-colors duration-150 hover:text-white/72 md:inline-flex"
               aria-label="Open activity"
             >
               <History className="h-[16px] w-[16px]" />
@@ -306,19 +296,11 @@ export default function Header() {
             ) : (
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="hidden rounded-lg border border-white/[0.1] px-3.5 py-1.5 text-[13px] font-medium text-white/72 transition-all duration-200 hover:border-white/20 hover:text-white sm:block"
+                className="hidden rounded-lg border border-white/[0.1] px-3.5 py-1.5 text-[13px] font-medium text-white/72 transition-all duration-200 hover:border-white/20 hover:text-white md:block"
               >
                 Sign In
               </button>
             )}
-
-            <button
-              onClick={() => setIsMobileMenuOpen((current) => !current)}
-              className="focus-ring rounded-lg p-2 text-white/48 transition-colors duration-150 hover:text-white/72 md:hidden"
-              aria-label="Menu"
-            >
-              {isMobileMenuOpen ? <X className="h-[16px] w-[16px]" /> : <Menu className="h-[16px] w-[16px]" />}
-            </button>
           </div>
         </motion.div>
 
@@ -392,70 +374,6 @@ export default function Header() {
                   </div>
                 </div>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              ref={menuRef}
-              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.98 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="surface-panel-strong pointer-events-auto absolute inset-x-3 top-[72px] z-[60] overflow-hidden rounded-xl md:hidden"
-            >
-              <div className="grid grid-cols-2 gap-1.5 p-2">
-                {NAV_ITEMS.map((item) => {
-                  const active = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        'rounded-lg border px-3.5 py-3.5 text-left transition-all',
-                        active
-                          ? 'border-white/[0.1] bg-white/[0.06] text-white'
-                          : 'border-white/[0.04] bg-white/[0.02] text-white/44 hover:bg-white/[0.04] hover:text-white/72'
-                      )}
-                    >
-                      <item.icon className="mb-2 h-4 w-4" />
-                      <div className="text-[13px] font-medium">{item.label}</div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-1.5 border-t border-white/[0.06] p-2">
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    toggleActivity();
-                  }}
-                  className="flex w-full items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.02] px-3.5 py-3.5 text-left text-white/48 transition-colors hover:bg-white/[0.04] hover:text-white/72"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <History className="h-4 w-4" />
-                    <span className="text-[13px] font-medium">Activity</span>
-                  </div>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-
-                {!user && (
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      setIsAuthModalOpen(true);
-                    }}
-                    className="w-full rounded-lg border border-white/[0.1] bg-white/[0.04] px-3.5 py-3.5 text-[13px] font-medium text-white/72 transition-all hover:bg-white/[0.08] hover:text-white"
-                  >
-                    Sign In
-                  </button>
-                )}
-              </div>
             </motion.div>
           )}
         </AnimatePresence>

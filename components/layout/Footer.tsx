@@ -8,8 +8,17 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/[0.04]">
-      <div className="section-shell py-6 md:py-8">
+    <footer className="border-t border-white/[0.04] mb-16 md:mb-0">
+      {/* Mobile: Compact footer */}
+      <div className="section-shell py-4 md:hidden">
+        <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.14em] text-white/16">
+          <p>&copy; {currentYear} Atto4</p>
+          <p>Content indexed from third-party providers</p>
+        </div>
+      </div>
+
+      {/* Desktop: Full footer */}
+      <div className="section-shell py-8 hidden md:block">
         {/* Main row */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           {/* Logo + Tagline */}
