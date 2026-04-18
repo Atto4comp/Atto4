@@ -9,20 +9,20 @@ export interface MovieEmbedResult {
 }
 
 // 🔓 DIRECT LINKS (No Encryption)
-const SERVERS = [  
-  { 
-    id: 'vidme', 
-    label: 'Vidme', 
+const SERVERS = [
+  {
+    id: 'vidme',
+    label: 'Vidme',
+    baseUrl: "https://lordflix.org/watch/movie"
+  },
+  {
+    id: 'vidzy',
+    label: 'Vidzy',
     baseUrl: "https://www.vidking.net/embed/movie/"
   },
-  { 
-    id: 'vidzy', 
-    label: 'Vidzy', 
-    baseUrl: "https://bidsrc.pro/movie/"
-  },
-  { 
-    id: 'vidly', 
-    label: 'Vidly', 
+  {
+    id: 'vidly',
+    label: 'Vidly',
     baseUrl: "https://fmovies4u.com/embed/tmdb-movie-"
   }
 ];
@@ -40,7 +40,7 @@ export function getMovieEmbed(id: string | number): MovieEmbedResult {
   const sources = SERVERS.map(s => {
     // Construct the full URL directly
     const fullUrl = `${s.baseUrl}${id}${CONFIGS[s.id] || ""}`;
-    
+
     return {
       url: fullUrl,
       label: s.label,

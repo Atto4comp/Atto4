@@ -10,19 +10,19 @@ export interface TVEmbedResult {
 
 // 🔓 DIRECT LINKS (No Encryption)
 const SERVERS = [
-  { 
-    id: 'vidme', 
-    label: 'Vidme', 
+  {
+    id: 'vidme',
+    label: 'Vidme',
+    baseUrl: "https://lordflix.org/watch/tv"
+  },
+  {
+    id: 'vidzy',
+    label: 'Vidzy',
     baseUrl: "https://www.vidking.net/embed/tv/"
   },
-  { 
-    id: 'vidzy', 
-    label: 'Vidzy', 
-    baseUrl: "https://bidsrc.pro/tv/"
-  },
-  { 
-    id: 'vidly', 
-    label: 'Vidly', 
+  {
+    id: 'vidly',
+    label: 'Vidly',
     baseUrl: "https://fmovies4u.com/embed/tmdb-tv-"
   }
 ];
@@ -40,7 +40,7 @@ export function getTVEmbed(id: string | number, season: number = 1, episode: num
   const sources = SERVERS.map(s => {
     // 1. Get Suffix Template
     const suffixTemplate = CONFIGS[s.id] || "/${season}/${episode}";
-    
+
     // 2. Replace placeholders
     const filledSuffix = suffixTemplate
       .replace(/\$\{season\}/g, String(season))
