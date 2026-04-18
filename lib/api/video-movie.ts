@@ -13,12 +13,12 @@ const SERVERS = [
   {
     id: 'vidme',
     label: 'Vidme',
-    baseUrl: "https://lordflix.org/watch/movie"
+    baseUrl: "https://www.vidking.net/embed/movie/"
   },
   {
     id: 'vidzy',
     label: 'Vidzy',
-    baseUrl: "https://www.vidking.net/embed/movie/"
+    baseUrl: "https://lordflix.org/watch/movie"
   },
   {
     id: 'vidly',
