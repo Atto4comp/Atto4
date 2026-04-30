@@ -29,9 +29,9 @@ const SERVERS = [
 
 // ⚙️ Configs (Suffixes)
 const CONFIGS: Record<string, string> = {
-  vidme: "",
-  vidzy: "",
-  vidsrc: "",
+  vidme: "?autoPlay=true",
+  vidzy: "?autoplay=1",
+  vidsrc: "?autoplay=1",
 };
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {

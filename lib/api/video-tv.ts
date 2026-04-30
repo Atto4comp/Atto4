@@ -29,9 +29,9 @@ const SERVERS = [
 
 // ⚙️ Configs (Suffixes with placeholders)
 const CONFIGS: Record<string, string> = {
-  vidme: "/${season}/${episode}",
-  vidzy: "/${season}/${episode}",
-  vidsrc: "/${season}/${episode}",
+  vidme: "/${season}/${episode}?autoPlay=true",
+  vidzy: "/${season}/${episode}?autoplay=1",
+  vidsrc: "/${season}/${episode}?autoplay=1",
 };
 
 export function getTVEmbed(id: string | number, season: number = 1, episode: number = 1): TVEmbedResult {
