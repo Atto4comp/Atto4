@@ -18,7 +18,7 @@ const SERVERS = [
   {
     id: 'vidzy',
     label: 'Vidzy',
-    baseUrl: "https://lordflix.org/watch/tv"
+    baseUrl: "https://player.cinezo.live/embed/tv"
   },
   {
     id: 'vidly',
