@@ -29,11 +29,11 @@ const SERVERS = [
 
 // ⚙️ Configs (Suffixes)
 const CONFIGS: Record<string, string> = {
-  vidly: "?autoPlay=true", // Result: .../tmdb-movie-123?autoPlay=false
+  vidly: "", // Result: .../tmdb-movie-123?autoPlay=false
   bidsrc: "",               // Result: .../movie/123
   vidlink: "",              // Result: .../movie/123
   vidme: "",
-  vidzy: "?autoplay=1",
+  vidzy: "",
 };
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
