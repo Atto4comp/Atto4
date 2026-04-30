@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, AlertCircle, Server, RefreshCw, Home } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Layers, RefreshCw, House, ChevronDown, Check } from 'lucide-react';
 import { getMovieEmbed } from '@/lib/api/video-movie';
 import { getTVEmbed } from '@/lib/api/video-tv';
 import { useProgressTracking } from '@/hooks/useProgressTracking';
@@ -153,70 +153,91 @@ if (error) return (
 
 return (
 <div className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center group overflow-hidden">
+    {/* 🟢 TOP BAR OVERLAY */}
+    <div className="absolute top-0 left-0 right-0 z-[205] px-4 py-3 flex justify-between items-center bg-gradient-to-b from-black/80 via-black/30 to-transparent transition-opacity opacity-0 group-hover:opacity-100 duration-300 pointer-events-none group-hover:pointer-events-auto">
 
-{/* 🟢 TOP BAR OVERLAY */}
-<div className="absolute top-0 left-0 right-0 z-[205] p-4 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent transition-opacity opacity-0 group-hover:opacity-100 duration-300 pointer-events-none group-hover:pointer-events-auto">
+      {/* LEFT: Back Button & optional Title */}
+      <div className="flex items-center gap-3">
+        {showBackButton && (
+          <button
+            onClick={handleClose}
+            className="group/btn flex items-center justify-center w-9 h-9 rounded-full bg-white/8 hover:bg-white/16 backdrop-blur-xl border border-white/10 hover:border-white/20 text-white/70 hover:text-white transition-all duration-200 shadow-lg"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover/btn:-translate-x-0.5" />
+          </button>
+        )}
+        {dynamicShowTitle && (
+          <span className="text-white/80 text-sm font-medium drop-shadow-sm max-w-[180px] md:max-w-sm truncate tracking-wide">
+            {title || 'Back'}{mediaType === 'tv' && ` · S${season} E${episode}`}
+          </span>
+        )}
+      </div>
 
-{/* 🎛️ LEFT SECTION: Back Button & Title */}
-<div className="flex items-center gap-4">
-<button onClick={handleClose} className="flex items-center gap-3 text-white/80 hover:text-white transition-colors group/btn text-left">
+      {/* RIGHT: Action Buttons */}
+      <div className="relative flex items-center gap-2 pointer-events-auto">
 
-{/* 1. Back Arrow */}
-{showBackButton && (
-<div className="p-2 rounded-full bg-white/10 group-hover/btn:bg-white/20 backdrop-blur-md transition-colors flex-shrink-0">
-<ArrowLeft className="w-5 h-5" />
-</div>
-)}
+        {/* Auto Fix */}
+        <button
+          onClick={handleSourceError}
+          disabled={isAutoSwitching}
+          className="flex items-center justify-center w-9 h-9 rounded-full bg-white/8 hover:bg-white/16 backdrop-blur-xl border border-white/10 hover:border-white/20 text-white/70 hover:text-white transition-all duration-200 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Auto Fix"
+          title="Auto Fix"
+        >
+          <RefreshCw className={`w-4 h-4 ${isAutoSwitching ? 'animate-spin text-blue-400' : ''}`} />
+        </button>
 
-{/* 2. DYNAMIC TITLE (Based on logic above) */}
-{dynamicShowTitle && (
-<span className="font-medium text-sm md:text-base drop-shadow-md max-w-[200px] md:max-w-md truncate">
-{title || 'Back'}
-{/* Optional: Add Episode info if needed */}
-{mediaType === 'tv' && ` - S${season} E${episode}`}
-</span>
-)}
-</button>
-</div>
+        {/* Home */}
+        {showHomeButton && (
+          <button
+            onClick={handleHome}
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-white/8 hover:bg-white/16 backdrop-blur-xl border border-white/10 hover:border-white/20 text-white/70 hover:text-white transition-all duration-200 shadow-lg"
+            aria-label="Home"
+            title="Home"
+          >
+            <House className="w-4 h-4" />
+          </button>
+        )}
 
-{/* 🎛️ RIGHT SECTION: Home, Servers, AutoFix */}
-<div className="relative flex gap-3 pointer-events-auto">
+        {/* Server Picker */}
+        <div className="relative">
+          <button
+            onClick={() => setShowServers(!showServers)}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-full bg-white/8 hover:bg-white/16 backdrop-blur-xl border border-white/10 hover:border-white/20 text-white/70 hover:text-white transition-all duration-200 shadow-lg text-xs font-medium tracking-wide"
+            aria-label="Select Server"
+          >
+            <Layers className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="max-w-[72px] truncate">{currentSource?.label || 'Server'}</span>
+            <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${showServers ? 'rotate-180' : ''}`} />
+          </button>
 
-<button onClick={handleSourceError} disabled={isAutoSwitching} className="flex items-center gap-2 bg-red-500/20 text-red-200 hover:bg-red-500/30 backdrop-blur-md px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-red-500/20 transition-all disabled:opacity-50">
-<RefreshCw className={`w-3 h-3 md:w-4 md:h-4 ${isAutoSwitching ? 'animate-spin' : ''}`} />
-<span className="hidden md:inline">{isAutoSwitching ? 'Switching...' : 'Auto Fix'}</span>
-</button>
-
-{/* 3. Home Button */}
-{showHomeButton && (
-<button onClick={handleHome} className="flex items-center gap-2 bg-blue-600/20 text-blue-200 hover:bg-blue-600/30 backdrop-blur-md px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-blue-500/20 transition-all">
-<Home className="w-3 h-3 md:w-4 md:h-4" />
-<span className="hidden md:inline">Home</span>
-</button>
-)}
-
-<div className="relative">
-<button onClick={() => setShowServers(!showServers)} className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-xs md:text-sm font-medium hover:bg-white/20 border border-white/10 transition-all text-white">
-<Server className="w-3 h-3 md:w-4 md:h-4" />
-<span>{currentSource?.label || 'Server'}</span>
-</button>
-{showServers && (
-<div className="absolute right-0 top-full mt-2 w-56 bg-[#0f0f0f]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[210]">
-<div className="p-2 max-h-[60vh] overflow-y-auto scrollbar-hide">
-{sources.map((src, idx) => (
-<button key={idx} onClick={() => { setCurrentSourceIndex(idx); setShowServers(false); }} className={`w-full text-left px-4 py-3 text-sm rounded-lg transition-all ${currentSourceIndex === idx ? 'bg-white text-black font-bold shadow-lg' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}>
-<div className="flex items-center justify-between"><span>{src.label}</span>{currentSourceIndex === idx && <div className="w-2 h-2 rounded-full bg-green-500" />}</div>
-</button>
-))}
-</div>
-</div>
-)}
-</div>
-</div>
-</div>
+          {showServers && (
+            <div className="absolute right-0 top-full mt-2 w-52 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-[210]">
+              <div className="px-2 py-2 max-h-[60vh] overflow-y-auto scrollbar-hide">
+                {sources.map((src, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { setCurrentSourceIndex(idx); setShowServers(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 text-xs rounded-xl transition-all duration-150 ${
+                      currentSourceIndex === idx
+                        ? 'bg-white/15 text-white font-semibold'
+                        : 'text-white/50 hover:bg-white/8 hover:text-white/90'
+                    }`}
+                  >
+                    <span className="truncate">{src.label}</span>
+                    {currentSourceIndex === idx && <Check className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
 
 {isAutoSwitching && <div className="absolute inset-0 z-[202] flex items-center justify-center bg-black/90 backdrop-blur-sm"><div className="flex flex-col items-center gap-4 text-white animate-pulse"><RefreshCw className="w-10 h-10 animate-spin text-blue-500" /><p className="font-medium text-lg">Trying next server...</p></div></div>}
-{blobUrl && <iframe key={blobUrl} src={blobUrl} className="w-full h-full border-0 bg-black overflow-hidden" allowFullScreen sandbox="allow-forms allow-scripts allow-same-origin allow-presentation" onError={handleSourceError} />}
+{blobUrl && <iframe key={blobUrl} src={blobUrl} className="w-full h-full border-0 bg-black overflow-hidden" allowFullScreen onError={handleSourceError} />}
 </div>
 );
 }
