@@ -13,7 +13,7 @@ const SERVERS = [
   {
     id: 'vidme',
     label: 'Vidme',
-    baseUrl: "https://www.vidking.net/embed/tv/"
+    baseUrl: "https://player.videasy.net/tv"
   },
   {
     id: 'vidzy',
