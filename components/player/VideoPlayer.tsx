@@ -34,7 +34,7 @@ return '';
 // ⚙️ CONFIG: Define which sources should force the title to be HIDDEN or SHOWN
 // You can match by label (case-insensitive)
 const SOURCE_CONFIG = {
-hideTitle: ['vidly', 'vidme'],
+hideTitle: ['vidsrc', 'vidme'],
 showTitle: ['vidzy']
 };
 

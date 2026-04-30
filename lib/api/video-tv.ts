@@ -13,27 +13,25 @@ const SERVERS = [
   {
     id: 'vidme',
     label: 'Vidme',
-    baseUrl: "https://player.videasy.net/tv"
+    baseUrl: "https://player.videasy.net/tv/"
   },
   {
     id: 'vidzy',
     label: 'Vidzy',
-    baseUrl: "https://player.cinezo.live/embed/tv"
+    baseUrl: "https://player.cinezo.live/embed/tv/"
   },
   {
-    id: 'vidly',
-    label: 'Vidly',
-    baseUrl: "https://fmovies4u.com/embed/tmdb-tv-"
+    id: 'vidsrc',
+    label: 'VidSrc',
+    baseUrl: "https://vidsrc.xyz/embed/tv/"
   }
 ];
 
 // ⚙️ Configs (Suffixes with placeholders)
 const CONFIGS: Record<string, string> = {
-  vidly: "/${season}/${episode}?autoPlay=true",
-  bidsrc: "/${season}/${episode}",
-  vidlink: "/${season}/${episode}",
   vidme: "/${season}/${episode}",
   vidzy: "/${season}/${episode}",
+  vidsrc: "/${season}/${episode}",
 };
 
 export function getTVEmbed(id: string | number, season: number = 1, episode: number = 1): TVEmbedResult {

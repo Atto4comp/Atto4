@@ -13,27 +13,25 @@ const SERVERS = [
   {
     id: 'vidme',
     label: 'Vidme',
-    baseUrl: "https://player.videasy.net/movie"
+    baseUrl: "https://player.videasy.net/movie/"
   },
   {
     id: 'vidzy',
     label: 'Vidzy',
-    baseUrl: "https://player.cinezo.live/embed/movie"
+    baseUrl: "https://player.cinezo.live/embed/movie/"
   },
   {
-    id: 'vidly',
-    label: 'Vidly',
-    baseUrl: "https://fmovies4u.com/embed/tmdb-movie-"
+    id: 'vidsrc',
+    label: 'VidSrc',
+    baseUrl: "https://vidsrc.xyz/embed/movie/"
   }
 ];
 
 // ⚙️ Configs (Suffixes)
 const CONFIGS: Record<string, string> = {
-  vidly: "", // Result: .../tmdb-movie-123?autoPlay=false
-  bidsrc: "",               // Result: .../movie/123
-  vidlink: "",              // Result: .../movie/123
   vidme: "",
   vidzy: "",
+  vidsrc: "",
 };
 
 export function getMovieEmbed(id: string | number): MovieEmbedResult {
